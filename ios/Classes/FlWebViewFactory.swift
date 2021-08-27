@@ -2,7 +2,7 @@ import Flutter
 import Foundation
 import WebKit
 
-class FlWebview: NSObject, FlutterTexture, WKUIDelegate {
+class FlWebViewFactory: NSObject, FlutterTexture, WKUIDelegate {
     var _textureId: Int64?
     
     var _latestPixelBuffer: CVPixelBuffer?

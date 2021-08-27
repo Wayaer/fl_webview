@@ -1,14 +1,14 @@
 import Flutter
 import UIKit
 
-public class FlWebviewPlugin: NSObject, FlutterPlugin {
+public class FlWebViewPlugin: NSObject, FlutterPlugin {
     var channel: FlutterMethodChannel?
     var webview: FlWebview?
     var registrar: FlutterPluginRegistrar
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "fl.webview", binaryMessenger:
             registrar.messenger())
-        let instance = FlWebviewPlugin(registrar, channel)
+        let instance = FlWebViewPlugin(registrar, channel)
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
 

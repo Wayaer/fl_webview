@@ -1,3 +1,4 @@
+import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 
@@ -11,9 +12,34 @@ class App extends StatelessWidget {
     return ExtendedScaffold(
         appBar: AppBar(title: const Text('FlCamera Example')),
         mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          ElevatedText(onPressed: () {}, text: 'open webview'),
-        ]);
+        body: FlWebView(
+            javascriptMode: JavascriptMode.unrestricted,
+            // navigationDelegate: (NavigationRequest navigation) async {
+            //   log('navigationDelegate');
+            //   log(navigation.url);
+            //   return NavigationDecision.navigate;
+            // },
+            onWebViewCreated: (WebViewController controller) async {
+              log('onWebViewCreated');
+              log(await controller.currentUrl());
+            },
+            onPageStarted: (String url) {
+              log('onPageStarted');
+              log(url);
+            },
+            onPageFinished: (String url) {
+              log('onPageFinished');
+              log(url);
+            },
+            onProgress: (int progress) {
+              log('onProgress');
+              log(progress);
+            },
+            onSizeChanged: (Size size) {
+              log('onSizeChanged');
+              log(size);
+            },
+            initialUrl: 'https://zhuanlan.zhihu.com/p/62821195'));
   }
 }
 

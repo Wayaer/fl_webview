@@ -72,7 +72,6 @@ class FlWebViewPlatformView(
 
         if (params.containsKey("initialUrl")) {
             val url = params["initialUrl"] as String?
-            Log.v("webbiewwwww", "methodCall.method")
             webView.loadUrl(url!!)
         }
     }
@@ -81,28 +80,11 @@ class FlWebViewPlatformView(
     override fun getView(): View {
         return webView
     }
-//
-//    override fun onInputConnectionUnlocked() {
-//        webView.unlockInputConnection()
-//    }
-//
-//    override fun onInputConnectionLocked() {
-//        webView.lockInputConnection()
-//    }
-//
-//    override fun onFlutterViewAttached(view: View) {
-//        webView.setContainerView(view)
-//    }
-//
-//    override fun onFlutterViewDetached() {
-//        webView.setContainerView(null)
-//    }
 
     override fun onMethodCall(
         methodCall: MethodCall,
         result: MethodChannel.Result
     ) {
-        Log.v("webbiewwwww", methodCall.method)
         when (methodCall.method) {
             "loadUrl" -> loadUrl(methodCall, result)
             "updateSettings" -> {
@@ -210,8 +192,6 @@ class FlWebViewPlatformView(
 
     private fun applySettings(settings: Map<String, Any>) {
         for (key in settings.keys) {
-            Log.v("webbiewwwww", key)
-            Log.v("webbiewwwww", settings[key].toString())
             when (key) {
                 "jsMode" -> {
                     val mode = settings[key] as Int?

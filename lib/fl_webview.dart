@@ -710,5 +710,5 @@ class CookieManager {
 
   Future<bool> clearCookies() => _cookieManagerChannel
       .invokeMethod<bool>('clearCookies')
-      .then<bool>((bool? result) => result!);
+      .then<bool>((bool? result) => result??false);
 }

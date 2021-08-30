@@ -18,10 +18,10 @@ class FlWebViewPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     override fun onAttachedToEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         val messenger = binding.binaryMessenger
         binding.platformViewRegistry.registerViewFactory(
-                "fl_web_view",
+                "fl.webview",
                 FlWebViewFactory(messenger)
         )
-        cookieChannel = MethodChannel(messenger, "fl_web_view/cookie_manager")
+        cookieChannel = MethodChannel(messenger, "fl.webview/cookie_manager")
         cookieChannel.setMethodCallHandler(this)
     }
 
@@ -42,7 +42,7 @@ class FlWebViewPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             val params = args as Map<String, Any?>
             val methodChannel = MethodChannel(
                     messenger,
-                    "fl_web_view_$id"
+                    "fl.webview/$id"
             )
             return FlWebViewPlatformView(
                     context, methodChannel, params

@@ -5,13 +5,11 @@ public class FlWebViewPlugin: NSObject, FlutterPlugin {
     var cookieChannel: FlutterMethodChannel?
 
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let cookieChannel = FlutterMethodChannel(name: "fl_web_view/cookie_manager", binaryMessenger:
+        registrar.register(FlWebViewFactory(registrar.messenger()), withId: "fl.webview")
+
+        let cookieChannel = FlutterMethodChannel(name: "fl.webview/cookie_manager", binaryMessenger:
             registrar.messenger())
-
         let instance = FlWebViewPlugin(cookieChannel)
-
-        registrar.register(FlWebViewFactory(registrar.messenger()), withId: "fl_web_view")
-
         registrar.addMethodCallDelegate(instance, channel: cookieChannel)
     }
 
@@ -43,7 +41,7 @@ public class FlWebViewPlugin: NSObject, FlutterPlugin {
                 dataStore.removeData(
                     ofTypes: websiteDataTypes,
                     for: cookies) {
-                    result(NSNumber(value: hasCookies))
+                        result(NSNumber(value: hasCookies))
                 }
             }
         }
@@ -59,9 +57,12 @@ class FlWebViewFactory: NSObject, FlutterPlatformViewFactory {
         super.init()
     }
 
+    func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
+        FlutterStandardMessageCodec.sharedInstance()
+    }
+
     func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
-        print(args)
-        return FlWebViewPlatformView(frame, viewId, args as! [String: Any], messenger)
+        FlWebViewPlatformView(frame, viewId, args as! [String: Any], messenger)
     }
 }
 

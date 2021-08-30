@@ -83,7 +83,7 @@ class FlWebViewClient(
                 "url" to url
             )
         )
-        view?.contentHeight?.let { onContentSizeChanged(it) }
+        view?.contentHeight?.let { onContentSize(it) }
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -102,10 +102,10 @@ class FlWebViewClient(
         }
     }
 
-    private fun onContentSizeChanged(height: Int) {
+    private fun onContentSize(height: Int) {
         if (hasContentSizeTracking) {
             invokeMethod(
-                "onContentSizeChanged", mapOf(
+                "onContentSize", mapOf(
                     "width" to 0.0,
                     "height" to height.toDouble(),
                 )

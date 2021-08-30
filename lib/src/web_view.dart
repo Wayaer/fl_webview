@@ -8,7 +8,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 typedef WebViewPlatformCreatedCallback = void Function(
-    FlWebViewMethodChannel? webViewPlatformController);
+    FlWebViewMethodChannel? webController);
 
 abstract class WebViewPlatform {
   Widget build({
@@ -30,7 +30,7 @@ class AndroidWebView extends WebViewPlatform {
     Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers,
   }) =>
       PlatformViewLink(
-          viewType: 'fl_web_view',
+          viewType: 'fl.webview',
           surfaceFactory:
               (BuildContext context, PlatformViewController controller) =>
                   AndroidViewSurface(
@@ -41,7 +41,7 @@ class AndroidWebView extends WebViewPlatform {
           onCreatePlatformView: (PlatformViewCreationParams params) {
             return PlatformViewsService.initSurfaceAndroidView(
                 id: params.id,
-                viewType: 'fl_web_view',
+                viewType: 'fl.webview',
                 layoutDirection: TextDirection.rtl,
                 creationParams: creationParams.toMap(),
                 creationParamsCodec: const StandardMessageCodec())
@@ -66,7 +66,7 @@ class CupertinoWebView implements WebViewPlatform {
     Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers,
   }) =>
       UiKitView(
-          viewType: 'fl_web_view',
+          viewType: 'fl.webview',
           onPlatformViewCreated: (int id) {
             if (onWebViewPlatformCreated == null) {
               return;

@@ -181,6 +181,7 @@ class WebSettings {
   ///
   /// The `userAgent` parameter must not be null.
   WebSettings({
+    this.autoMediaPlaybackPolicy = AutoMediaPlaybackPolicy.always_allow,
     this.javascriptMode,
     this.hasNavigationDelegate,
     this.hasProgressTracking,
@@ -190,6 +191,9 @@ class WebSettings {
     this.hasContentSizeTracking,
     required this.userAgent,
   });
+
+  /// Which restrictions apply on automatic media playback.
+  final AutoMediaPlaybackPolicy autoMediaPlaybackPolicy;
 
   /// The JavaScript execution mode to be used by the webview.
   JavascriptMode? javascriptMode;
@@ -237,6 +241,7 @@ class WebSettings {
         'hasNavigationDelegate': hasNavigationDelegate,
         'hasProgressTracking': hasProgressTracking,
         'hasContentSizeTracking': hasContentSizeTracking,
+        'autoMediaPlaybackPolicy': autoMediaPlaybackPolicy.index,
       };
 
   WebSettings update(WebSettings newSettings) {
@@ -275,8 +280,6 @@ class CreationParams {
     this.webSettings,
     this.javascriptChannelNames = const <String>{},
     this.userAgent,
-    this.autoMediaPlaybackPolicy =
-        AutoMediaPlaybackPolicy.require_user_action_for_all_media_types,
   });
 
   /// The initialUrl to load in the webview.
@@ -298,7 +301,6 @@ class CreationParams {
   /// ```javascript
   /// Foo.postMessage('hello');
   /// ```
-  // TODO(amirh): describe what should happen when postMessage is called once that code is migrated
   // to PlatformWebView.
   final Set<String> javascriptChannelNames;
 
@@ -307,14 +309,10 @@ class CreationParams {
   /// When null the platform's webview default is used for the User-Agent header.
   final String? userAgent;
 
-  /// Which restrictions apply on automatic media playback.
-  final AutoMediaPlaybackPolicy autoMediaPlaybackPolicy;
-
   Map<String, dynamic> toMap() => <String, dynamic>{
         'initialUrl': initialUrl,
         'settings': webSettings?.toMap(),
         'javascriptChannelNames': javascriptChannelNames.toList(),
         'userAgent': userAgent,
-        'autoMediaPlaybackPolicy': autoMediaPlaybackPolicy.index,
       };
 }

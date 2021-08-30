@@ -10,7 +10,7 @@ class FlWebViewMethodChannel {
   /// Constructs an instance that will listen for webviews broadcasting to the
   /// given [id], using the given [WebViewCallbacksHandler].
   FlWebViewMethodChannel(int id, this._callbackHandler)
-      : _channel = MethodChannel('fl_web_view_$id') {
+      : _channel = MethodChannel('fl.webview/$id') {
     _channel.setMethodCallHandler(_onMethodCall);
   }
 
@@ -27,9 +27,8 @@ class FlWebViewMethodChannel {
         return true;
       case 'navigationRequest':
         return await _callbackHandler.onNavigationRequest(
-          url: call.arguments['url']! as String,
-          isForMainFrame: call.arguments['isForMainFrame']! as bool,
-        );
+            url: call.arguments['url']! as String,
+            isForMainFrame: call.arguments['isForMainFrame']! as bool);
       case 'onPageFinished':
         _callbackHandler.onPageFinished(call.arguments['url']! as String);
         return null;
@@ -39,7 +38,9 @@ class FlWebViewMethodChannel {
       case 'onPageStarted':
         _callbackHandler.onPageStarted(call.arguments['url']! as String);
         return null;
-      case 'onContentSizeChanged':
+      case 'onContentSize':
+
+        /// width is 0.0 on Android
         final double width = call.arguments['width'] as double;
         final double height = call.arguments['height'] as double;
         _callbackHandler.onSizeChanged(Size(width, height));
@@ -61,8 +62,7 @@ class FlWebViewMethodChannel {
     }
 
     throw MissingPluginException(
-      '${call.method} was invoked but has no handler',
-    );
+        '${call.method} was invoked but has no handler');
   }
 
   Future<void> loadUrl(String url, Map<String, String>? headers) =>
@@ -88,9 +88,8 @@ class FlWebViewMethodChannel {
 
   Future<void> updateSettings(WebSettings settings) async {
     final Map<String, dynamic> updatesMap = settings.toMap();
-    if (updatesMap.isNotEmpty) {
+    if (updatesMap.isNotEmpty)
       return await _channel.invokeMethod<void>('updateSettings', updatesMap);
-    }
   }
 
   Future<String> evaluateJavascript(String javascriptString) {
@@ -122,12 +121,4 @@ class FlWebViewMethodChannel {
 
   Future<int> getScrollY() =>
       _channel.invokeMethod<int>('getScrollY').then((int? result) => result!);
-
-  void getContentSize() {
-    _channel.setMockMethodCallHandler((MethodCall call) {
-      if (call.method == 'getWebContentSize') {
-        print(call.arguments);
-      }
-    });
-  }
 }

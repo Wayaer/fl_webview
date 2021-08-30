@@ -118,7 +118,7 @@ class FlWKProgressionDelegate: NSObject {
             context: nil)
     }
 
-    func stopObservingProgress(_ webView: WKWebView?) {
+    func stopObserving(_ webView: WKWebView?) {
         webView?.removeObserver(self, forKeyPath: estimatedProgressKeyPath)
     }
 
@@ -129,6 +129,41 @@ class FlWKProgressionDelegate: NSObject {
             channel.invokeMethod("onProgress", arguments: [
                 "progress": NSNumber(value: newValueAsInt),
             ])
+        }
+    }
+}
+
+class FlWKContentSizeDelegate: NSObject {
+    var channel: FlutterMethodChannel
+    let contentSizeKeyPath = "contentSize"
+
+    var height: CGFloat = 10
+
+    init(_ webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
+        channel = methodChannel
+        super.init()
+        webView.scrollView.addObserver(
+            self,
+            forKeyPath: contentSizeKeyPath,
+            options: .new,
+            context: nil)
+    }
+
+    func stopObserving(_ webView: WKWebView?) {
+        webView?.scrollView.removeObserver(self, forKeyPath: contentSizeKeyPath)
+    }
+
+    override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == contentSizeKeyPath {
+            let size = change?[NSKeyValueChangeKey.newKey] as! CGSize
+            if height < size.height {
+                print(size)
+                height = size.height
+                channel.invokeMethod("onContentSize", arguments: [
+                    "width": size.width,
+                    "height": size.height,
+                ])
+            }
         }
     }
 }

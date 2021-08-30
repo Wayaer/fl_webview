@@ -5,12 +5,10 @@ import android.content.Context
 import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebStorage
 import android.webkit.WebView
-import fl.webview.view.DisplayListenerProxy
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
@@ -54,16 +52,13 @@ class FlWebViewPlatformView(
         displayListenerProxy.onPostWebViewInitialization(displayManager)
 
         /// 初始化相关参数
-        val settings = params["settings"] as Map<String, Any>?
-        settings?.let { applySettings(it) }
+
+        applySettings(params["settings"] as Map<String, Any>)
 
         if (params.containsKey(javascriptChannelNames)) {
             val names = params[javascriptChannelNames] as List<String>?
             names?.let { registerJavaScriptChannelNames(it) }
         }
-
-        val autoMediaPlaybackPolicy = params["autoMediaPlaybackPolicy"] as Int?
-        autoMediaPlaybackPolicy?.let { updateAutoMediaPlaybackPolicy(it) }
 
         if (params.containsKey("userAgent")) {
             val userAgent = params["userAgent"] as String?
@@ -191,27 +186,25 @@ class FlWebViewPlatformView(
 
 
     private fun applySettings(settings: Map<String, Any>) {
-        for (key in settings.keys) {
+        settings.forEach { entry ->
+            val key = entry.key
+            val value = entry.value
             when (key) {
                 "jsMode" -> {
                     val mode = settings[key] as Int?
                     mode?.let { updateJsMode(it) }
                 }
                 "hasNavigationDelegate" -> {
-                    val value = settings[key] as Boolean
-                    if (value) {
+                    if (value as Boolean) {
                         getFlWebViewClient()
                         flWebViewClient?.hasContentSizeTracking = value
                     }
                 }
-                "debuggingEnabled" -> {
-                    val debuggingEnabled = settings[key] as Boolean
-                    WebView.setWebContentsDebuggingEnabled(debuggingEnabled)
-                }
+                "debuggingEnabled" ->
+                    WebView.setWebContentsDebuggingEnabled(value as Boolean)
+
                 "hasProgressTracking" -> {
-                    val value =
-                        settings[key] as Boolean
-                    if (value) {
+                    if (value as Boolean) {
                         getFlWebViewClient()
                         val flWebChromeClient =
                             flWebViewClient?.let {
@@ -227,15 +220,18 @@ class FlWebViewPlatformView(
                     }
                 }
                 "hasContentSizeTracking" -> {
-                    val value = settings[key] as Boolean
-                    if (value) {
+                    if (value as Boolean) {
                         getFlWebViewClient()
                         flWebViewClient?.hasContentSizeTracking = true
                     }
                 }
-
                 "gestureNavigationEnabled" -> {
 
+                }
+                "autoMediaPlaybackPolicy" -> {
+                    val requireUserGesture = value != 1
+                    webView.settings.mediaPlaybackRequiresUserGesture =
+                        requireUserGesture
                 }
                 "userAgent" -> updateUserAgent(settings[key] as String?)
                 "allowsInlineMediaPlayback" -> {
@@ -264,11 +260,6 @@ class FlWebViewPlatformView(
         }
     }
 
-    private fun updateAutoMediaPlaybackPolicy(mode: Int) {
-        val requireUserGesture = mode != 1
-        webView.settings.mediaPlaybackRequiresUserGesture =
-            requireUserGesture
-    }
 
     @SuppressLint("AddJavascriptInterface")
     private fun registerJavaScriptChannelNames(channelNames: List<String>) {

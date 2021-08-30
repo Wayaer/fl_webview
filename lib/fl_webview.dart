@@ -299,21 +299,10 @@ class _WebViewState extends State<FlWebView> {
       Completer<WebViewController>();
 
   late WebViewCallbacksHandler _callbackHandler;
+  late WebViewPlatform platform;
 
   @override
   Widget build(BuildContext context) {
-    WebViewPlatform? platform;
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        platform = AndroidWebView();
-        break;
-      case TargetPlatform.iOS:
-        platform = CupertinoWebView();
-        break;
-      default:
-        throw UnsupportedError(
-            "Trying to use the default webview implementation for $defaultTargetPlatform but there isn't a default one");
-    }
     return platform.build(
         context: context,
         onWebViewPlatformCreated: _onWebViewPlatformCreated,
@@ -327,6 +316,17 @@ class _WebViewState extends State<FlWebView> {
     super.initState();
     _assertJavascriptChannelNamesAreUnique();
     _callbackHandler = WebViewCallbacksHandler(widget);
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        platform = AndroidWebView();
+        break;
+      case TargetPlatform.iOS:
+        platform = CupertinoWebView();
+        break;
+      default:
+        throw UnsupportedError(
+            "Trying to use the default webview implementation for $defaultTargetPlatform but there isn't a default one");
+    }
   }
 
   @override
@@ -360,11 +360,11 @@ class _WebViewState extends State<FlWebView> {
 
 extension ExtensionFlWebView on FlWebView {
   CreationParams get creationParams => CreationParams(
-      initialUrl: initialUrl,
-      webSettings: webSettings,
-      javascriptChannelNames: _extractChannelNames(javascriptChannels),
-      userAgent: userAgent,
-      autoMediaPlaybackPolicy: initialMediaPlaybackPolicy);
+        initialUrl: initialUrl,
+        webSettings: webSettings,
+        javascriptChannelNames: _extractChannelNames(javascriptChannels),
+        userAgent: userAgent,
+      );
 
   WebSettings get webSettings => WebSettings(
       javascriptMode: javascriptMode,
@@ -372,50 +372,11 @@ extension ExtensionFlWebView on FlWebView {
       hasProgressTracking: onProgress != null,
       hasContentSizeTracking: onSizeChanged != null,
       debuggingEnabled: debuggingEnabled,
+      autoMediaPlaybackPolicy: initialMediaPlaybackPolicy,
       gestureNavigationEnabled: gestureNavigationEnabled,
       allowsInlineMediaPlayback: allowsInlineMediaPlayback,
       userAgent: WebSetting<String?>.of(userAgent));
 }
-
-// // This method assumes that no fields in `currentValue` are null.
-// WebSettings _clearUnchangedWebSettings(
-//     WebSettings currentValue, WebSettings newValue) {
-//   assert(currentValue.javascriptMode != null);
-//   assert(currentValue.hasNavigationDelegate != null);
-//   assert(currentValue.hasProgressTracking != null);
-//   assert(currentValue.hasContentSizeTracking != null);
-//   assert(currentValue.debuggingEnabled != null);
-//   assert(newValue.javascriptMode != null);
-//   assert(newValue.hasNavigationDelegate != null);
-//   assert(newValue.debuggingEnabled != null);
-//
-//   JavascriptMode? javascriptMode;
-//   bool? hasNavigationDelegate;
-//   bool? hasProgressTracking;
-//   bool? debuggingEnabled;
-//   WebSetting<String?> userAgent = WebSetting<String?>.absent();
-//   if (currentValue.javascriptMode != newValue.javascriptMode) {
-//     javascriptMode = newValue.javascriptMode;
-//   }
-//   if (currentValue.hasNavigationDelegate != newValue.hasNavigationDelegate) {
-//     hasNavigationDelegate = newValue.hasNavigationDelegate;
-//   }
-//   if (currentValue.hasProgressTracking != newValue.hasProgressTracking) {
-//     hasProgressTracking = newValue.hasProgressTracking;
-//   }
-//   if (currentValue.debuggingEnabled != newValue.debuggingEnabled) {
-//     debuggingEnabled = newValue.debuggingEnabled;
-//   }
-//   if (currentValue.userAgent != newValue.userAgent) {
-//     userAgent = newValue.userAgent;
-//   }
-//   return WebSettings(
-//       javascriptMode: javascriptMode,
-//       hasNavigationDelegate: hasNavigationDelegate,
-//       hasProgressTracking: hasProgressTracking,
-//       debuggingEnabled: debuggingEnabled,
-//       userAgent: userAgent);
-// }
 
 Set<String> _extractChannelNames(Set<JavascriptChannel>? channels) {
   final Set<String> channelNames = channels == null
@@ -599,13 +560,9 @@ class WebViewController {
 
   Future<void> _updateWidget(FlWebView widget) async {
     _widget = widget;
-    await _updateSettings(widget.webSettings);
+    _settings.update(widget.webSettings);
+    await _methodChannel.updateSettings(_settings);
     await _updateJavascriptChannels(widget.javascriptChannels);
-  }
-
-  Future<void> _updateSettings(WebSettings newSettings) {
-    _settings.update(newSettings);
-    return _methodChannel.updateSettings(_settings);
   }
 
   Future<void> _updateJavascriptChannels(
@@ -700,7 +657,7 @@ class CookieManager {
   static CookieManager? _instance;
 
   final MethodChannel _cookieManagerChannel =
-      const MethodChannel('fl_web_view/cookie_manager');
+      const MethodChannel('fl.webview/cookie_manager');
 
   /// Clears all cookies for all [WebView] instances.
   ///
@@ -710,5 +667,5 @@ class CookieManager {
 
   Future<bool> clearCookies() => _cookieManagerChannel
       .invokeMethod<bool>('clearCookies')
-      .then<bool>((bool? result) => result??false);
+      .then<bool>((bool? result) => result ?? false);
 }

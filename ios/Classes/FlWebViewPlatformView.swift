@@ -8,11 +8,12 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
 
     var navigationDelegate: FlWKNavigationDelegate?
     var progressionDelegate: FlWKProgressionDelegate?
+    var contentSizeDelegate: FlWKContentSizeDelegate?
 
     var javaScriptChannelNames: Set<AnyHashable> = []
 
     init(_ _frame: CGRect, _ viewId: Int64, _ args: [String: Any?], _ messenger: FlutterBinaryMessenger) {
-        channel = FlutterMethodChannel(name: "fl_web_view_\(String(viewId))", binaryMessenger: messenger)
+        channel = FlutterMethodChannel(name: "fl.webview/\(String(viewId))", binaryMessenger: messenger)
         super.init()
         channel.setMethodCallHandler(handle)
         let userContentController = WKUserContentController()
@@ -26,9 +27,9 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         let settings = args["settings"]
 
         let configuration = WKWebViewConfiguration()
-        applyConfigurationSettings(settings as! [String: Any?], configuration)
+//        applyConfigurationSettings(settings as! [String: Any?], configuration)
         configuration.userContentController = userContentController
-        updateAutoMediaPlaybackPolicy(args["autoMediaPlaybackPolicy"] as! NSNumber, configuration)
+//        updateAutoMediaPlaybackPolicy(args[""] as! NSNumber, configuration)
 
         webView = FlWebView(frame: _frame, configuration: configuration)
 
@@ -36,14 +37,14 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         webView!.uiDelegate = self
         webView!.navigationDelegate = navigationDelegate
 
+        _ = applySettings(settings as! [String: Any])
+
         if #available(iOS 11.0, *) {
             webView!.scrollView.contentInsetAdjustmentBehavior = .never
             if #available(iOS 13.0, *) {
                 webView!.scrollView.automaticallyAdjustsScrollIndicatorInsets = false
             }
         }
-
-        _ = applySettings(settings as! [String: Any])
         _ = loadRequest(args["initialUrl"] as! String?, [:])
     }
 
@@ -51,14 +52,12 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         switch call.method {
         case "updateSettings":
             onUpdateSettings(call, result)
-            break
         case "loadUrl":
             onLoadUrl(call, result)
         case "canGoBack":
             result(webView!.canGoBack)
         case "canGoForward":
             result(webView!.canGoForward)
-            break
         case "goBack":
             webView!.goBack()
             result(nil)
@@ -72,39 +71,32 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             result(webView!.url?.absoluteString)
         case "evaluateJavascript":
             onEvaluateJavaScript(call, result)
-            break
         case "addJavascriptChannels":
             onAddJavaScriptChannels(call, result)
-            break
         case "removeJavascriptChannels":
             onRemoveJavaScriptChannels(call, result)
-            break
         case "clearCache":
             clearCache(result)
-            break
         case "getTitle":
             result(webView!.title)
-            break
         case "scrollTo":
             onScrollTo(call, result)
-            break
         case "scrollBy":
             onScrollBy(call, result)
         case "getScrollX":
             let offsetX = Int(webView!.scrollView.contentOffset.x)
             result(NSNumber(value: offsetX))
-            break
         case "getScrollY":
             let offsetY = Int(webView!.scrollView.contentOffset.y)
             result(NSNumber(value: offsetY))
-            break
         default:
             result(FlutterMethodNotImplemented)
         }
     }
 
     func registerJavaScriptChannels(
-        _ channelNames: Set<AnyHashable>?, controller userContentController: WKUserContentController?) {
+        _ channelNames: Set<AnyHashable>?, controller userContentController: WKUserContentController?)
+    {
         for channelName in channelNames ?? [] {
             guard let channelName = channelName as? String else {
                 continue
@@ -194,7 +186,7 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         dataStore.removeData(
             ofTypes: cacheDataTypes,
             modifiedSince: dateFrom) {
-            result(nil)
+                result(nil)
         }
     }
 
@@ -225,14 +217,44 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             case "hasNavigationDelegate":
                 navigationDelegate!.hasDartNavigationDelegate = value as! Bool
             case "hasProgressTracking":
-                progressionDelegate = FlWKProgressionDelegate(webView!, channel)
+                if value as! Bool {
+                    if progressionDelegate == nil {
+                        progressionDelegate = FlWKProgressionDelegate(webView!, channel)
+                    }
+                } else {
+                    progressionDelegate?.stopObserving(webView)
+                }
+            case "hasContentSizeTracking":
+                if value as! Bool {
+                    if contentSizeDelegate == nil {
+                        contentSizeDelegate = FlWKContentSizeDelegate(webView!, channel)
+                    }
+                } else {
+                    contentSizeDelegate?.stopObserving(webView)
+                }
             case "debuggingEnabled":
                 // no-op debugging is always enabled on iOS.
                 break
             case "gestureNavigationEnabled":
                 webView!.allowsBackForwardNavigationGestures = value as! Bool
             case "userAgent":
-                webView!.customUserAgent = value as! String?
+                let userAgent = value as? String?
+                if userAgent != nil {
+                    webView!.customUserAgent = userAgent!!
+                }
+            case "allowsInlineMediaPlayback":
+                let allowsInlineMediaPlayback = value as? NSNumber
+                webView?.configuration.allowsInlineMediaPlayback = allowsInlineMediaPlayback?.boolValue ?? false
+            case "autoMediaPlaybackPolicy":
+                let policy = value as! Int
+                switch policy {
+                case 0:
+                    webView?.configuration.mediaTypesRequiringUserActionForPlayback = .all
+                case 1:
+                    webView?.configuration.mediaTypesRequiringUserActionForPlayback = .audio
+                default:
+                    print("fl_webview: unknown auto media playback policy: \(String(describing: value))")
+                }
             default:
                 unknownKeys.append(key)
             }
@@ -241,18 +263,6 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             return nil
         }
         return "fl_webview: unknown setting keys:\(unknownKeys.joined(separator: ","))"
-    }
-
-    func applyConfigurationSettings(_ settings: [String: Any?], _ configuration: WKWebViewConfiguration) {
-        settings.forEach { (key: String, value: Any?) in
-            switch key {
-            case "allowsInlineMediaPlayback":
-                let allowsInlineMediaPlayback = value as? NSNumber
-                configuration.allowsInlineMediaPlayback = allowsInlineMediaPlayback?.boolValue ?? false
-            default:
-                break
-            }
-        }
     }
 
     func updateJsMode(_ mode: NSNumber?) {
@@ -264,19 +274,6 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             preferences.javaScriptEnabled = true
         default:
             print("fl_webview: unknown JavaScript mode: \(mode ?? 0)")
-        }
-    }
-
-    func updateAutoMediaPlaybackPolicy(_ policy: NSNumber, _ configuration: WKWebViewConfiguration) {
-        switch policy.intValue {
-        case 0:
-            configuration.mediaTypesRequiringUserActionForPlayback = .all
-            break
-        case 1:
-            configuration.mediaTypesRequiringUserActionForPlayback = .audio
-            break
-        default:
-            print("fl_webview: unknown auto media playback policy: \(policy)")
         }
     }
 
@@ -297,8 +294,8 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
 
     func registerJavaScriptChannels(
         _ channelNames: Set<AnyHashable>,
-        _ userContentController: WKUserContentController?
-    ) {
+        _ userContentController: WKUserContentController?)
+    {
         for channelName in channelNames {
             guard let channelName = channelName as? String else {
                 continue
@@ -324,5 +321,14 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
 
     public func view() -> UIView {
         webView!
+    }
+
+    deinit {
+        if progressionDelegate != nil {
+            progressionDelegate?.stopObserving(webView!)
+        }
+        if contentSizeDelegate != nil {
+            contentSizeDelegate?.stopObserving(webView!)
+        }
     }
 }

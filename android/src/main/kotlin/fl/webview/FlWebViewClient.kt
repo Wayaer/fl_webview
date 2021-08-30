@@ -51,7 +51,6 @@ class FlWebViewClient(
         view: WebView?,
         request: WebResourceRequest?
     ): Boolean {
-        Log.v("webbiewwwww", "shouldOverrideUrlLoading")
         if (hasNavigationDelegate && view != null && request != null) {
             notifyOnNavigationRequest(
                 request.url.toString(),
@@ -77,7 +76,6 @@ class FlWebViewClient(
 
     override fun onPageFinished(view: WebView?, url: String?) {
         super.onPageFinished(view, url)
-        Log.d("webbiewwwww", "onPageFinished")
         invokeMethod(
             "onPageFinished", mapOf(
                 "url" to url

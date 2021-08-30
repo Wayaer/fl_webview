@@ -157,7 +157,6 @@ class FlWKContentSizeDelegate: NSObject {
         if keyPath == contentSizeKeyPath {
             let size = change?[NSKeyValueChangeKey.newKey] as! CGSize
             if height < size.height {
-                print(size)
                 height = size.height
                 channel.invokeMethod("onContentSize", arguments: [
                     "width": size.width,

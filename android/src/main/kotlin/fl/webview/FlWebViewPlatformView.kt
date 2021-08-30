@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.webkit.JavascriptInterface
+import android.webkit.WebSettings
 import android.webkit.WebStorage
 import android.webkit.WebView
 import io.flutter.plugin.common.MethodCall
@@ -37,14 +38,23 @@ class FlWebViewPlatformView(
 
         webView.apply {
             settings.apply {
+                loadsImagesAutomatically = true
                 domStorageEnabled = true
                 javaScriptCanOpenWindowsAutomatically = true
+                layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
+                mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
                 setSupportMultipleWindows(true)
                 allowFileAccess = true
                 setSupportZoom(true)
+                setGeolocationEnabled(true)
                 useWideViewPort = true
                 blockNetworkImage = false
                 builtInZoomControls = false
+                loadWithOverviewMode = true
+                displayZoomControls = true
+                allowContentAccess = true
+                mediaPlaybackRequiresUserGesture = false
+                databaseEnabled = true
             }
         }
 

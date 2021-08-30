@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:fl_webview/fl_webview.dart';
-import 'package:fl_webview/platform_interface.dart';
+import 'package:fl_webview/src/platform_interface.dart';
 import 'package:flutter/services.dart';
 
 /// A [FlWebViewMethodChannel] that uses a method channel to control the webview.

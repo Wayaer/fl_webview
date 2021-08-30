@@ -12,8 +12,8 @@ dependencies:
     path: ../
   flutter:
     sdk: flutter
-  flutter_waya: ^1.13.0
   flutter_curiosity: ^3.2.0
+  flutter_waya: ^1.13.0
 
 dev_dependencies:
   flutter_test:

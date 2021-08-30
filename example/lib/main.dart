@@ -94,36 +94,34 @@ class _FlWebView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FlWebView(
-      javascriptMode: JavascriptMode.unrestricted,
-      navigationDelegate: (NavigationRequest navigation) async {
-        log('navigationDelegate');
-        log(navigation.url);
-        return NavigationDecision.navigate;
-      },
-      onWebViewCreated: (WebViewController controller) async {
-        log('onWebViewCreated');
-        log(await controller.currentUrl());
-      },
-      onPageStarted: (String url) {
-        log('onPageStarted');
-        log(url);
-      },
-      onPageFinished: (String url) {
-        log('onPageFinished');
-        log(url);
-      },
-      onProgress: (int progress) {
-        log('onProgress');
-        log(progress);
-      },
-      onSizeChanged: onSizeChanged ??
-          (Size size) {
-            log('onSizeChanged');
-            log(size);
-          },
-      // initialUrl: 'https://zhuanlan.zhihu.com/p/62821195',
-      initialUrl: 'https://mp.weixin.qq.com/s?__biz=MjM5NTQ5MTA3MA==&mid=504333012&idx=1&sn=526559d0e7282dcf4b852e6ba154c699&chksm=3d0c9f450a7b16539fc4c8ee20c18b93e500fe6111d6029173bf7bfb9af66755b62f15a24ca5#rd',
-    );
+        javascriptMode: JavascriptMode.unrestricted,
+        navigationDelegate: (NavigationRequest navigation) async {
+          log('navigationDelegate');
+          log(navigation.url);
+          return NavigationDecision.navigate;
+        },
+        onWebViewCreated: (WebViewController controller) async {
+          log('onWebViewCreated');
+          log(await controller.currentUrl());
+        },
+        onPageStarted: (String url) {
+          log('onPageStarted');
+          log(url);
+        },
+        onPageFinished: (String url) {
+          log('onPageFinished');
+          log(url);
+        },
+        onProgress: (int progress) {
+          log('onProgress');
+          log(progress);
+        },
+        onSizeChanged: onSizeChanged ??
+            (Size size) {
+              log('onSizeChanged');
+              log(size);
+            },
+        initialUrl: 'https://zhuanlan.zhihu.com/p/62821195');
   }
 }
 

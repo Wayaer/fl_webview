@@ -34,17 +34,19 @@ class FlWebViewPlatformView(
 
         /// 初始化webView
         webView = WebView(context)
-        val webSettings = webView.settings
-        webSettings.domStorageEnabled = true
-        webSettings.javaScriptCanOpenWindowsAutomatically =
-            true
-        webSettings.setSupportMultipleWindows(true)
 
-        webSettings.allowFileAccess = true
-        webSettings.setSupportZoom(true)
-        webSettings.useWideViewPort = true
-        webSettings.blockNetworkImage = false
-        webSettings.builtInZoomControls = false
+        webView.apply {
+            settings.apply {
+                domStorageEnabled = true
+                javaScriptCanOpenWindowsAutomatically = true
+                setSupportMultipleWindows(true)
+                allowFileAccess = true
+                setSupportZoom(true)
+                useWideViewPort = true
+                blockNetworkImage = false
+                builtInZoomControls = false
+            }
+        }
 
         /// 初始化 MethodCallHandler
         methodChannel.setMethodCallHandler(this)
@@ -52,7 +54,6 @@ class FlWebViewPlatformView(
         displayListenerProxy.onPostWebViewInitialization(displayManager)
 
         /// 初始化相关参数
-
         applySettings(params["settings"] as Map<String, Any>)
 
         if (params.containsKey(javascriptChannelNames)) {
@@ -61,8 +62,7 @@ class FlWebViewPlatformView(
         }
 
         if (params.containsKey("userAgent")) {
-            val userAgent = params["userAgent"] as String?
-            updateUserAgent(userAgent)
+            webView.settings.userAgentString = params["userAgent"] as String?
         }
 
         if (params.containsKey("initialUrl")) {
@@ -202,7 +202,6 @@ class FlWebViewPlatformView(
                 }
                 "debuggingEnabled" ->
                     WebView.setWebContentsDebuggingEnabled(value as Boolean)
-
                 "hasProgressTracking" -> {
                     if (value as Boolean) {
                         getFlWebViewClient()
@@ -233,7 +232,8 @@ class FlWebViewPlatformView(
                     webView.settings.mediaPlaybackRequiresUserGesture =
                         requireUserGesture
                 }
-                "userAgent" -> updateUserAgent(settings[key] as String?)
+                "userAgent" -> webView.settings.userAgentString = value as
+                        String?
                 "allowsInlineMediaPlayback" -> {
                 }
                 else -> throw IllegalArgumentException("Unknown WebView setting: $key")
@@ -271,9 +271,6 @@ class FlWebViewPlatformView(
         }
     }
 
-    private fun updateUserAgent(userAgent: String?) {
-        webView.settings.userAgentString = userAgent
-    }
 
     override fun dispose() {
         methodChannel.setMethodCallHandler(null)

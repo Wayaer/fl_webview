@@ -12,7 +12,7 @@ class App extends StatelessWidget {
     return ExtendedScaffold(
         appBar: AppBar(title: const Text('FlCamera Example')),
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           ElevatedText(
               text: 'Fixed height',
               onPressed: () => push(const _FixedHeightFlWebView())),
@@ -39,7 +39,7 @@ class _AdaptiveHeightFlWebViewState extends State<_AdaptiveHeightFlWebView> {
     return ExtendedScaffold(
         appBar: AppBar(title: const Text('Fixed Height FlWebView')),
         isScroll: true,
-        children: [
+        children: <Widget>[
           Container(
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
@@ -63,7 +63,6 @@ class _AdaptiveHeightFlWebViewState extends State<_AdaptiveHeightFlWebView> {
             height: value,
             child: _FlWebView(onSizeChanged: (Size size) {
               if (size.height != value) {
-                log(size);
                 webViewHeight.value = size.height;
               }
             }),
@@ -96,11 +95,11 @@ class _FlWebView extends StatelessWidget {
   Widget build(BuildContext context) {
     return FlWebView(
         javascriptMode: JavascriptMode.unrestricted,
-        // navigationDelegate: (NavigationRequest navigation) async {
-        //   log('navigationDelegate');
-        //   log(navigation.url);
-        //   return NavigationDecision.navigate;
-        // },
+        navigationDelegate: (NavigationRequest navigation) async {
+          log('navigationDelegate');
+          log(navigation.url);
+          return NavigationDecision.navigate;
+        },
         onWebViewCreated: (WebViewController controller) async {
           log('onWebViewCreated');
           log(await controller.currentUrl());

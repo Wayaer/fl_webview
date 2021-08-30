@@ -159,11 +159,10 @@ class WebSetting<T> {
   final bool isPresent;
 
   @override
-  bool operator ==(Object other) {
-    if (other.runtimeType != runtimeType) return false;
-    final WebSetting<T> typedOther = other as WebSetting<T>;
-    return typedOther.isPresent == isPresent && typedOther._value == _value;
-  }
+  bool operator ==(Object other) =>
+      other is WebSetting<T> &&
+      isPresent == other.isPresent &&
+      _value == other._value;
 
   @override
   int get hashCode => hashValues(_value, isPresent);

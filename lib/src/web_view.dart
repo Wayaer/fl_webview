@@ -31,13 +31,12 @@ class AndroidWebView extends WebViewPlatform {
   }) =>
       PlatformViewLink(
           viewType: 'fl.webview',
-          surfaceFactory:
-              (BuildContext context, PlatformViewController controller) =>
-                  AndroidViewSurface(
-                      controller: controller as AndroidViewController,
-                      gestureRecognizers: gestureRecognizers ??
-                          const <Factory<OneSequenceGestureRecognizer>>{},
-                      hitTestBehavior: PlatformViewHitTestBehavior.opaque),
+          surfaceFactory: (_, PlatformViewController controller) =>
+              AndroidViewSurface(
+                  controller: controller as AndroidViewController,
+                  gestureRecognizers: gestureRecognizers ??
+                      const <Factory<OneSequenceGestureRecognizer>>{},
+                  hitTestBehavior: PlatformViewHitTestBehavior.opaque),
           onCreatePlatformView: (PlatformViewCreationParams params) {
             return PlatformViewsService.initSurfaceAndroidView(
                 id: params.id,

@@ -13,12 +13,11 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     var javaScriptChannelNames: Set<AnyHashable> = []
 
     init(_ _frame: CGRect, _ viewId: Int64, _ args: [String: Any?], _ messenger: FlutterBinaryMessenger) {
-        channel = FlutterMethodChannel(name: "fl.webview/\(String(viewId))", binaryMessenger: messenger)
+        channel = FlutterMethodChannel(name: "fl.webview/\(viewId)", binaryMessenger: messenger)
         super.init()
         channel.setMethodCallHandler(handle)
         let userContentController = WKUserContentController()
         let _javaScriptChannelNames = args["javascriptChannelNames"]
-
         if _javaScriptChannelNames is [AnyHashable] {
             javaScriptChannelNames.formUnion(Set(_javaScriptChannelNames as! [AnyHashable]))
             registerJavaScriptChannels(javaScriptChannelNames, controller: userContentController)
@@ -27,10 +26,7 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         let settings = args["settings"]
 
         let configuration = WKWebViewConfiguration()
-//        applyConfigurationSettings(settings as! [String: Any?], configuration)
         configuration.userContentController = userContentController
-//        updateAutoMediaPlaybackPolicy(args[""] as! NSNumber, configuration)
-
         webView = FlWebView(frame: _frame, configuration: configuration)
 
         navigationDelegate = FlWKNavigationDelegate(channel)

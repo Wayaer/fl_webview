@@ -351,18 +351,17 @@ class _WebViewState extends State<FlWebView> {
         widget.javascriptChannels!.isEmpty) {
       return;
     }
-    assert(_extractChannelNames(widget.javascriptChannels).length ==
+    assert(widget.javascriptChannels.extract.length ==
         widget.javascriptChannels!.length);
   }
 }
 
 extension ExtensionFlWebView on FlWebView {
   CreationParams get creationParams => CreationParams(
-        initialUrl: initialUrl,
-        webSettings: webSettings,
-        javascriptChannelNames: _extractChannelNames(javascriptChannels),
-        userAgent: userAgent,
-      );
+      initialUrl: initialUrl,
+      webSettings: webSettings,
+      javascriptChannelNames: javascriptChannels.extract,
+      userAgent: userAgent);
 
   WebSettings get webSettings => WebSettings(
       javascriptMode: javascriptMode,
@@ -376,11 +375,10 @@ extension ExtensionFlWebView on FlWebView {
       userAgent: WebSetting<String?>.of(userAgent));
 }
 
-Set<String> _extractChannelNames(Set<JavascriptChannel>? channels) {
-  final Set<String> channelNames = channels == null
+extension ExtensionJavascriptChannel on Set<JavascriptChannel>? {
+  Set<String> get extract => this == null
       ? <String>{}
-      : channels.map((JavascriptChannel channel) => channel.name).toSet();
-  return channelNames;
+      : this!.map((JavascriptChannel channel) => channel.name).toSet();
 }
 
 class WebViewCallbacksHandler {
@@ -567,7 +565,7 @@ class WebViewController {
       Set<JavascriptChannel>? newChannels) async {
     final Set<String> currentChannels =
         _callbackHandler._javascriptChannels.keys.toSet();
-    final Set<String> newChannelNames = _extractChannelNames(newChannels);
+    final Set<String> newChannelNames = newChannels.extract;
     final Set<String> channelsToAdd =
         newChannelNames.difference(currentChannels);
     final Set<String> channelsToRemove =

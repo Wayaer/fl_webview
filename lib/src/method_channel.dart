@@ -21,8 +21,8 @@ class FlWebViewMethodChannel {
   Future<bool?> _onMethodCall(MethodCall call) async {
     switch (call.method) {
       case 'javascriptChannelMessage':
-        final String channel = call.arguments['channel']! as String;
-        final String message = call.arguments['message']! as String;
+        final String channel = call.arguments['channel'] as String;
+        final String message = call.arguments['message'] as String;
         _callbackHandler.onJavaScriptChannelMessage(channel, message);
         return true;
       case 'navigationRequest':

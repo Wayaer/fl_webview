@@ -39,8 +39,7 @@ import java.util.ArrayList;
  * first initialization of a webview within the process the difference between the lists is the
  * webview's display listener.
  */
-public
-class DisplayListenerProxy {
+public class DisplayListenerProxy {
     private static final String TAG = "DisplayListenerProxy";
 
     private ArrayList<DisplayListener> listenersBeforeWebView;

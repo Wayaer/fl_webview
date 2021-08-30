@@ -296,12 +296,12 @@ class FlWebViewPlatformView(
         @JavascriptInterface
         fun postMessage(message: String) {
             val postMessageRunnable = Runnable {
-                val arguments = HashMap<String, String>()
-                arguments["channel"] = javaScriptChannelName
-                arguments["message"] = message
                 methodChannel.invokeMethod(
                     "javascriptChannelMessage",
-                    arguments
+                    mapOf(
+                        "channel" to javaScriptChannelName,
+                        "message" to message
+                    )
                 )
             }
             if (handler.looper == Looper.myLooper()) {

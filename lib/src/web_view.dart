@@ -18,6 +18,30 @@ enum JavascriptMode {
   unrestricted,
 }
 
+class HtmlData {
+  HtmlData(
+      {required this.html,
+      this.baseURL,
+      this.mimeType = 'text/html',
+      this.encoding = 'UTF-8'});
+
+  String html;
+
+  /// Valid on IOS
+  String? baseURL;
+
+  /// Valid on Android
+  String mimeType;
+  String encoding;
+
+  Map<String, String?> toMap() => {
+        'html': html,
+        'baseURL': baseURL,
+        'mimeType': mimeType,
+        'encoding': encoding
+      };
+}
+
 /// A message that was sent by JavaScript code running in a [WebView].
 class JavascriptMessage {
   const JavascriptMessage(this.message);
@@ -124,6 +148,7 @@ class FlWebView extends StatefulWidget {
     Key? key,
     this.onWebViewCreated,
     this.initialUrl,
+    this.initialData,
     this.javascriptMode = JavascriptMode.disabled,
     this.javascriptChannels,
     this.navigationDelegate,
@@ -139,7 +164,11 @@ class FlWebView extends StatefulWidget {
         AutoMediaPlaybackPolicy.require_user_action_for_all_media_types,
     this.allowsInlineMediaPlayback = false,
     this.onSizeChanged,
-  }) : super(key: key);
+  })  : assert(initialData == null || initialUrl == null,
+            'One of them must be used'),
+        // assert(initialData != null && initialUrl != null,
+        //     'One of them must be used'),
+        super(key: key);
 
   /// If not null invoked once the web view is created.
   final WebViewCreatedCallback? onWebViewCreated;
@@ -157,6 +186,9 @@ class FlWebView extends StatefulWidget {
 
   /// The initial URL to load.
   final String? initialUrl;
+
+  /// The initial Html String to load.
+  final HtmlData? initialData;
 
   /// Whether Javascript execution is enabled.
   final JavascriptMode javascriptMode;
@@ -359,6 +391,7 @@ class _WebViewState extends State<FlWebView> {
 extension ExtensionFlWebView on FlWebView {
   CreationParams get creationParams => CreationParams(
       initialUrl: initialUrl,
+      initialData: initialData,
       webSettings: webSettings,
       javascriptChannelNames: javascriptChannels.extract,
       userAgent: userAgent);

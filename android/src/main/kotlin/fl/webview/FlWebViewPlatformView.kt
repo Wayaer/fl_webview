@@ -71,13 +71,20 @@ class FlWebViewPlatformView(
             names?.let { registerJavaScriptChannelNames(it) }
         }
 
-        if (params.containsKey("userAgent")) {
-            webView.settings.userAgentString = params["userAgent"] as String?
+        val userAgent = params["userAgent"] as String?
+        if (userAgent != null) {
+            webView.settings.userAgentString = userAgent
         }
 
-        if (params.containsKey("initialUrl")) {
-            val url = params["initialUrl"] as String?
-            webView.loadUrl(url!!)
+        val url = params["initialUrl"] as String?
+        if (url != null) webView.loadUrl(url)
+        val data = params["initialData"]
+        if (data != null) {
+            val initialData = data as Map<String, String>
+            val html = initialData["html"] as String
+            val mimeType = initialData["mimeType"] as String
+            val encoding = initialData["encoding"] as String
+            webView.loadData(html, mimeType, encoding)
         }
     }
 
@@ -135,9 +142,7 @@ class FlWebViewPlatformView(
         val request = methodCall.arguments as Map<String, Any>
         val url = request["url"] as String?
         var headers = request["headers"] as Map<String?, String?>?
-        if (headers == null) {
-            headers = emptyMap<String?, String>()
-        }
+        if (headers == null) headers = emptyMap<String?, String>()
         webView.loadUrl(url!!, headers)
         result.success(null)
     }

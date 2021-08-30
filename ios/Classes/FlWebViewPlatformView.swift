@@ -41,7 +41,7 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
                 webView!.scrollView.automaticallyAdjustsScrollIndicatorInsets = false
             }
         }
-        _ = loadRequest(args["initialUrl"] as! String?, [:])
+        _ = loadRequest(args, [:])
     }
 
     func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -121,7 +121,7 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
 
     func onLoadUrl(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         let args = call.arguments as! [String: Any?]
-        if !loadRequest(args["url"] as! String?, [:]) {
+        if !loadRequest(args, [:]) {
             result(
                 FlutterError(
                     code: "loadUrl_failed",
@@ -273,9 +273,10 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         }
     }
 
-    func loadRequest(_ url: String?, _ headers: [String: String]?) -> Bool {
+    func loadRequest(_ loadData: [String: Any?], _ headers: [String: String]?) -> Bool {
+        let url = loadData["url"] ?? loadData["initialUrl"]
         if url != nil {
-            let nsUrl = URL(string: url!)
+            let nsUrl = URL(string: url! as! String)
             if nsUrl == nil {
                 return false
             }
@@ -284,6 +285,14 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
                 request.allHTTPHeaderFields = headers
             }
             webView!.load(request)
+            return true
+        } else {
+            let initialData = loadData["initialData"] as! [String: Any]?
+            if initialData != nil {
+                let baseURL = initialData!["baseURL"] as! String?
+                webView!.loadHTMLString(initialData!["html"] as! String, baseURL: baseURL != nil ? URL(string: baseURL!) : nil)
+                return true
+            }
         }
         return false
     }

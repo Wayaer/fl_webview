@@ -18,8 +18,24 @@ class App extends StatelessWidget {
               onPressed: () => push(const _FixedHeightFlWebView())),
           ElevatedText(
               text: 'Adaptive height',
-              onPressed: () => push(const _AdaptiveHeightFlWebView()))
+              onPressed: () => push(const _AdaptiveHeightFlWebView())),
+          const SizedBox(height: 10),
+          ElevatedText(
+              text: 'Html Text',
+              onPressed: () => push(const _HtmlTextFlWebView()))
         ]);
+  }
+}
+
+class _HtmlTextFlWebView extends StatelessWidget {
+  const _HtmlTextFlWebView({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ExtendedScaffold(
+        appBar: AppBar(title: const Text('Html Text FlWebView')),
+        mainAxisAlignment: MainAxisAlignment.center,
+        body: FlWebView(initialData: HtmlData(html: htmlText)));
   }
 }
 
@@ -136,3 +152,6 @@ class ElevatedText extends StatelessWidget {
   Widget build(BuildContext context) =>
       ElevatedButton(onPressed: onPressed, child: Text(text));
 }
+
+String htmlText =
+    '<pstyle="text-align:center;"><strong>ThinkDifferent</strong></p><pstyle="text-align:center;"><u>Here’stothecrazyones.Themisfits.Therebels.Thetroublemakers.Theroundpegsinthesquareholes.Theoneswhoseethingsdifferently.They’renotfondofrules.Andtheyhavenorespectforthestatusquo.Youcanquotethem,disagreewiththem,glorifyorvilifythem.Abouttheonlythingyoucan’tdoisignorethem.Becausetheychangethings.Theypushthehumanraceforward.Andwhilesomemayseethemasthecrazyones,weseegenius.Becausethepeoplewhoarecrazyenoughtothinktheycanchangetheworld,aretheoneswhodo.</u></p><pstyle="text-align:center;"><strong>-AppleInc.</strong></p>';

@@ -276,6 +276,7 @@ class CreationParams {
   /// The `autoMediaPlaybackPolicy` parameter must not be null.
   CreationParams({
     this.initialUrl,
+    this.initialData,
     this.webSettings,
     this.javascriptChannelNames = const <String>{},
     this.userAgent,
@@ -285,6 +286,11 @@ class CreationParams {
   ///
   /// When null the webview will be created without loading any page.
   final String? initialUrl;
+
+  /// The initialData to load in the webview.
+  ///
+  /// When null the webview will be created without loading any page.
+  final HtmlData? initialData;
 
   /// The initial [WebSettings] for the new webview.
   ///
@@ -310,8 +316,9 @@ class CreationParams {
 
   Map<String, dynamic> toMap() => <String, dynamic>{
         'initialUrl': initialUrl,
+        'initialData': initialData?.toMap(),
         'settings': webSettings?.toMap(),
         'javascriptChannelNames': javascriptChannelNames.toList(),
-        'userAgent': userAgent,
+        'userAgent': userAgent
       };
 }

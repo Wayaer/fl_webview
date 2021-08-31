@@ -274,9 +274,9 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     }
 
     func loadRequest(_ loadData: [String: Any?], _ headers: [String: String]?) -> Bool {
-        let url = loadData["url"] ?? loadData["initialUrl"]
-        if url != nil {
-            let nsUrl = URL(string: url! as! String)
+        let url = loadData["initialUrl"] ?? loadData["url"]
+        if url is String {
+            let nsUrl = URL(string: url as! String)
             if nsUrl == nil {
                 return false
             }
@@ -287,10 +287,13 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             webView!.load(request)
             return true
         } else {
-            let initialData = loadData["initialData"] as! [String: Any]?
+            let initialData = loadData["initialData"] as! [String: Any?]?
             if initialData != nil {
-                let baseURL = initialData!["baseURL"] as! String?
-                webView!.loadHTMLString(initialData!["html"] as! String, baseURL: baseURL != nil ? URL(string: baseURL!) : nil)
+                var baseURL: URL?
+                if initialData!["baseURL"] is String {
+                    baseURL = URL(string: initialData!["baseURL"] as! String)
+                }
+                webView!.loadHTMLString(initialData!["html"] as! String, baseURL: baseURL)
                 return true
             }
         }

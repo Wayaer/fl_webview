@@ -1,5 +1,6 @@
 import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 
 void main() {
@@ -17,43 +18,33 @@ class App extends StatelessWidget {
               text: 'Fixed height',
               onPressed: () => push(const _FixedHeightFlWebView())),
           ElevatedText(
-              text: 'Adaptive height',
-              onPressed: () => push(const _AdaptiveHeightFlWebView())),
+              text: 'Adapt height',
+              onPressed: () => push(const _AdaptHeightFlWebView())),
           const SizedBox(height: 10),
+          ElevatedText(text: 'Html Text', onPressed: getHtml),
           ElevatedText(
-              text: 'Html Text',
-              onPressed: () => push(const _HtmlTextFlWebView()))
+              text: 'Html Text Adapt height', onPressed: () => getHtml(true)),
         ]);
   }
-}
 
-class _HtmlTextFlWebView extends StatelessWidget {
-  const _HtmlTextFlWebView({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ExtendedScaffold(
-        appBar: AppBar(title: const Text('Html Text FlWebView')),
-        mainAxisAlignment: MainAxisAlignment.center,
-        body: FlWebView(initialData: HtmlData(html: htmlText)));
+  Future<void> getHtml([bool adaptHight = false]) async {
+    final String data = await rootBundle.loadString('lib/res/html.html');
+    if (adaptHight) {
+      push(_AdaptHtmlTextFlWebView(HtmlData(html: data)));
+    } else {
+      push(_HtmlTextFlWebView(HtmlData(html: data)));
+    }
   }
 }
 
-class _AdaptiveHeightFlWebView extends StatefulWidget {
-  const _AdaptiveHeightFlWebView({Key? key}) : super(key: key);
-
-  @override
-  _AdaptiveHeightFlWebViewState createState() =>
-      _AdaptiveHeightFlWebViewState();
-}
-
-class _AdaptiveHeightFlWebViewState extends State<_AdaptiveHeightFlWebView> {
-  ValueNotifier<double> webViewHeight = ValueNotifier<double>(deviceHeight);
+class _AdaptHtmlTextFlWebView extends StatelessWidget {
+  const _AdaptHtmlTextFlWebView(this.initialData, {Key? key}) : super(key: key);
+  final HtmlData initialData;
 
   @override
   Widget build(BuildContext context) {
     return ExtendedScaffold(
-        appBar: AppBar(title: const Text('Fixed Height FlWebView')),
+        appBar: AppBar(title: const Text('Adapt Hight Html Text FlWebView')),
         isScroll: true,
         children: <Widget>[
           Container(
@@ -62,7 +53,9 @@ class _AdaptiveHeightFlWebViewState extends State<_AdaptiveHeightFlWebView> {
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: const Text('Header'),
               height: 100),
-          Container(width: double.infinity, color: Colors.red, child: webView),
+          SizedBox(
+              // height: 500,
+              child: _FlWebView(adaptHight: true, initialData: initialData)),
           Container(
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
@@ -71,23 +64,46 @@ class _AdaptiveHeightFlWebViewState extends State<_AdaptiveHeightFlWebView> {
               height: 100),
         ]);
   }
+}
 
-  Widget get webView => ValueListenableBuilder<double>(
-      valueListenable: webViewHeight,
-      builder: (_, double value, __) => SizedBox(
-            width: double.infinity,
-            height: value,
-            child: _FlWebView(onSizeChanged: (Size size) {
-              if (size.height != value) {
-                webViewHeight.value = size.height;
-              }
-            }),
-          ));
+class _HtmlTextFlWebView extends StatelessWidget {
+  const _HtmlTextFlWebView(this.initialData, {Key? key}) : super(key: key);
+  final HtmlData initialData;
 
   @override
-  void dispose() {
-    super.dispose();
-    webViewHeight.dispose();
+  Widget build(BuildContext context) {
+    return ExtendedScaffold(
+        appBar: AppBar(title: const Text('Html Text FlWebView')),
+        mainAxisAlignment: MainAxisAlignment.center,
+        body: _FlWebView(initialData: initialData));
+  }
+}
+
+const String url = 'https://flutter.dev/showcase';
+
+class _AdaptHeightFlWebView extends StatelessWidget {
+  const _AdaptHeightFlWebView({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ExtendedScaffold(
+        appBar: AppBar(title: const Text('Adapt Height FlWebView')),
+        isScroll: true,
+        children: <Widget>[
+          Container(
+              alignment: Alignment.center,
+              margin: const EdgeInsets.all(10),
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: const Text('Header'),
+              height: 100),
+          const _FlWebView(adaptHight: true, initialUrl: url),
+          Container(
+              alignment: Alignment.center,
+              margin: const EdgeInsets.all(10),
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: const Text('Footer'),
+              height: 100),
+        ]);
   }
 }
 
@@ -99,17 +115,22 @@ class _FixedHeightFlWebView extends StatelessWidget {
     return ExtendedScaffold(
         appBar: AppBar(title: const Text('Fixed Height FlWebView')),
         mainAxisAlignment: MainAxisAlignment.center,
-        body: const _FlWebView());
+        body: const _FlWebView(initialUrl: url));
   }
 }
 
 class _FlWebView extends StatelessWidget {
-  const _FlWebView({Key? key, this.onSizeChanged}) : super(key: key);
-  final ContentSizeCallback? onSizeChanged;
+  const _FlWebView(
+      {Key? key, this.adaptHight = false, this.initialData, this.initialUrl})
+      : super(key: key);
+  final bool adaptHight;
+  final HtmlData? initialData;
+  final String? initialUrl;
 
   @override
   Widget build(BuildContext context) {
-    return FlWebView(
+    final FlWebView current = FlWebView(
+        initialData: initialData,
         javascriptMode: JavascriptMode.unrestricted,
         navigationDelegate: (NavigationRequest navigation) async {
           log('navigationDelegate');
@@ -132,12 +153,13 @@ class _FlWebView extends StatelessWidget {
           log('onProgress');
           log(progress);
         },
-        onSizeChanged: onSizeChanged ??
-            (Size size) {
-              log('onSizeChanged');
-              log(size);
-            },
-        initialUrl: 'https://zhuanlan.zhihu.com/p/62821195');
+        onSizeChanged: (Size size) {
+          log('onSizeChanged');
+          log(size);
+        },
+        initialUrl: initialUrl);
+    if (adaptHight) return FlAdaptWevView(child: current);
+    return current;
   }
 }
 
@@ -152,6 +174,3 @@ class ElevatedText extends StatelessWidget {
   Widget build(BuildContext context) =>
       ElevatedButton(onPressed: onPressed, child: Text(text));
 }
-
-String htmlText =
-    '<pstyle="text-align:center;"><strong>ThinkDifferent</strong></p><pstyle="text-align:center;"><u>Here’stothecrazyones.Themisfits.Therebels.Thetroublemakers.Theroundpegsinthesquareholes.Theoneswhoseethingsdifferently.They’renotfondofrules.Andtheyhavenorespectforthestatusquo.Youcanquotethem,disagreewiththem,glorifyorvilifythem.Abouttheonlythingyoucan’tdoisignorethem.Becausetheychangethings.Theypushthehumanraceforward.Andwhilesomemayseethemasthecrazyones,weseegenius.Becausethepeoplewhoarecrazyenoughtothinktheycanchangetheworld,aretheoneswhodo.</u></p><pstyle="text-align:center;"><strong>-AppleInc.</strong></p>';

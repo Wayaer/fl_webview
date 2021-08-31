@@ -34,7 +34,7 @@ class HtmlData {
   String mimeType;
   String encoding;
 
-  Map<String, String?> toMap() => {
+  Map<String, String?> toMap() => <String, String?>{
         'html': html,
         'baseURL': baseURL,
         'mimeType': mimeType,
@@ -666,10 +666,6 @@ class WebViewController {
   ///
   /// Scroll position is measured from top.
   Future<int> getScrollY() {
-    return _methodChannel.getScrollY();
-  }
-
-  Future<int> getContentSize() {
     return _methodChannel.getScrollY();
   }
 }

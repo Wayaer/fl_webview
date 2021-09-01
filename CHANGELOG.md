@@ -1,3 +1,5 @@
+## 0.0.5
+ * fix bug for ios
 ## 0.0.3
  * support HTML text rendering 
  * add `FlAdaptWevView` components

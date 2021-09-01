@@ -209,7 +209,7 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         settings.forEach { (key: String, value: Any?) in
             switch key {
             case "jsMode":
-                updateJsMode(value as! NSNumber?)
+                updateJsMode(value as? NSNumber)
             case "hasNavigationDelegate":
                 navigationDelegate!.hasDartNavigationDelegate = value as! Bool
             case "hasProgressTracking":
@@ -234,9 +234,9 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             case "gestureNavigationEnabled":
                 webView!.allowsBackForwardNavigationGestures = value as! Bool
             case "userAgent":
-                let userAgent = value as? String?
+                let userAgent = value as? String
                 if userAgent != nil {
-                    webView!.customUserAgent = userAgent!!
+                    webView!.customUserAgent = userAgent!
                 }
             case "allowsInlineMediaPlayback":
                 let allowsInlineMediaPlayback = value as? NSNumber
@@ -274,9 +274,9 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     }
 
     func loadRequest(_ loadData: [String: Any?], _ headers: [String: String]?) -> Bool {
-        let url = loadData["initialUrl"] ?? loadData["url"]
-        if url is String {
-            let nsUrl = URL(string: url as! String)
+        let url = (loadData["initialUrl"] ?? loadData["url"]) as? String
+        if url != nil {
+            let nsUrl = URL(string: url!)
             if nsUrl == nil {
                 return false
             }
@@ -287,14 +287,14 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             webView!.load(request)
             return true
         } else {
-            let initialData = loadData["initialData"] as! [String: Any?]?
+            let initialData = loadData["initialData"] as? [String: Any?]
             if initialData != nil {
-                var baseURL: URL?
-                if initialData!["baseURL"] is String {
-                    baseURL = URL(string: initialData!["baseURL"] as! String)
+                let baseUrl = initialData!["baseURL"] as? String
+                let html = initialData!["html"] as? String
+                if html != nil {
+                    webView!.loadHTMLString(html!, baseURL: baseUrl != nil ? URL(string: baseUrl!) : nil)
+                    return true
                 }
-                webView!.loadHTMLString(initialData!["html"] as! String, baseURL: baseURL)
-                return true
             }
         }
         return false

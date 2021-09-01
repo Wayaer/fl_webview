@@ -155,12 +155,15 @@ class FlWKContentSizeDelegate: NSObject {
 
     override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == contentSizeKeyPath {
-            let size = change?[NSKeyValueChangeKey.newKey] as! CGSize
-            if height < size.height {
-                height = size.height
+            let size = change?[NSKeyValueChangeKey.newKey] as? CGSize
+            if size == nil {
+                return
+            }
+            if height < size!.height {
+                height = size!.height
                 channel.invokeMethod("onContentSize", arguments: [
-                    "width": size.width,
-                    "height": size.height,
+                    "width": size!.width,
+                    "height": size!.height,
                 ])
             }
         }

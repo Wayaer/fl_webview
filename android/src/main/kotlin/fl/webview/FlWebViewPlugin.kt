@@ -18,8 +18,8 @@ class FlWebViewPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     override fun onAttachedToEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         val messenger = binding.binaryMessenger
         binding.platformViewRegistry.registerViewFactory(
-                "fl.webview",
-                FlWebViewFactory(messenger)
+            "fl.webview",
+            FlWebViewFactory(messenger)
         )
         cookieChannel = MethodChannel(messenger, "fl.webview/cookie_manager")
         cookieChannel.setMethodCallHandler(this)
@@ -30,26 +30,6 @@ class FlWebViewPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     }
 
 
-    private inner class FlWebViewFactory(
-            private val messenger: BinaryMessenger
-    ) :
-            PlatformViewFactory(StandardMessageCodec.INSTANCE) {
-        override fun create(
-                context: Context,
-                id: Int,
-                args: Any
-        ): PlatformView {
-            val params = args as Map<String, Any?>
-            val methodChannel = MethodChannel(
-                    messenger,
-                    "fl.webview/$id"
-            )
-            return FlWebViewPlatformView(
-                    context, methodChannel, params
-            )
-        }
-    }
-
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "clearCookies" -> {
@@ -58,6 +38,26 @@ class FlWebViewPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 cookieManager.removeAllCookies { result.success(hasCookies) }
             }
             else -> result.notImplemented()
+        }
+    }
+
+    inner class FlWebViewFactory(
+        private val messenger: BinaryMessenger
+    ) :
+        PlatformViewFactory(StandardMessageCodec.INSTANCE) {
+        override fun create(
+            context: Context,
+            id: Int,
+            args: Any
+        ): PlatformView {
+            val params = args as Map<String, Any?>
+            val methodChannel = MethodChannel(
+                messenger,
+                "fl.webview/$id"
+            )
+            return FlWebViewPlatformView(
+                context, methodChannel, params
+            )
         }
     }
 }

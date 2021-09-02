@@ -79,7 +79,7 @@ class _HtmlTextFlWebView extends StatelessWidget {
   }
 }
 
-const String url = 'https://flutter.dev/showcase';
+const String url = 'https://pub.dev/packages/fl_webview';
 
 class _AdaptHeightFlWebView extends StatelessWidget {
   const _AdaptHeightFlWebView({Key? key}) : super(key: key);

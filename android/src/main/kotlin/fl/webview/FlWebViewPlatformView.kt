@@ -212,7 +212,7 @@ class FlWebViewPlatformView(
                 "hasNavigationDelegate" -> {
                     if (value as Boolean) {
                         getFlWebViewClient()
-                        flWebViewClient?.hasContentSizeTracking = value
+                        flWebViewClient?.hasNavigationDelegate = value
                     }
                 }
                 "debuggingEnabled" ->

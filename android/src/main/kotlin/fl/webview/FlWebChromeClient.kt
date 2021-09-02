@@ -1,6 +1,7 @@
 package fl.webview
 
 import android.os.Handler
+import android.os.Looper
 import android.os.Message
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -15,6 +16,7 @@ class FlWebChromeClient(
     private val flWebViewClient: FlWebViewClient
 ) : WebChromeClient() {
     var hasProgressTracking = false
+    var hasContentSizeTracking = false
 
     override fun onCreateWindow(
         view: WebView,
@@ -44,16 +46,38 @@ class FlWebChromeClient(
         return true
     }
 
-    override fun onProgressChanged(view: WebView, progress: Int) {
+    override fun onProgressChanged(view: WebView?, progress: Int) {
         super.onProgressChanged(view, progress)
         if (hasProgressTracking) {
-            handler.post {
-                methodChannel.invokeMethod(
-                    "onProgress", mapOf(
-                        "progress" to progress
-                    )
+            invokeMethod(
+                "onProgress", mapOf(
+                    "progress" to progress
                 )
+            )
+        }
+        if (view != null && hasContentSizeTracking && progress > 10) {
+            onContentSizeChanged(view.contentHeight)
+        }
+    }
+
+    private fun invokeMethod(method: String, args: Map<String, Any?>) {
+        if (handler.looper == Looper.myLooper()) {
+            methodChannel.invokeMethod(method, args)
+        } else {
+            handler.post {
+                methodChannel.invokeMethod(method, args)
             }
+        }
+    }
+
+    private fun onContentSizeChanged(height: Int) {
+        if (hasContentSizeTracking) {
+            invokeMethod(
+                "onContentSize", mapOf(
+                    "width" to 0.0,
+                    "height" to height.toDouble(),
+                )
+            )
         }
     }
 

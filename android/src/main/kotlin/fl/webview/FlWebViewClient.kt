@@ -8,7 +8,6 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.annotation.RequiresApi
 import io.flutter.plugin.common.MethodChannel
 import java.util.*
 
@@ -80,26 +79,28 @@ class FlWebViewClient(
                 "url" to url
             )
         )
-        view?.contentHeight?.let { onContentSize(it) }
+        view?.contentHeight?.let { onContentSizeChanged(it) }
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
     override fun onReceivedError(
-        view: WebView,
-        request: WebResourceRequest,
-        error: WebResourceError
+        view: WebView?,
+        request: WebResourceRequest?,
+        error: WebResourceError?
     ) {
         super.onReceivedError(view, request, error)
-        if (request.isForMainFrame) {
-            onWebResourceError(
-                error.errorCode,
-                error.description.toString(),
-                request.url.toString()
-            )
+        if (request?.isForMainFrame == true) {
+            if (error != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                onWebResourceError(
+                    error.errorCode,
+                    error.description.toString(),
+                    request.url.toString()
+                )
+            }
         }
     }
 
-    private fun onContentSize(height: Int) {
+
+    private fun onContentSizeChanged(height: Int) {
         if (hasContentSizeTracking) {
             invokeMethod(
                 "onContentSize", mapOf(

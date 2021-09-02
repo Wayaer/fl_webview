@@ -23,6 +23,7 @@ class FlWebViewPlatformView(
     private val webView: WebView
 
     private var flWebViewClient: FlWebViewClient? = null
+    private var flWebChromeClient: FlWebChromeClient? = null
     private val handler: Handler = Handler(context.mainLooper)
     private val javascriptChannelNames = "javascriptChannelNames"
 
@@ -219,23 +220,14 @@ class FlWebViewPlatformView(
                     WebView.setWebContentsDebuggingEnabled(value as Boolean)
                 "hasProgressTracking" -> {
                     if (value as Boolean) {
-                        getFlWebViewClient()
-                        val flWebChromeClient =
-                            flWebViewClient?.let {
-                                FlWebChromeClient(
-                                    methodChannel,
-                                    handler,
-                                    webView,
-                                    it
-                                )
-                            }
+                        getFlWebChromeClient()
                         flWebChromeClient?.hasProgressTracking = true
-                        webView.webChromeClient = flWebChromeClient
                     }
                 }
                 "hasContentSizeTracking" -> {
                     if (value as Boolean) {
-                        getFlWebViewClient()
+                        getFlWebChromeClient()
+                        flWebChromeClient?.hasContentSizeTracking = true
                         flWebViewClient?.hasContentSizeTracking = true
                     }
                 }
@@ -253,6 +245,21 @@ class FlWebViewPlatformView(
                 }
                 else -> throw IllegalArgumentException("Unknown WebView setting: $key")
             }
+        }
+    }
+
+
+    private fun getFlWebChromeClient() {
+        getFlWebViewClient()
+        if (flWebChromeClient == null) {
+            flWebChromeClient =
+                FlWebChromeClient(
+                    methodChannel, handler, webView,
+                    flWebViewClient!!
+                )
+        }
+        flWebChromeClient?.let {
+            webView.webChromeClient = it
         }
     }
 

@@ -12,7 +12,7 @@ class FlAdaptWevView extends StatefulWidget {
 }
 
 class _FlAdaptWevViewState extends State<FlAdaptWevView> {
-  Size currenrSize = const Size(double.infinity, 10);
+  Size currenrSize = const Size(double.infinity, 50);
 
   @override
   void initState() {

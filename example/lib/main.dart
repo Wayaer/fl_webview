@@ -79,7 +79,7 @@ class _HtmlTextFlWebView extends StatelessWidget {
   }
 }
 
-const String url = 'https://pub.dev/packages/fl_webview';
+const String url = 'https://www.zhihu.com/';
 
 class _AdaptHeightFlWebView extends StatelessWidget {
   const _AdaptHeightFlWebView({Key? key}) : super(key: key);

@@ -16,7 +16,6 @@ class FlWebViewClient(
     private val handler: Handler
 ) : WebViewClient() {
     var hasNavigationDelegate = false
-    var hasContentSizeTracking = false
 
     private fun errorCodeToString(errorCode: Int): String {
         when (errorCode) {
@@ -79,7 +78,6 @@ class FlWebViewClient(
                 "url" to url
             )
         )
-        view?.contentHeight?.let { onContentSizeChanged(it) }
     }
 
     override fun onReceivedError(
@@ -96,18 +94,6 @@ class FlWebViewClient(
                     request.url.toString()
                 )
             }
-        }
-    }
-
-
-    private fun onContentSizeChanged(height: Int) {
-        if (hasContentSizeTracking) {
-            invokeMethod(
-                "onContentSize", mapOf(
-                    "width" to 0.0,
-                    "height" to height.toDouble(),
-                )
-            )
         }
     }
 

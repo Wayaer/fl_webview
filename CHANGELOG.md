@@ -1,3 +1,5 @@
+## 0.0.9
+ * get the height on Android when moving out onPageFinished
 ## 0.0.8
  * optimize WebView rendering
  * fix the problem that no headers do not load URLs on Android

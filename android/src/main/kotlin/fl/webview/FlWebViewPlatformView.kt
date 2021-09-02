@@ -228,7 +228,6 @@ class FlWebViewPlatformView(
                     if (value as Boolean) {
                         getFlWebChromeClient()
                         flWebChromeClient?.hasContentSizeTracking = true
-                        flWebViewClient?.hasContentSizeTracking = true
                     }
                 }
                 "gestureNavigationEnabled" -> {

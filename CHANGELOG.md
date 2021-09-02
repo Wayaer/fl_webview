@@ -1,3 +1,5 @@
+## 0.0.7
+ * fix the problem that no headers do not load URLs on Android
 ## 0.0.6
  * add initial `size` to `FlAdaptWevView`
  * fix bugs

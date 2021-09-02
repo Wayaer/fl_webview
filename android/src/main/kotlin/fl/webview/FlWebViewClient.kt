@@ -163,8 +163,12 @@ class FlWebViewClient(
     ) : MethodChannel.Result {
         override fun success(shouldLoad: Any?) {
             val typedShouldLoad = shouldLoad as Boolean?
-            if (typedShouldLoad!!) {
-                webView.loadUrl(url, headers!!)
+            if (typedShouldLoad == true) {
+                if (headers == null) {
+                    webView.loadUrl(url)
+                } else {
+                    webView.loadUrl(url, headers)
+                }
             }
         }
 

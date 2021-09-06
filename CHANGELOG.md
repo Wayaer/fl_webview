@@ -1,3 +1,6 @@
+## 0.1.0
+ * fix bugs
+ * update flutter version 2.5.0
 ## 0.0.9
  * get the height on Android when moving out onPageFinished
 ## 0.0.8

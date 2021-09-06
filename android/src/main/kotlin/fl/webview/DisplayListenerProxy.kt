@@ -1,6 +1,3 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
 package fl.webview
 
 import android.hardware.display.DisplayManager
@@ -52,14 +49,14 @@ class DisplayListenerProxy {
             displayManager.registerDisplayListener(
                 object : DisplayManager.DisplayListener {
                     override fun onDisplayAdded(displayId: Int) {
-                        for (webViewListener in webViewListeners) {
-                            webViewListener.onDisplayAdded(displayId)
+                        for (listener in webViewListeners) {
+                            listener.onDisplayAdded(displayId)
                         }
                     }
 
                     override fun onDisplayRemoved(displayId: Int) {
-                        for (webViewListener in webViewListeners) {
-                            webViewListener.onDisplayRemoved(displayId)
+                        for (listener in webViewListeners) {
+                            listener.onDisplayRemoved(displayId)
                         }
                     }
 
@@ -67,8 +64,8 @@ class DisplayListenerProxy {
                         if (displayManager.getDisplay(displayId) == null) {
                             return
                         }
-                        for (webViewListener in webViewListeners) {
-                            webViewListener.onDisplayChanged(displayId)
+                        for (listener in webViewListeners) {
+                            listener.onDisplayChanged(displayId)
                         }
                     }
                 },
@@ -77,45 +74,42 @@ class DisplayListenerProxy {
         }
     }
 
-    companion object {
-        private const val TAG = "DisplayListenerProxy"
-        private fun yoinkDisplayListeners(displayManager: DisplayManager): ArrayList<DisplayManager.DisplayListener> {
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                // We cannot use reflection on Android P, but it shouldn't matter as it shipped
-                // with WebView 66.0.3359.158 and the WebView version the bug this code is working around was
-                // fixed in 61.0.3116.0.
-                ArrayList()
-            } else try {
-                val displayManagerGlobalField =
-                    DisplayManager::class.java.getDeclaredField("mGlobal")
-                displayManagerGlobalField.isAccessible = true
-                val displayManagerGlobal =
-                    displayManagerGlobalField[displayManager]!!
-                val displayListenersField =
-                    displayManagerGlobal.javaClass.getDeclaredField("mDisplayListeners")
-                displayListenersField.isAccessible = true
-                val delegates =
-                    displayListenersField[displayManagerGlobal] as ArrayList<Any>
-                var listenerField: Field? = null
-                val listeners = ArrayList<DisplayManager.DisplayListener>()
-                assert(delegates != null)
-                for (delegate in delegates) {
-                    if (listenerField == null) {
-                        listenerField = delegate.javaClass.getField("mListener")
-                        listenerField.isAccessible = true
-                    }
-                    val listener =
-                        listenerField!![delegate] as DisplayManager.DisplayListener
-                    listeners.add(listener)
+    private val tag = "DisplayListenerProxy"
+    private fun yoinkDisplayListeners(displayManager: DisplayManager): ArrayList<DisplayManager.DisplayListener> {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // We cannot use reflection on Android P, but it shouldn't matter as it shipped
+            // with WebView 66.0.3359.158 and the WebView version the bug this code is working around was
+            // fixed in 61.0.3116.0.
+            ArrayList()
+        } else try {
+            val displayManagerGlobalField =
+                DisplayManager::class.java.getDeclaredField("mGlobal")
+            displayManagerGlobalField.isAccessible = true
+            val displayManagerGlobal =
+                displayManagerGlobalField[displayManager]!!
+            val displayListenersField =
+                displayManagerGlobal.javaClass.getDeclaredField("mDisplayListeners")
+            displayListenersField.isAccessible = true
+            val delegates =
+                displayListenersField[displayManagerGlobal] as ArrayList<*>
+            var listenerField: Field? = null
+            val listeners = ArrayList<DisplayManager.DisplayListener>()
+            for (delegate in delegates) {
+                if (listenerField == null) {
+                    listenerField = delegate.javaClass.getField("mListener")
+                    listenerField.isAccessible = true
                 }
-                listeners
-            } catch (e: NoSuchFieldException) {
-                Log.w(TAG, "Could not extract WebView's display listeners. $e")
-                ArrayList()
-            } catch (e: IllegalAccessException) {
-                Log.w(TAG, "Could not extract WebView's display listeners. $e")
-                ArrayList()
+                val listener =
+                    listenerField!![delegate] as DisplayManager.DisplayListener
+                listeners.add(listener)
             }
+            listeners
+        } catch (e: NoSuchFieldException) {
+            Log.w(tag, "Could not extract WebView's display listeners. $e")
+            ArrayList()
+        } catch (e: IllegalAccessException) {
+            Log.w(tag, "Could not extract WebView's display listeners. $e")
+            ArrayList()
         }
     }
 }

@@ -18,7 +18,7 @@ import io.flutter.plugin.platform.PlatformView
 class FlWebViewPlatformView(
     context: Context,
     private val methodChannel: MethodChannel,
-    params: Map<String, Any?>,
+    params: Map<*, *>,
 ) : PlatformView, MethodChannel.MethodCallHandler {
     private val webView: WebView
 
@@ -65,10 +65,10 @@ class FlWebViewPlatformView(
         displayListenerProxy.onPostWebViewInitialization(displayManager)
 
         /// 初始化相关参数
-        applySettings(params["settings"] as Map<String, Any>)
+        applySettings(params["settings"] as HashMap<*, *>)
 
         if (params.containsKey(javascriptChannelNames)) {
-            val names = params[javascriptChannelNames] as List<String>?
+            val names = params[javascriptChannelNames] as List<*>?
             names?.let { registerJavaScriptChannelNames(it) }
         }
 
@@ -101,7 +101,7 @@ class FlWebViewPlatformView(
         when (methodCall.method) {
             "loadUrl" -> loadUrl(methodCall, result)
             "updateSettings" -> {
-                applySettings(methodCall.arguments as Map<String, Any>)
+                applySettings(methodCall.arguments as Map<*, *>)
                 result.success(null)
             }
             "canGoBack" -> result.success(webView.canGoBack())
@@ -140,7 +140,7 @@ class FlWebViewPlatformView(
     }
 
     private fun loadUrl(methodCall: MethodCall, result: MethodChannel.Result) {
-        val request = methodCall.arguments as Map<String, Any>
+        val request = methodCall.arguments as Map<*, *>
         val url = request["url"] as String?
         var headers = request["headers"] as Map<String?, String?>?
         if (headers == null) headers = emptyMap<String?, String>()
@@ -161,7 +161,7 @@ class FlWebViewPlatformView(
         methodCall: MethodCall,
         result: MethodChannel.Result
     ) {
-        val channelNames = methodCall.arguments as List<String>
+        val channelNames = methodCall.arguments as List<*>
         registerJavaScriptChannelNames(channelNames)
         result.success(null)
     }
@@ -170,9 +170,9 @@ class FlWebViewPlatformView(
         methodCall: MethodCall,
         result: MethodChannel.Result
     ) {
-        val channelNames = methodCall.arguments as List<String>
+        val channelNames = methodCall.arguments as List<*>
         for (channelName in channelNames) {
-            webView.removeJavascriptInterface(channelName)
+            webView.removeJavascriptInterface(channelName as String)
         }
         result.success(null)
     }
@@ -201,7 +201,7 @@ class FlWebViewPlatformView(
     }
 
 
-    private fun applySettings(settings: Map<String, Any>) {
+    private fun applySettings(settings: Map<*, *>) {
         settings.forEach { entry ->
             val key = entry.key
             val value = entry.value
@@ -283,10 +283,13 @@ class FlWebViewPlatformView(
 
 
     @SuppressLint("AddJavascriptInterface")
-    private fun registerJavaScriptChannelNames(channelNames: List<String>) {
+    private fun registerJavaScriptChannelNames(channelNames: List<*>) {
         for (channelName in channelNames) {
             webView.addJavascriptInterface(
-                JavaScriptChannel(methodChannel, channelName, handler),
+                JavaScriptChannel(
+                    methodChannel, channelName as String,
+                    handler
+                ),
                 channelName
             )
         }

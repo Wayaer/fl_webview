@@ -50,7 +50,7 @@ class FlWebViewPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             id: Int,
             args: Any
         ): PlatformView {
-            val params = args as Map<String, Any?>
+            val params = args as Map<*, *>
             val methodChannel = MethodChannel(
                 messenger,
                 "fl.webview/$id"

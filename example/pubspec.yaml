@@ -1,4 +1,4 @@
-name: fl_webview_example
+name: example
 description: Demonstrates how to use the fl_webview plugin.
 publish_to: 'none'
 
@@ -12,8 +12,8 @@ dependencies:
     path: ../
   flutter:
     sdk: flutter
-  flutter_curiosity: ^3.2.0
-  flutter_waya: ^1.13.0
+  flutter_curiosity: ^3.3.0
+  flutter_waya: ^1.13.1
 
 
 dev_dependencies:

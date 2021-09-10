@@ -11,7 +11,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ExtendedScaffold(
-        appBar: AppBar(title: const Text('FlCamera Example')),
+        appBar: AppBar(title: const Text('FlWebView Example')),
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           ElevatedText(

@@ -180,7 +180,7 @@ class WebSettings {
   ///
   /// The `userAgent` parameter must not be null.
   WebSettings({
-    this.autoMediaPlaybackPolicy = AutoMediaPlaybackPolicy.always_allow,
+    this.autoMediaPlaybackPolicy = AutoMediaPlaybackPolicy.alwaysAllow,
     this.javascriptMode,
     this.hasNavigationDelegate,
     this.hasProgressTracking,

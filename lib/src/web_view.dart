@@ -105,13 +105,13 @@ enum AutoMediaPlaybackPolicy {
   ///
   /// For example: JavaScript code cannot start playing media unless the code was executed
   /// as a result of a user action (like a touch event).
-  require_user_action_for_all_media_types,
+  requireUserActionForAllMediaTypes,
 
   /// Starting any kind of media playback is always allowed.
   ///
   /// For example: JavaScript code that's triggered when the page is loaded can start playing
   /// video or audio.
-  always_allow,
+  alwaysAllow,
 }
 
 final RegExp _validChannelNames = RegExp('^[a-zA-Z_][a-zA-Z0-9_]*\$');
@@ -161,7 +161,7 @@ class FlWebView extends StatefulWidget {
     this.gestureNavigationEnabled = false,
     this.userAgent,
     this.initialMediaPlaybackPolicy =
-        AutoMediaPlaybackPolicy.require_user_action_for_all_media_types,
+        AutoMediaPlaybackPolicy.requireUserActionForAllMediaTypes,
     this.allowsInlineMediaPlayback = false,
     this.onSizeChanged,
   })  : assert(initialData == null || initialUrl == null,

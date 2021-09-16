@@ -88,8 +88,9 @@ class FlWebViewMethodChannel {
 
   Future<void> updateSettings(WebSettings settings) async {
     final Map<String, dynamic> updatesMap = settings.toMap();
-    if (updatesMap.isNotEmpty)
+    if (updatesMap.isNotEmpty) {
       return await _channel.invokeMethod<void>('updateSettings', updatesMap);
+    }
   }
 
   Future<String> evaluateJavascript(String javascriptString) {

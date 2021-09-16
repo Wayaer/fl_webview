@@ -4,10 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 
 void main() {
-  runApp(ExtendedWidgetsApp(home: App(), title: 'FlWebview'));
+  runApp(ExtendedWidgetsApp(home: const App(), title: 'FlWebview'));
 }
 
 class App extends StatelessWidget {
+  const App({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return ExtendedScaffold(

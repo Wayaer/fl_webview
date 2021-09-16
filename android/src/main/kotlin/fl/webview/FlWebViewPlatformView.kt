@@ -20,7 +20,7 @@ class FlWebViewPlatformView(
     private val methodChannel: MethodChannel,
     params: Map<*, *>,
 ) : PlatformView, MethodChannel.MethodCallHandler {
-    private val webView: WebView
+    private val webView: FlWebView
 
     private var flWebViewClient: FlWebViewClient? = null
     private var flWebChromeClient: FlWebChromeClient? = null
@@ -35,7 +35,7 @@ class FlWebViewPlatformView(
         displayListenerProxy.onPreWebViewInitialization(displayManager)
 
         /// 初始化webView
-        webView = WebView(context)
+        webView = FlWebView(context, methodChannel, handler)
 
         webView.apply {
             settings.apply {
@@ -230,6 +230,9 @@ class FlWebViewPlatformView(
                         flWebChromeClient?.hasContentSizeTracking = true
                     }
                 }
+                "hasContentOffsetTracking" -> {
+                    webView.hasContentOffsetTracking = value as Boolean
+                }
                 "gestureNavigationEnabled" -> {
 
                 }
@@ -324,5 +327,35 @@ class FlWebViewPlatformView(
                 handler.post(postMessageRunnable)
             }
         }
+    }
+
+    internal class FlWebView(
+        context: Context,
+        private val methodChannel: MethodChannel,
+        private val mHandler: Handler
+    ) : WebView(context) {
+
+        var hasContentOffsetTracking = false
+
+        override fun onScrollChanged(
+            left: Int, top: Int, oldl: Int, oldt:
+            Int
+        ) {
+            if (hasContentOffsetTracking) {
+                val map = mapOf(
+                    "x" to left.toDouble(),
+                    "y" to top.toDouble(),
+                )
+                if (mHandler.looper == Looper.myLooper()) {
+                    methodChannel.invokeMethod("onContentOffset", map)
+                } else {
+                    mHandler.post {
+                        methodChannel.invokeMethod("onContentOffset", map)
+                    }
+                }
+            }
+
+        }
+
     }
 }

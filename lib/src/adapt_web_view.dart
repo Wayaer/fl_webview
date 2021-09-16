@@ -1,17 +1,17 @@
 import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/material.dart';
 
-class FlAdaptWevView extends StatefulWidget {
-  const FlAdaptWevView({Key? key, required this.child, this.initialSize})
+class FlAdaptHeightWevView extends StatefulWidget {
+  const FlAdaptHeightWevView({Key? key, required this.child, this.initialSize})
       : super(key: key);
   final FlWebView child;
   final Size? initialSize;
 
   @override
-  _FlAdaptWevViewState createState() => _FlAdaptWevViewState();
+  _FlAdaptHeightWevViewState createState() => _FlAdaptHeightWevViewState();
 }
 
-class _FlAdaptWevViewState extends State<FlAdaptWevView> {
+class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
   Size currenrSize = const Size(double.infinity, 50);
 
   @override

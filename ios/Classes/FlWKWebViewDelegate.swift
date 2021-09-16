@@ -169,3 +169,37 @@ class FlWKContentSizeDelegate: NSObject {
         }
     }
 }
+
+class FlWKContentOffsetDelegate: NSObject {
+    var channel: FlutterMethodChannel
+    let contentOffsetKeyPath = "contentOffset"
+
+    var height: CGFloat = 10
+
+    init(_ webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
+        channel = methodChannel
+        super.init()
+        webView.scrollView.addObserver(
+            self,
+            forKeyPath: contentOffsetKeyPath,
+            options: .new,
+            context: nil)
+    }
+
+    func stopObserving(_ webView: WKWebView?) {
+        webView?.scrollView.removeObserver(self, forKeyPath: contentOffsetKeyPath)
+    }
+
+    override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == contentOffsetKeyPath {
+            let offset = change?[NSKeyValueChangeKey.newKey] as? CGPoint
+            if offset == nil {
+                return
+            }
+            channel.invokeMethod("onContentOffset", arguments: [
+                "x": offset!.x,
+                "y": offset!.y,
+            ])
+        }
+    }
+}

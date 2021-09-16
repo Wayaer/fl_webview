@@ -39,11 +39,14 @@ class FlWebViewMethodChannel {
         _callbackHandler.onPageStarted(call.arguments['url']! as String);
         return null;
       case 'onContentSize':
-
-        /// width is 0.0 on Android
         final double width = call.arguments['width'] as double;
         final double height = call.arguments['height'] as double;
         _callbackHandler.onSizeChanged(Size(width, height));
+        return null;
+      case 'onContentOffset':
+        final double x = call.arguments['x'] as double;
+        final double y = call.arguments['y'] as double;
+        _callbackHandler.onOffsetChanged(Offset(x, y));
         return null;
       case 'onWebResourceError':
         _callbackHandler.onWebResourceError(WebResourceError(

@@ -52,6 +52,6 @@ Widget build(BuildContext context) {
 
 @override
 Widget build(BuildContext context) {
-  return FlAdaptWevView(child: FlWebView());
+  return FlAdaptHeightWevView(child: FlWebView());
 }
 ```

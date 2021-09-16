@@ -188,6 +188,7 @@ class WebSettings {
     this.gestureNavigationEnabled,
     this.allowsInlineMediaPlayback,
     this.hasContentSizeTracking,
+    this.hasContentOffsetTracking,
     required this.userAgent,
   });
 
@@ -205,6 +206,8 @@ class WebSettings {
   bool? hasProgressTracking;
 
   bool? hasContentSizeTracking;
+
+  bool? hasContentOffsetTracking;
 
   /// Whether to enable the platform's webview content debugging tools.
   ///
@@ -240,6 +243,7 @@ class WebSettings {
         'hasNavigationDelegate': hasNavigationDelegate,
         'hasProgressTracking': hasProgressTracking,
         'hasContentSizeTracking': hasContentSizeTracking,
+        'hasContentOffsetTracking': hasContentOffsetTracking,
         'autoMediaPlaybackPolicy': autoMediaPlaybackPolicy.index,
       };
 
@@ -255,6 +259,9 @@ class WebSettings {
     }
     if (hasProgressTracking != newSettings.hasProgressTracking) {
       hasProgressTracking = newSettings.hasProgressTracking;
+    }
+    if (hasContentOffsetTracking != newSettings.hasContentOffsetTracking) {
+      hasContentOffsetTracking = newSettings.hasContentOffsetTracking;
     }
     if (debuggingEnabled != newSettings.debuggingEnabled) {
       debuggingEnabled = newSettings.debuggingEnabled;

@@ -9,6 +9,7 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     var navigationDelegate: FlWKNavigationDelegate?
     var progressionDelegate: FlWKProgressionDelegate?
     var contentSizeDelegate: FlWKContentSizeDelegate?
+    var contentOffsetDelegate: FlWKContentOffsetDelegate?
 
     var javaScriptChannelNames: Set<AnyHashable> = []
 
@@ -228,6 +229,14 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
                 } else {
                     contentSizeDelegate?.stopObserving(webView)
                 }
+            case "hasContentOffsetTracking":
+                if value as! Bool {
+                    if contentOffsetDelegate == nil {
+                        contentOffsetDelegate = FlWKContentOffsetDelegate(webView!, channel)
+                    }
+                } else {
+                    contentOffsetDelegate?.stopObserving(webView)
+                }
             case "debuggingEnabled":
                 // no-op debugging is always enabled on iOS.
                 break
@@ -332,11 +341,8 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     }
 
     deinit {
-        if progressionDelegate != nil {
-            progressionDelegate?.stopObserving(webView!)
-        }
-        if contentSizeDelegate != nil {
-            contentSizeDelegate?.stopObserving(webView!)
-        }
+        progressionDelegate?.stopObserving(webView!)
+        contentSizeDelegate?.stopObserving(webView!)
+        contentOffsetDelegate?.stopObserving(webView!)
     }
 }

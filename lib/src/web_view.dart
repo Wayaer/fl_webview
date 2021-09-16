@@ -92,6 +92,8 @@ typedef PageLoadingCallback = void Function(int progress);
 
 typedef ContentSizeCallback = void Function(Size size);
 
+typedef ContentOffsetCallback = void Function(Offset offset);
+
 /// Signature for when a [WebView] has failed to load a resource.
 typedef WebResourceErrorCallback = void Function(WebResourceError error);
 
@@ -164,6 +166,7 @@ class FlWebView extends StatefulWidget {
         AutoMediaPlaybackPolicy.requireUserActionForAllMediaTypes,
     this.allowsInlineMediaPlayback = false,
     this.onSizeChanged,
+    this.onOffsetChanged,
   })  : assert(initialData == null || initialUrl == null,
             'One of them must be used'),
         // assert(initialData != null && initialUrl != null,
@@ -272,6 +275,8 @@ class FlWebView extends StatefulWidget {
   final PageLoadingCallback? onProgress;
 
   final ContentSizeCallback? onSizeChanged;
+
+  final ContentOffsetCallback? onOffsetChanged;
 
   /// Invoked when a web resource has failed to load.
   ///
@@ -401,6 +406,7 @@ extension ExtensionFlWebView on FlWebView {
       hasNavigationDelegate: navigationDelegate != null,
       hasProgressTracking: onProgress != null,
       hasContentSizeTracking: onSizeChanged != null,
+      hasContentOffsetTracking: onOffsetChanged != null,
       debuggingEnabled: debuggingEnabled,
       autoMediaPlaybackPolicy: initialMediaPlaybackPolicy,
       gestureNavigationEnabled: gestureNavigationEnabled,
@@ -478,6 +484,12 @@ class WebViewCallbacksHandler {
   void onSizeChanged(Size size) {
     if (_widget.onSizeChanged != null) {
       _widget.onSizeChanged!(size);
+    }
+  }
+
+  void onOffsetChanged(Offset offSet) {
+    if (_widget.onOffsetChanged != null) {
+      _widget.onOffsetChanged!(offSet);
     }
   }
 }

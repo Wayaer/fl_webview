@@ -1,3 +1,6 @@
+## 0.2.0
+ * modify `FlAdaptWevView` to `FlAdaptHeightWevView`
+ * add `onOffsetChanged`
 ## 0.1.0
  * fix bugs
  * update flutter version 2.5.0

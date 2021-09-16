@@ -81,7 +81,9 @@ class _HtmlTextFlWebView extends StatelessWidget {
   }
 }
 
-const String url = 'https://www.zhihu.com/';
+// const String url = 'https://www.zhihu.com/';
+const String url =
+    'https://mp.weixin.qq.com/s?__biz=Mzk0ODEwNDgwNg==&mid=100043746&idx=1&sn=5da29970d3c39271f4d285d7d093099f&chksm=436e90eb741919fd6a804f5a7a1ef36d2b53422891640fc55b84d422e8f24d38fbc5bfb77de7#rd';
 
 class _AdaptHeightFlWebView extends StatelessWidget {
   const _AdaptHeightFlWebView({Key? key}) : super(key: key);
@@ -159,8 +161,12 @@ class _FlWebView extends StatelessWidget {
           log('onSizeChanged');
           log(size);
         },
+        onOffsetChanged: (Offset offset) {
+          log('onOffsetChanged');
+          log(offset);
+        },
         initialUrl: initialUrl);
-    if (adaptHight) return FlAdaptWevView(child: current);
+    if (adaptHight) return FlAdaptHeightWevView(child: current);
     return current;
   }
 }

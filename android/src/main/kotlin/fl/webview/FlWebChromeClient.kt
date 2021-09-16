@@ -83,7 +83,6 @@ class FlWebChromeClient(
 
     override fun onCloseWindow(window: WebView?) {
         super.onCloseWindow(window)
-
     }
 
 

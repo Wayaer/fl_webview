@@ -208,16 +208,17 @@ class FlWKScrollChangedDelegate: NSObject, UIScrollViewDelegate {
     init(_ webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
         channel = methodChannel
         super.init()
+        webView.scrollView.bounces = false
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let size = scrollView.contentSize
+        let contentSize = scrollView.contentSize
         let frame = scrollView.frame
         let offset = scrollView.contentOffset
         var position = 0
         if offset.y < 1 {
             position = 0
-        } else if abs(size.height-offset.y-frame.height) < 10 {
+        } else if abs(contentSize.height - offset.y - frame.height) >= 0 {
             position = 2
         } else {
             position = 1
@@ -225,6 +226,8 @@ class FlWKScrollChangedDelegate: NSObject, UIScrollViewDelegate {
         channel.invokeMethod("onScrollChanged", arguments: [
             "x": offset.x,
             "y": offset.y,
+            "contentWidth": contentSize.width,
+            "contentHeight": contentSize.height,
             "width": frame.width,
             "height": frame.height,
             "position": position,

@@ -1,7 +1,12 @@
+import 'package:example/nested_webview.dart';
 import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_waya/flutter_waya.dart';
+
+// const String url = 'https://www.zhihu.com/';
+const String url =
+    'https://mp.weixin.qq.com/s?__biz=Mzk0ODEwNDgwNg==&mid=100043746&idx=1&sn=5da29970d3c39271f4d285d7d093099f&chksm=436e90eb741919fd6a804f5a7a1ef36d2b53422891640fc55b84d422e8f24d38fbc5bfb77de7#rd';
 
 void main() {
   runApp(ExtendedWidgetsApp(home: const App(), title: 'FlWebview'));
@@ -22,6 +27,10 @@ class App extends StatelessWidget {
           ElevatedText(
               text: 'Adapt height',
               onPressed: () => push(const _AdaptHeightFlWebView())),
+          const SizedBox(height: 10),
+          ElevatedText(
+              text: 'Scrollview nested WebView',
+              onPressed: () => push(const NestedScrollWebView())),
           const SizedBox(height: 10),
           ElevatedText(text: 'Html Text', onPressed: getHtml),
           ElevatedText(
@@ -79,10 +88,6 @@ class _HtmlTextFlWebView extends StatelessWidget {
   }
 }
 
-// const String url = 'https://www.zhihu.com/';
-const String url =
-    'https://mp.weixin.qq.com/s?__biz=Mzk0ODEwNDgwNg==&mid=100043746&idx=1&sn=5da29970d3c39271f4d285d7d093099f&chksm=436e90eb741919fd6a804f5a7a1ef36d2b53422891640fc55b84d422e8f24d38fbc5bfb77de7#rd';
-
 class _AdaptHeightFlWebView extends StatelessWidget {
   const _AdaptHeightFlWebView({Key? key}) : super(key: key);
 
@@ -117,15 +122,7 @@ class _FixedHeightFlWebView extends StatelessWidget {
     return ExtendedScaffold(
         appBar: AppBar(title: const Text('Fixed Height FlWebView')),
         mainAxisAlignment: MainAxisAlignment.center,
-        body: FlFixedHeightWebView(
-            onScrollTop: () {
-              log('onScrollTop');
-            },
-            onScrollBottom: () {
-              log('onScrollBottom');
-            },
-            height: double.infinity,
-            child: _FlWebView(initialUrl: url)));
+        body: _FlWebView(initialUrl: url));
   }
 }
 
@@ -161,8 +158,8 @@ class _FlWebView extends FlWebView {
               // log('onSizeChanged');
               // log(size);
             },
-            onScrollChanged:
-                (Size size, Offset offset, ScrollPositioned positioned) {
+            onScrollChanged: (Size size, Size contentSize, Offset offset,
+                ScrollPositioned positioned) {
 // log('onOffsetChanged');
 // log(offset);
             },

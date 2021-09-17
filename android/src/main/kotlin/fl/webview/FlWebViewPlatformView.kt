@@ -344,11 +344,11 @@ class FlWebViewPlatformView(
         ) {
             if (hasScrollChangedTracking) {
                 val scale = resources.displayMetrics.density
-                val vh = contentHeight * scale
-                val sh = height + scrollY
+//                val vh = contentHeight * scale
+//                val sh = height + scrollY
                 val position = when {
                     scrollY == 0 -> 0
-                    abs(vh - sh) <= 5 -> 2
+                    abs(contentHeight * scale - height - scrollY) >= 0 -> 2
                     else -> 1
                 }
                 val map = mapOf(
@@ -356,6 +356,8 @@ class FlWebViewPlatformView(
                     "y" to (top / scale).toDouble(),
                     "width" to width.toDouble(),
                     "height" to height.toDouble(),
+                    "contentWidth" to width.toDouble(),
+                    "contentHeight" to contentHeight.toDouble(),
                     "position" to position
                 )
                 invokeMethod("onScrollChanged", map)

@@ -94,13 +94,13 @@ typedef PageLoadingCallback = void Function(int progress);
 typedef ContentSizeCallback = void Function(Size size);
 
 /// Component size, WebView and wkwebview , scroll offset
-typedef ScrollChangedCallback = void Function(
-    Size size, Offset offset, ScrollPositioned positioned);
+typedef ScrollChangedCallback = void Function(Size frameSize, Size contentSize,
+    Offset offset, ScrollPositioned positioned);
 
 enum ScrollPositioned {
-  top,
+  start,
   scrolling,
-  bottom,
+  end,
 }
 
 /// Signature for when a [WebView] has failed to load a resource.
@@ -496,9 +496,11 @@ class WebViewCallbacksHandler {
     }
   }
 
-  void onScrollChanged(Size size, Offset offSet, int position) {
+  void onScrollChanged(
+      Size frameSize, Size contentSize, Offset offSet, int position) {
     if (_widget.onScrollChanged != null) {
-      _widget.onScrollChanged!(size, offSet, ScrollPositioned.values[position]);
+      _widget.onScrollChanged!(
+          frameSize, contentSize, offSet, ScrollPositioned.values[position]);
     }
   }
 }

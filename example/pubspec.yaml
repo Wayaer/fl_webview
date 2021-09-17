@@ -1,6 +1,7 @@
 name: example
 description: Demonstrates how to use the fl_webview plugin.
 publish_to: 'none'
+version: 1.0.0
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -12,7 +13,7 @@ dependencies:
     path: ../
   flutter:
     sdk: flutter
-  flutter_curiosity: ^3.3.0
+  flutter_curiosity: ^3.3.2
   flutter_waya: ^1.13.1
 
 dev_dependencies:

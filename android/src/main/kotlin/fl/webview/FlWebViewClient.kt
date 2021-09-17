@@ -15,6 +15,7 @@ class FlWebViewClient(
     private val methodChannel: MethodChannel,
     private val handler: Handler
 ) : WebViewClient() {
+
     var hasNavigationDelegate = false
 
     private fun errorCodeToString(errorCode: Int): String {
@@ -78,6 +79,18 @@ class FlWebViewClient(
                 "url" to url
             )
         )
+        if (view != null) {
+            onContentSizeChanged(view)
+        }
+    }
+
+    private fun onContentSizeChanged(view: WebView) {
+        invokeMethod(
+            "onContentSize", mapOf(
+                "width" to view.width,
+                "height" to view.contentHeight.toDouble(),
+            )
+        )
     }
 
     override fun onReceivedError(
@@ -111,7 +124,7 @@ class FlWebViewClient(
         )
     }
 
-    private fun invokeMethod(method: String, args: Map<String, Any?>) {
+    private fun invokeMethod(method: String, args: Any?) {
         if (handler.looper == Looper.myLooper()) {
             methodChannel.invokeMethod(method, args)
         } else {

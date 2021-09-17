@@ -43,10 +43,14 @@ class FlWebViewMethodChannel {
         final double height = call.arguments['height'] as double;
         _callbackHandler.onSizeChanged(Size(width, height));
         return null;
-      case 'onContentOffset':
+      case 'onScrollChanged':
         final double x = call.arguments['x'] as double;
         final double y = call.arguments['y'] as double;
-        _callbackHandler.onOffsetChanged(Offset(x, y));
+        final double width = call.arguments['width'] as double;
+        final double height = call.arguments['height'] as double;
+        final int position = call.arguments['position'] as int;
+        _callbackHandler.onScrollChanged(
+            Size(width, height), Offset(x, y), position);
         return null;
       case 'onWebResourceError':
         _callbackHandler.onWebResourceError(WebResourceError(

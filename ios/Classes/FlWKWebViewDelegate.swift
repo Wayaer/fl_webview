@@ -174,8 +174,6 @@ class FlWKContentOffsetDelegate: NSObject {
     var channel: FlutterMethodChannel
     let contentOffsetKeyPath = "contentOffset"
 
-    var height: CGFloat = 10
-
     init(_ webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
         channel = methodChannel
         super.init()
@@ -196,10 +194,40 @@ class FlWKContentOffsetDelegate: NSObject {
             if offset == nil {
                 return
             }
-            channel.invokeMethod("onContentOffset", arguments: [
+            channel.invokeMethod("onScrollChanged", arguments: [
                 "x": offset!.x,
                 "y": offset!.y,
             ])
         }
+    }
+}
+
+class FlWKScrollChangedDelegate: NSObject, UIScrollViewDelegate {
+    var channel: FlutterMethodChannel
+
+    init(_ webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
+        channel = methodChannel
+        super.init()
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let size = scrollView.contentSize
+        let frame = scrollView.frame
+        let offset = scrollView.contentOffset
+        var position = 0
+        if offset.y < 1 {
+            position = 0
+        } else if abs(size.height-offset.y-frame.height) < 10 {
+            position = 2
+        } else {
+            position = 1
+        }
+        channel.invokeMethod("onScrollChanged", arguments: [
+            "x": offset.x,
+            "y": offset.y,
+            "width": frame.width,
+            "height": frame.height,
+            "position": position,
+        ])
     }
 }

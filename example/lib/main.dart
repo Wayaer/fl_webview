@@ -55,9 +55,7 @@ class _AdaptHtmlTextFlWebView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: const Text('Header'),
               height: 100),
-          SizedBox(
-              // height: 500,
-              child: _FlWebView(adaptHight: true, initialData: initialData)),
+          FlAdaptHeightWevView(child: _FlWebView(initialData: initialData)),
           Container(
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
@@ -100,7 +98,7 @@ class _AdaptHeightFlWebView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: const Text('Header'),
               height: 100),
-          const _FlWebView(adaptHight: true, initialUrl: url),
+          FlAdaptHeightWevView(child: _FlWebView(initialUrl: url)),
           Container(
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
@@ -119,56 +117,56 @@ class _FixedHeightFlWebView extends StatelessWidget {
     return ExtendedScaffold(
         appBar: AppBar(title: const Text('Fixed Height FlWebView')),
         mainAxisAlignment: MainAxisAlignment.center,
-        body: const _FlWebView(initialUrl: url));
+        body: FlFixedHeightWebView(
+            onScrollTop: () {
+              log('onScrollTop');
+            },
+            onScrollBottom: () {
+              log('onScrollBottom');
+            },
+            height: double.infinity,
+            child: _FlWebView(initialUrl: url)));
   }
 }
 
-class _FlWebView extends StatelessWidget {
-  const _FlWebView(
-      {Key? key, this.adaptHight = false, this.initialData, this.initialUrl})
-      : super(key: key);
-  final bool adaptHight;
-  final HtmlData? initialData;
-  final String? initialUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final FlWebView current = FlWebView(
-        initialData: initialData,
-        javascriptMode: JavascriptMode.unrestricted,
-        navigationDelegate: (NavigationRequest navigation) async {
-          log('navigationDelegate');
-          log(navigation.url);
-          return NavigationDecision.navigate;
-        },
-        onWebViewCreated: (WebViewController controller) async {
-          log('onWebViewCreated');
-          log(await controller.currentUrl());
-        },
-        onPageStarted: (String url) {
-          log('onPageStarted');
-          log(url);
-        },
-        onPageFinished: (String url) {
-          log('onPageFinished');
-          log(url);
-        },
-        onProgress: (int progress) {
-          log('onProgress');
-          log(progress);
-        },
-        onSizeChanged: (Size size) {
-          log('onSizeChanged');
-          log(size);
-        },
-        onOffsetChanged: (Offset offset) {
-          log('onOffsetChanged');
-          log(offset);
-        },
-        initialUrl: initialUrl);
-    if (adaptHight) return FlAdaptHeightWevView(child: current);
-    return current;
-  }
+class _FlWebView extends FlWebView {
+  _FlWebView({Key? key, HtmlData? initialData, String? initialUrl})
+      : assert(initialData == null || initialUrl == null),
+        super(
+            key: key,
+            initialData: initialData,
+            javascriptMode: JavascriptMode.unrestricted,
+            navigationDelegate: (NavigationRequest navigation) async {
+              // log('navigationDelegate');
+              // log(navigation.url);
+              return NavigationDecision.navigate;
+            },
+            onWebViewCreated: (WebViewController controller) async {
+// log('onWebViewCreated');
+// log(await controller.currentUrl());
+            },
+            onPageStarted: (String url) {
+// log('onPageStarted');
+// log(url);
+            },
+            onPageFinished: (String url) {
+              log('onPageFinished');
+              log(url);
+            },
+            onProgress: (int progress) {
+              log('onProgress');
+              log(progress);
+            },
+            onSizeChanged: (Size size) {
+              // log('onSizeChanged');
+              // log(size);
+            },
+            onScrollChanged:
+                (Size size, Offset offset, ScrollPositioned positioned) {
+// log('onOffsetChanged');
+// log(offset);
+            },
+            initialUrl: initialUrl);
 }
 
 class ElevatedText extends StatelessWidget {

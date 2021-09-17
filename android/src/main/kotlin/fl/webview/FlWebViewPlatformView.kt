@@ -13,6 +13,7 @@ import android.webkit.WebView
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
+import kotlin.math.abs
 
 
 class FlWebViewPlatformView(
@@ -35,7 +36,7 @@ class FlWebViewPlatformView(
         displayListenerProxy.onPreWebViewInitialization(displayManager)
 
         /// 初始化webView
-        webView = FlWebView(context, methodChannel, handler)
+        webView = FlWebView(context, methodChannel)
 
         webView.apply {
             settings.apply {
@@ -230,8 +231,8 @@ class FlWebViewPlatformView(
                         flWebChromeClient?.hasContentSizeTracking = true
                     }
                 }
-                "hasContentOffsetTracking" -> {
-                    webView.hasContentOffsetTracking = value as Boolean
+                "hasScrollChangedTracking" -> {
+                    webView.hasScrollChangedTracking = value as Boolean
                 }
                 "gestureNavigationEnabled" -> {
 
@@ -329,33 +330,47 @@ class FlWebViewPlatformView(
         }
     }
 
+    @SuppressLint("ViewConstructor")
     internal class FlWebView(
         context: Context,
         private val methodChannel: MethodChannel,
-        private val mHandler: Handler
     ) : WebView(context) {
 
-        var hasContentOffsetTracking = false
+        var hasScrollChangedTracking = false
 
         override fun onScrollChanged(
             left: Int, top: Int, oldl: Int, oldt:
             Int
         ) {
-            if (hasContentOffsetTracking) {
-                val map = mapOf(
-                    "x" to left.toDouble(),
-                    "y" to top.toDouble(),
-                )
-                if (mHandler.looper == Looper.myLooper()) {
-                    methodChannel.invokeMethod("onContentOffset", map)
-                } else {
-                    mHandler.post {
-                        methodChannel.invokeMethod("onContentOffset", map)
-                    }
+            if (hasScrollChangedTracking) {
+                val scale = resources.displayMetrics.density
+                val vh = contentHeight * scale
+                val sh = height + scrollY
+                val position = when {
+                    scrollY == 0 -> 0
+                    abs(vh - sh) <= 5 -> 2
+                    else -> 1
                 }
+                val map = mapOf(
+                    "x" to (left / scale).toDouble(),
+                    "y" to (top / scale).toDouble(),
+                    "width" to width.toDouble(),
+                    "height" to height.toDouble(),
+                    "position" to position
+                )
+                invokeMethod("onScrollChanged", map)
             }
-
         }
 
+
+        private fun invokeMethod(method: String, args: Any?) {
+            if (handler.looper == Looper.myLooper()) {
+                methodChannel.invokeMethod(method, args)
+            } else {
+                handler.post {
+                    methodChannel.invokeMethod(method, args)
+                }
+            }
+        }
     }
 }

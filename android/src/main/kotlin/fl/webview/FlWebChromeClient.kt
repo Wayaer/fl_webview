@@ -56,11 +56,11 @@ class FlWebChromeClient(
             )
         }
         if (view != null && hasContentSizeTracking && progress > 10) {
-            onContentSizeChanged(view.contentHeight)
+            onContentSizeChanged(view)
         }
     }
 
-    private fun invokeMethod(method: String, args: Map<String, Any?>) {
+    private fun invokeMethod(method: String, args: Any?) {
         if (handler.looper == Looper.myLooper()) {
             methodChannel.invokeMethod(method, args)
         } else {
@@ -70,20 +70,20 @@ class FlWebChromeClient(
         }
     }
 
-    private fun onContentSizeChanged(height: Int) {
+    private fun onContentSizeChanged(view: WebView) {
         if (hasContentSizeTracking) {
             invokeMethod(
                 "onContentSize", mapOf(
-                    "width" to 0.0,
-                    "height" to height.toDouble(),
+                    "width" to view.width,
+                    "height" to view.contentHeight.toDouble(),
                 )
             )
         }
     }
 
+
     override fun onCloseWindow(window: WebView?) {
         super.onCloseWindow(window)
     }
-
 
 }

@@ -90,9 +90,18 @@ typedef PageFinishedCallback = void Function(String url);
 /// Signature for when a [WebView] is loading a page.
 typedef PageLoadingCallback = void Function(int progress);
 
+/// Width and height of web content
 typedef ContentSizeCallback = void Function(Size size);
 
-typedef ContentOffsetCallback = void Function(Offset offset);
+/// Component size, WebView and wkwebview , scroll offset
+typedef ScrollChangedCallback = void Function(
+    Size size, Offset offset, ScrollPositioned positioned);
+
+enum ScrollPositioned {
+  top,
+  scrolling,
+  bottom,
+}
 
 /// Signature for when a [WebView] has failed to load a resource.
 typedef WebResourceErrorCallback = void Function(WebResourceError error);
@@ -166,7 +175,7 @@ class FlWebView extends StatefulWidget {
         AutoMediaPlaybackPolicy.requireUserActionForAllMediaTypes,
     this.allowsInlineMediaPlayback = false,
     this.onSizeChanged,
-    this.onOffsetChanged,
+    this.onScrollChanged,
   })  : assert(initialData == null || initialUrl == null,
             'One of them must be used'),
         // assert(initialData != null && initialUrl != null,
@@ -276,7 +285,7 @@ class FlWebView extends StatefulWidget {
 
   final ContentSizeCallback? onSizeChanged;
 
-  final ContentOffsetCallback? onOffsetChanged;
+  final ScrollChangedCallback? onScrollChanged;
 
   /// Invoked when a web resource has failed to load.
   ///
@@ -406,7 +415,7 @@ extension ExtensionFlWebView on FlWebView {
       hasNavigationDelegate: navigationDelegate != null,
       hasProgressTracking: onProgress != null,
       hasContentSizeTracking: onSizeChanged != null,
-      hasContentOffsetTracking: onOffsetChanged != null,
+      hasScrollChangedTracking: onScrollChanged != null,
       debuggingEnabled: debuggingEnabled,
       autoMediaPlaybackPolicy: initialMediaPlaybackPolicy,
       gestureNavigationEnabled: gestureNavigationEnabled,
@@ -487,9 +496,9 @@ class WebViewCallbacksHandler {
     }
   }
 
-  void onOffsetChanged(Offset offSet) {
-    if (_widget.onOffsetChanged != null) {
-      _widget.onOffsetChanged!(offSet);
+  void onScrollChanged(Size size, Offset offSet, int position) {
+    if (_widget.onScrollChanged != null) {
+      _widget.onScrollChanged!(size, offSet, ScrollPositioned.values[position]);
     }
   }
 }

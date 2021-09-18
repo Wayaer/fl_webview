@@ -13,7 +13,6 @@ import android.webkit.WebView
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
-import kotlin.math.abs
 
 
 class FlWebViewPlatformView(
@@ -344,11 +343,9 @@ class FlWebViewPlatformView(
         ) {
             if (hasScrollChangedTracking) {
                 val scale = resources.displayMetrics.density
-//                val vh = contentHeight * scale
-//                val sh = height + scrollY
                 val position = when {
                     scrollY == 0 -> 0
-                    abs(contentHeight * scale - height - scrollY) >= 0 -> 2
+                    (contentHeight * scale - height - scrollY) <= 5 -> 2
                     else -> 1
                 }
                 val map = mapOf(

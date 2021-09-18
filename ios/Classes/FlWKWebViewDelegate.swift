@@ -202,13 +202,24 @@ class FlWKContentOffsetDelegate: NSObject {
     }
 }
 
-class FlWKScrollChangedDelegate: NSObject, UIScrollViewDelegate {
+class FlWKScrollChangedDelegate: NSObject, UIScrollViewDelegate, UIGestureRecognizerDelegate {
     var channel: FlutterMethodChannel
+    var webView: WKWebView
 
-    init(_ webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
+    init(_ _webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
         channel = methodChannel
+        webView = _webView
         super.init()
+
+        let pan = UIPanGestureRecognizer(target: self, action: Selector(("pan:")))
+        pan.delegate = self
+        pan.cancelsTouchesInView = false
+        webView.addGestureRecognizer(pan)
         webView.scrollView.bounces = false
+    }
+
+    func pan(_ pan: UIPanGestureRecognizer?) {
+        print("pan手势触发")
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -218,7 +229,7 @@ class FlWKScrollChangedDelegate: NSObject, UIScrollViewDelegate {
         var position = 0
         if offset.y < 1 {
             position = 0
-        } else if abs(contentSize.height - offset.y - frame.height) >= 0 {
+        } else if (contentSize.height - offset.y - frame.height) <= 5 {
             position = 2
         } else {
             position = 1
@@ -232,5 +243,33 @@ class FlWKScrollChangedDelegate: NSObject, UIScrollViewDelegate {
             "height": frame.height,
             "position": position,
         ])
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        print("shouldRecognizeSimultaneouslyWith")
+//        var locationPoint = gestureRecognizer.location(in: gestureRecognizer.view)
+//        print(locationPoint)
+        return true
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        print("otherGestureRecognizer")
+        return true
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive event: UIEvent) -> Bool {
+        return true
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        return true
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive press: UIPress) -> Bool {
+        return true
+    }
+
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return false
     }
 }

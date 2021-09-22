@@ -211,14 +211,14 @@ class FlWKScrollChangedDelegate: NSObject, UIScrollViewDelegate, UIGestureRecogn
         webView = _webView
         super.init()
 
-        let pan = UIPanGestureRecognizer(target: self, action: Selector(("pan:")))
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(panGesture))
         pan.delegate = self
         pan.cancelsTouchesInView = false
         webView.addGestureRecognizer(pan)
         webView.scrollView.bounces = false
     }
 
-    func pan(_ pan: UIPanGestureRecognizer?) {
+    @objc func panGesture(_ pan: UIPanGestureRecognizer?) {
         print("pan手势触发")
     }
 

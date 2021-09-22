@@ -146,9 +146,9 @@ class _NestedWebViewState extends State<NestedWebView> {
               // log('===onScrollChanged===');
               switch (positioned) {
                 case ScrollPositioned.start:
-                  // log('===$positioned= 重置刷新=');
-                  // canScroll = true;
-                  // setState(() {});
+                  log('===$positioned= 重置刷新=');
+                  canScroll = true;
+                  setState(() {});
                   break;
                 case ScrollPositioned.scrolling:
                   break;
@@ -167,7 +167,7 @@ class _NestedWebViewState extends State<NestedWebView> {
     // log('builder===$canScroll');
     return NotificationListener<Notification>(
         onNotification: (Notification notifica) {
-          // notification(notifica);
+          notification(notifica);
           return true;
         },
         child: widget.builder(controller, canScroll, webView));
@@ -176,9 +176,10 @@ class _NestedWebViewState extends State<NestedWebView> {
   void notification(Notification notifica) {
     if (notifica is ScrollUpdateNotification) {
       double offset = controller.offset;
-      if (offset > widget.headerHeight &&
-          offset < (widget.webViewHeight + 10) &&
-          scrollPositioned != ScrollPositioned.scrolling) {
+      double diffHeader = offset - widget.headerHeight;
+      double diffFooter = offset - widget.headerHeight - widget.webViewHeight;
+      print('$diffHeader====$diffFooter');
+      if (diffHeader > -1 && diffHeader < 1) {
         if (canScroll) {
           canScroll = false;
           setState(() {});
@@ -189,10 +190,16 @@ class _NestedWebViewState extends State<NestedWebView> {
                 curve: Curves.linear);
           });
         }
-      } else if (scrollPositioned == ScrollPositioned.end) {
+      } else if (diffFooter > -1 && diffFooter < 1) {
         if (canScroll) {
           canScroll = false;
           setState(() {});
+          log('====${widget.headerHeight}');
+          200.milliseconds.delayed(() {
+            controller.animateTo(widget.headerHeight + widget.webViewHeight,
+                duration: const Duration(milliseconds: 100),
+                curve: Curves.linear);
+          });
         }
       }
     }
@@ -207,11 +214,12 @@ class NestedScrollWebView extends StatelessWidget {
     double webHeight = deviceHeight -
         getStatusBarHeight -
         getBottomNavigationBarHeight -
-        kToolbarHeight;
+        kToolbarHeight -
+        10;
     return ExtendedScaffold(
         appBar: AppBar(title: const Text('FlWebView Example')),
         body: NestedWebView(
-          // headerHeight: 200,
+          headerHeight: 200,
           webViewHeight: webHeight,
           builder:
               (ScrollController controller, bool canScroll, Widget webView) {
@@ -222,14 +230,14 @@ class NestedScrollWebView extends StatelessWidget {
                     ? const BouncingScrollPhysics()
                     : const NeverScrollableScrollPhysics(),
                 slivers: [
-                  // SliverListGrid(
-                  //     itemBuilder: (_, int index) => Container(
-                  //         height: 100,
-                  //         width: double.infinity,
-                  //         color: index.isEven
-                  //             ? Colors.lightBlue
-                  //             : Colors.amberAccent),
-                  //     itemCount: 2),
+                  SliverListGrid(
+                      itemBuilder: (_, int index) => Container(
+                          height: 100,
+                          width: double.infinity,
+                          color: index.isEven
+                              ? Colors.lightBlue
+                              : Colors.amberAccent),
+                      itemCount: 2),
                   SliverToBoxAdapter(child: webView),
                   SliverListGrid(
                       itemBuilder: (_, int index) => Container(
@@ -240,18 +248,18 @@ class NestedScrollWebView extends StatelessWidget {
                               : Colors.amberAccent),
                       itemCount: 30)
                 ]);
-            return ScrollList.builder(
-                controller: controller,
-                physics: canScroll
-                    ? const AlwaysScrollableScrollPhysics()
-                    : const NeverScrollableScrollPhysics(),
-                header: SliverToBoxAdapter(child: webView),
-                itemBuilder: (_, int index) => Container(
-                    height: 100,
-                    width: double.infinity,
-                    color:
-                        index.isEven ? Colors.lightBlue : Colors.amberAccent),
-                itemCount: 30);
+            // return ScrollList.builder(
+            //     controller: controller,
+            //     physics: canScroll
+            //         ? const AlwaysScrollableScrollPhysics()
+            //         : const NeverScrollableScrollPhysics(),
+            //     header: SliverToBoxAdapter(child: webView),
+            //     itemBuilder: (_, int index) => Container(
+            //         height: 100,
+            //         width: double.infinity,
+            //         color:
+            //             index.isEven ? Colors.lightBlue : Colors.amberAccent),
+            //     itemCount: 30);
           },
           child: const FlWebView(
               javascriptMode: JavascriptMode.unrestricted, initialUrl: url),

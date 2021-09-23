@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fl_webview/fl_webview.dart';
+import 'package:fl_webview/src/method_channel.dart';
 import 'package:fl_webview/src/platform_web_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -174,7 +175,7 @@ class FlWebView extends StatefulWidget {
     this.initialMediaPlaybackPolicy =
         AutoMediaPlaybackPolicy.requireUserActionForAllMediaTypes,
     this.allowsInlineMediaPlayback = false,
-    this.onSizeChanged,
+    this.onContentSizeChanged,
     this.onScrollChanged,
   })  : assert(initialData == null || initialUrl == null,
             'One of them must be used'),
@@ -283,7 +284,7 @@ class FlWebView extends StatefulWidget {
   /// Invoked when a page is loading.
   final PageLoadingCallback? onProgress;
 
-  final ContentSizeCallback? onSizeChanged;
+  final ContentSizeCallback? onContentSizeChanged;
 
   final ScrollChangedCallback? onScrollChanged;
 
@@ -414,7 +415,7 @@ extension ExtensionFlWebView on FlWebView {
       javascriptMode: javascriptMode,
       hasNavigationDelegate: navigationDelegate != null,
       hasProgressTracking: onProgress != null,
-      hasContentSizeTracking: onSizeChanged != null,
+      hasContentSizeTracking: onContentSizeChanged != null,
       hasScrollChangedTracking: onScrollChanged != null,
       debuggingEnabled: debuggingEnabled,
       autoMediaPlaybackPolicy: initialMediaPlaybackPolicy,
@@ -490,9 +491,9 @@ class WebViewCallbacksHandler {
     }
   }
 
-  void onSizeChanged(Size size) {
-    if (_widget.onSizeChanged != null) {
-      _widget.onSizeChanged!(size);
+  void onContentSizeChanged(Size size) {
+    if (_widget.onContentSizeChanged != null) {
+      _widget.onContentSizeChanged!(size);
     }
   }
 
@@ -690,6 +691,10 @@ class WebViewController {
   /// Scroll position is measured from top.
   Future<int> getScrollY() {
     return _methodChannel.getScrollY();
+  }
+
+  Future<bool?> scrollEnabled(bool enabled) {
+    return _methodChannel.scrollEnabled(enabled);
   }
 }
 

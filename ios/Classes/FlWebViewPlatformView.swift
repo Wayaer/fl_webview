@@ -86,6 +86,9 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         case "getScrollY":
             let offsetY = Int(webView!.scrollView.contentOffset.y)
             result(NSNumber(value: offsetY))
+        case "scrollEnabled":
+            webView?.scrollView.isScrollEnabled = call.arguments as! Bool
+            result(true)
         default:
             result(FlutterMethodNotImplemented)
         }

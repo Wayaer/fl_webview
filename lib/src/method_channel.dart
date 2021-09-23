@@ -41,7 +41,7 @@ class FlWebViewMethodChannel {
       case 'onContentSize':
         final double width = call.arguments['width'] as double;
         final double height = call.arguments['height'] as double;
-        _callbackHandler.onSizeChanged(Size(width, height));
+        _callbackHandler.onContentSizeChanged(Size(width, height));
         return null;
       case 'onScrollChanged':
         final double x = call.arguments['x'] as double;
@@ -82,6 +82,10 @@ class FlWebViewMethodChannel {
 
   Future<bool?> canGoBack() =>
       _channel.invokeMethod<bool>('canGoBack').then((bool? result) => result);
+
+  Future<bool?> scrollEnabled(bool enabled) => _channel
+      .invokeMethod<bool>('scrollEnabled', enabled)
+      .then((bool? result) => result);
 
   Future<bool?> canGoForward() => _channel
       .invokeMethod<bool>('canGoForward')

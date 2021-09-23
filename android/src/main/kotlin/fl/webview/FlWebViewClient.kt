@@ -79,19 +79,16 @@ class FlWebViewClient(
                 "url" to url
             )
         )
-        if (view != null) {
-            onContentSizeChanged(view)
+        view?.let {
+            invokeMethod(
+                "onContentSize", mapOf(
+                    "width" to it.width.toDouble(),
+                    "height" to it.contentHeight.toDouble(),
+                )
+            )
         }
     }
 
-    private fun onContentSizeChanged(view: WebView) {
-        invokeMethod(
-            "onContentSize", mapOf(
-                "width" to view.width,
-                "height" to view.contentHeight.toDouble(),
-            )
-        )
-    }
 
     override fun onReceivedError(
         view: WebView?,

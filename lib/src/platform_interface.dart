@@ -182,13 +182,13 @@ class WebSettings {
   WebSettings({
     this.autoMediaPlaybackPolicy = AutoMediaPlaybackPolicy.alwaysAllow,
     this.javascriptMode,
-    this.hasNavigationDelegate,
-    this.hasProgressTracking,
-    this.debuggingEnabled,
+    this.debuggingEnabled = false,
     this.gestureNavigationEnabled,
     this.allowsInlineMediaPlayback,
-    this.hasContentSizeTracking,
-    this.hasScrollChangedTracking,
+    this.hasNavigationDelegate = false,
+    this.hasProgressTracking = false,
+    this.hasContentSizeTracking = false,
+    this.hasScrollChangedTracking = false,
     required this.userAgent,
   });
 
@@ -199,20 +199,20 @@ class WebSettings {
   JavascriptMode? javascriptMode;
 
   /// Whether the [WebView] has a [NavigationDelegate] set.
-  bool? hasNavigationDelegate;
+  bool hasNavigationDelegate;
 
   /// Whether the [WebView] should track page loading progress.
   /// See also: [WebViewCallbacksHandler.onProgress] to get the progress.
-  bool? hasProgressTracking;
+  bool hasProgressTracking;
 
-  bool? hasContentSizeTracking;
+  bool hasContentSizeTracking;
 
-  bool? hasScrollChangedTracking;
+  bool hasScrollChangedTracking;
 
   /// Whether to enable the platform's webview content debugging tools.
   ///
   /// See also: [WebView.debuggingEnabled].
-  bool? debuggingEnabled;
+  bool debuggingEnabled;
 
   /// Whether to play HTML5 videos inline or use the native full-screen controller on iOS.
   ///
@@ -249,8 +249,6 @@ class WebSettings {
 
   WebSettings update(WebSettings newSettings) {
     assert(newSettings.javascriptMode != null);
-    assert(newSettings.hasNavigationDelegate != null);
-    assert(newSettings.debuggingEnabled != null);
     if (javascriptMode != newSettings.javascriptMode) {
       javascriptMode = newSettings.javascriptMode;
     }
@@ -259,6 +257,9 @@ class WebSettings {
     }
     if (hasProgressTracking != newSettings.hasProgressTracking) {
       hasProgressTracking = newSettings.hasProgressTracking;
+    }
+    if (hasContentSizeTracking != newSettings.hasContentSizeTracking) {
+      hasContentSizeTracking = newSettings.hasContentSizeTracking;
     }
     if (hasScrollChangedTracking != newSettings.hasScrollChangedTracking) {
       hasScrollChangedTracking = newSettings.hasScrollChangedTracking;

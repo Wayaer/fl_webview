@@ -25,12 +25,12 @@ class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
     return SizedBox.fromSize(
         size: currenrSize,
         child: FlWebView(
-            onSizeChanged: (Size size) {
+            onContentSizeChanged: (Size size) {
+              widget.child.onContentSizeChanged?.call(size);
               if (currenrSize.height != size.height) {
                 currenrSize = Size(currenrSize.width, size.height);
                 setState(() {});
               }
-              widget.child.onSizeChanged?.call(size);
             },
             onWebViewCreated: widget.child.onWebViewCreated,
             initialUrl: widget.child.initialUrl,

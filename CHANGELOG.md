@@ -1,5 +1,7 @@
 ## 0.2.0
+ * modify `onSizeChanged` to `onContentSizeChanged`
  * modify `FlAdaptWevView` to `FlAdaptHeightWevView`
+ * add `onScrollChanged`
  * add `onScrollChanged`
 ## 0.1.0
  * fix bugs

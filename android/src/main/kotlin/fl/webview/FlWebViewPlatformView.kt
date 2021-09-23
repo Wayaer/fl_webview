@@ -35,7 +35,7 @@ class FlWebViewPlatformView(
         displayListenerProxy.onPreWebViewInitialization(displayManager)
 
         /// 初始化webView
-        webView = FlWebView(context, methodChannel)
+        webView = FlWebView(context, methodChannel, handler)
 
         webView.apply {
             settings.apply {
@@ -105,6 +105,9 @@ class FlWebViewPlatformView(
                 result.success(null)
             }
             "canGoBack" -> result.success(webView.canGoBack())
+            "scrollEnabled" -> {
+                result.success(true)
+            }
             "canGoForward" -> result.success(webView.canGoForward())
             "goBack" -> {
                 if (webView.canGoBack()) {
@@ -333,6 +336,7 @@ class FlWebViewPlatformView(
     internal class FlWebView(
         context: Context,
         private val methodChannel: MethodChannel,
+        private val currentHandler: Handler,
     ) : WebView(context) {
 
         var hasScrollChangedTracking = false
@@ -363,10 +367,10 @@ class FlWebViewPlatformView(
 
 
         private fun invokeMethod(method: String, args: Any?) {
-            if (handler.looper == Looper.myLooper()) {
+            if (currentHandler.looper == Looper.myLooper()) {
                 methodChannel.invokeMethod(method, args)
             } else {
-                handler.post {
+                currentHandler.post {
                     methodChannel.invokeMethod(method, args)
                 }
             }

@@ -55,8 +55,14 @@ class FlWebChromeClient(
                 )
             )
         }
+
         if (view != null && hasContentSizeTracking && progress > 10) {
-            onContentSizeChanged(view)
+            invokeMethod(
+                "onContentSize", mapOf(
+                    "width" to view.width.toDouble(),
+                    "height" to view.contentHeight.toDouble(),
+                )
+            )
         }
     }
 
@@ -67,17 +73,6 @@ class FlWebChromeClient(
             handler.post {
                 methodChannel.invokeMethod(method, args)
             }
-        }
-    }
-
-    private fun onContentSizeChanged(view: WebView) {
-        if (hasContentSizeTracking) {
-            invokeMethod(
-                "onContentSize", mapOf(
-                    "width" to view.width,
-                    "height" to view.contentHeight.toDouble(),
-                )
-            )
         }
     }
 

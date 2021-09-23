@@ -134,17 +134,17 @@ class _FlWebView extends FlWebView {
             initialData: initialData,
             javascriptMode: JavascriptMode.unrestricted,
             navigationDelegate: (NavigationRequest navigation) async {
-              // log('navigationDelegate');
-              // log(navigation.url);
+              log('navigationDelegate');
+              log(navigation.url);
               return NavigationDecision.navigate;
             },
             onWebViewCreated: (WebViewController controller) async {
-// log('onWebViewCreated');
-// log(await controller.currentUrl());
+              log('onWebViewCreated');
+              log(await controller.currentUrl());
             },
             onPageStarted: (String url) {
-// log('onPageStarted');
-// log(url);
+              log('onPageStarted');
+              log(url);
             },
             onPageFinished: (String url) {
               log('onPageFinished');
@@ -154,14 +154,14 @@ class _FlWebView extends FlWebView {
               log('onProgress');
               log(progress);
             },
-            onSizeChanged: (Size size) {
-              // log('onSizeChanged');
-              // log(size);
+            onContentSizeChanged: (Size size) {
+              log('onContentSizeChanged');
+              log(size);
             },
             onScrollChanged: (Size size, Size contentSize, Offset offset,
                 ScrollPositioned positioned) {
-// log('onOffsetChanged');
-// log(offset);
+              log('onScrollChanged');
+              log(offset);
             },
             initialUrl: initialUrl);
 }

@@ -7,34 +7,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 
 typedef NestedScrollWebViewBuilder = ScrollView Function(
-    ScrollController controller, bool canScroll, Widget webView);
+    ScrollWebViewController controller, bool canScroll, Widget webView);
 
 class NestedWebView extends StatefulWidget {
   const NestedWebView({
     Key? key,
-    this.headerHeight = 0,
-    required this.webViewHeight,
-    this.controller,
     required this.builder,
     required this.child,
-    this.headerToleranceHeight = 10,
-    this.footerToleranceHeight = 10,
+    required this.controller,
   }) : super(key: key);
 
-  /// webview 展示的高度
-  final double webViewHeight;
-
-  /// webView 头部的高度 默认为0
-  final double headerHeight;
-
-  /// header 和 webview 底部 容错高度
-  final double headerToleranceHeight;
-  final double footerToleranceHeight;
-
-  /// ScrollView 的 controller
-  final ScrollController? controller;
-
   final NestedScrollWebViewBuilder builder;
+  final ScrollWebViewController controller;
 
   /// webview
   final FlWebView child;
@@ -44,17 +28,15 @@ class NestedWebView extends StatefulWidget {
 }
 
 class _NestedWebViewState extends State<NestedWebView> {
-  bool canScroll = false;
-  late ScrollController controller;
-  ScrollPositioned? scrollPositioned;
-  late bool isScrollView;
-  bool isInit = false;
-  Offset webOffset = const Offset(0, 0);
-  Offset startOffset = const Offset(0, 0);
-  late WebViewController webController;
-  Size webContentSize = const Size(double.infinity, 10);
+  Offset? downPosition;
+  Offset? interruptionPosition;
+  Offset? oldMovePosition;
 
-  bool isTouch = false;
+  /// 是否上滑
+  bool? isWipeUp;
+  bool? oldWipeUp;
+
+  late ScrollWebViewController controller;
 
   @override
   void initState() {
@@ -63,88 +45,41 @@ class _NestedWebViewState extends State<NestedWebView> {
   }
 
   void initController() {
-    canScroll = widget.headerHeight != 0;
-    isScrollView = canScroll;
-    controller = widget.controller ?? ScrollController();
-    // controller.addListener(listener);
-  }
-
-  void listener() {
-    isScrollView = true;
-    // double offset = controller.offset;
-    // log('$offset====$scrollPositioned');
-    // if (offset > widget.headerHeight &&
-    //     offset < (widget.webViewHeight + widget.headerHeight) &&
-    //     scrollPositioned != ScrollPositioned.end) {
-    //   if (canScroll && isScrollView) {
-    //     canScroll = !canScroll;
-    //     setState(() {});
-    //     if (widget.headerHeight > 0) {
-    //       log('====${widget.headerHeight}');
-    //       200.milliseconds.delayed(() {
-    //         controller.animateTo(widget.headerHeight,
-    //             duration: const Duration(milliseconds: 100),
-    //             curve: Curves.linear);
-    //       });
-    //     }
-    //   }
-    // }
-
-    // double diff = controller.offset - widget.headerHeight;
-    // if (diff > -1 && diff < 1) {
-    //   if (canScroll && isScrollView) {
-    //     log('$diff===canScroll:$canScroll');
-    //     canScroll = !canScroll;
-    //     if (widget.headerHeight > 0) {
-    //       log('====${widget.headerHeight}');
-    //       controller
-    //           .animateTo(widget.headerHeight,
-    //               duration: const Duration(milliseconds: 50),
-    //               curve: Curves.linear)
-    //           .then((value) {
-    //         setState(() {});
-    //       });
-    //     } else {
-    //       setState(() {});
-    //     }
-    //   }
-    // }
-  }
-
-  @override
-  void didUpdateWidget(covariant NestedWebView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.headerHeight != widget.headerHeight ||
-        oldWidget.controller != widget.controller) {
-      // controller.removeListener(listener);
-      initController();
-      setState(() {});
-    }
+    controller = widget.controller;
+    // controller.addListener(() {
+    //   controller.webController!.getScrollY().then((value) {
+    //     log('combinedScroll:${controller.combinedScroll}==\n'
+    //         'combinedOffset:${controller.combinedOffset}==\n'
+    //         'offset:${controller.offset}==\n'
+    //         'webViewOffset:$value==\n'
+    //         'combinedMaxScrollExtent:${controller.combinedMaxScrollExtent}==\n'
+    //         'webViewHeight:${controller.webViewHeight}==\n'
+    //         'maxScrollExtent:${controller.position.maxScrollExtent}==\n'
+    //         'webContentSize:${controller.webContentSize}==\n'
+    //         'scrollViewPhysics:${controller.scrollViewPhysics}==\n'
+    //         '');
+    //   });
+    // });
   }
 
   @override
   Widget build(BuildContext context) {
     Widget webView = SizedBox.fromSize(
-        size: Size(double.infinity, widget.webViewHeight),
+        size: Size(double.infinity, controller.webViewHeight),
         child: FlWebView(
             onContentSizeChanged: (Size size) {
-              webContentSize = size;
-              log(size);
-              setState(() {});
+              controller.onContentSizeChanged(size);
               if (widget.child.onContentSizeChanged != null) {
                 widget.child.onContentSizeChanged;
               }
             },
-            onWebViewCreated: (WebViewController controller) {
-              webController = controller;
-              controller.scrollEnabled(false);
-
-              if (widget.headerHeight > 0) {
-                log(-widget.headerHeight.toInt());
-                webController.scrollTo(0, -widget.headerHeight.toInt());
-              }
+            onWebViewCreated: (WebViewController _controller) {
+              controller.onWebViewCreated(_controller);
+              1.seconds.delayed(() {
+                controller.scrollTo(0);
+              });
               if (widget.child.onWebViewCreated != null) {
-                widget.child.onWebViewCreated!(controller);
+                widget.child.onWebViewCreated!(_controller);
               }
             },
             initialUrl: widget.child.initialUrl,
@@ -163,173 +98,458 @@ class _NestedWebViewState extends State<NestedWebView> {
             initialMediaPlaybackPolicy: widget.child.initialMediaPlaybackPolicy,
             allowsInlineMediaPlayback: widget.child.allowsInlineMediaPlayback,
             onScrollChanged: (Size size, Size contentSize, Offset offset,
-                ScrollPositioned positioned) {
-              isScrollView = false;
-              // controller.jumpTo(offset.dy);
-              webContentSize = contentSize;
-              // if (!isInit) {
-              //   webOffset = offset;
-              //   isInit = true;
-              // }
-              // if (positioned == ScrollPositioned.end ||
-              //     (widget.headerHeight > 0 &&
-              //         positioned == ScrollPositioned.start)) {
-              //   log(positioned);
-              //   if (!canScroll) {
-              //     canScroll = !canScroll;
-              //     setState(() {});
+                ScrollPositioned positioned) async {
+              controller.onScrollChanged(size, contentSize, offset, positioned);
+              // scrollPositioned = positioned;
+              // log('onScrollChanged offset : $offset');
+              // if (!canScroll && canSwitch) {
+              //   // log('===$canScroll===${!canSwitch}');
+              //   switch (positioned) {
+              //     case ScrollPositioned.start:
+              //       if (widget.headerHeight > 0) {
+              //         canScroll = true;
+              //         await controller.webController!.scrollEnabled(false);
+              //         // animateTo(widget.headerHeight -
+              //         //     widget.headerToleranceHeight -
+              //         //     1);
+              //         // setState(() {});
+              //       }
+              //       break;
+              //     case ScrollPositioned.scrolling:
+              //       break;
+              //     case ScrollPositioned.end:
+              //       log(positioned);
+              //       canScroll = true;
+              //       await controller.webController!.scrollEnabled(false);
+              //       // animateTo(
+              //       //     controller.offset + widget.footerToleranceHeight + 1);
+              //       canSwitch = false;
+              //       // setState(() {});
+              //       break;
               //   }
               // }
-              // log('===onScrollChanged===');
-              // switch (positioned) {
-              //   case ScrollPositioned.start:
-              //     log('===$positioned= 重置刷新=');
-              //     canScroll = true;
-              //     setState(() {});
-              //     break;
-              //   case ScrollPositioned.scrolling:
-              //     break;
-              //   case ScrollPositioned.end:
-              //     // log('===$positioned= 重置刷新=');
-              //     canScroll = true;
-              //     setState(() {});
-              //     break;
-              // }
-              // scrollPositioned = positioned;
-              // if (widget.child.onScrollChanged != null) {
-              //   widget.child.onScrollChanged!(
-              //       size, contentSize, offset, positioned);
-              // }
+              if (widget.child.onScrollChanged != null) {
+                widget.child.onScrollChanged!(
+                    size, contentSize, offset, positioned);
+              }
             }));
-    // log('builder===$canScroll');
+    return ScrollListener(
+      onPointerDown: (PointerDownEvent event) {
+        downPosition = event.localPosition;
+      },
+      onMoveVerticalEvent: (MoveVerticalEvent moveEvent, PointerMoveEvent event,
+          double distance) {
+        log('=====$moveEvent');
+      },
+      onPointerMove: (PointerMoveEvent event) {
+        var localDelta = event.localDelta;
+        if (controller.offset >= controller.headerHeight) {
+          if (localDelta.dy < 0) {
+            // controller.scrollTo();
 
-    webView = GestureDetector(
-        onTapDown: (TapDownDetails details) {
-          log('onTapDown====');
-          isTouch = true;
-          // setState(() {});
-        },
-        onTapCancel: () {
-          log('onTapCancel====');
-          isTouch = false;
-          // setState(() {});
-        },
-        child: webView);
-    final pageNum = (webContentSize.height ~/ widget.webViewHeight);
-    final remainderNum =
-        webContentSize.height - (widget.webViewHeight * pageNum);
-    final placeholder = SliverPadding(
-        padding: EdgeInsets.only(bottom: remainderNum),
-        sliver: SliverFixedExtentList(
-          delegate: SliverChildBuilderDelegate(
-              (_, __) => SizedBox(height: widget.webViewHeight)
-                  .color(Colors.black87.withOpacity(0.4)),
-              childCount: pageNum),
-          itemExtent: widget.webViewHeight,
-        ));
+          } else {}
+        }
+        var position = event.localPosition;
+        isWipeUp = downPosition!.dy < position.dy;
+        oldMovePosition = position;
+        if (oldWipeUp != isWipeUp) {
+          interruptionPosition = position;
+        }
+        // if (isWipeUp!) {
+        //   if (controller.offset >= controller.headerHeight) {
+        //     log('---$oldWipeUp---$isWipeUp');
+        //     if (interruptionPosition == null || oldWipeUp != isWipeUp) {
+        //       log('下滑设置拦截开始的坐标==${controller.scrollViewPhysics}');
+        //       interruptionPosition = position;
+        //     } else if (!controller.scrollViewPhysics) {
+        //       var distance = (position.dy - interruptionPosition!.dy).abs();
+        //       log('下滑单次中断滑动距离：$distance');
+        //       controller.jumpTo(controller.headerHeight);
+        //       controller.scrollTo(distance);
+        //     }
+        //   }
+        // } else {
+        if (controller.offset >= controller.headerHeight) {
+          if (interruptionPosition == null) {
+            log('设置拦截开始的坐标==${controller.scrollViewPhysics}');
+            interruptionPosition = position;
+          } else {
+            var distance = interruptionPosition!.dy - position.dy;
+            log('上滑单次中断滑动距离：$distance');
+            if (distance >= 0) {
+              controller.jumpTo(controller.headerHeight);
+              controller.scrollTo(distance);
+            } else {
+              log(controller.headerHeight + distance);
+              controller.jumpTo(controller.headerHeight + distance);
+            }
+          }
+        } else {
+          controller.scrollTo(0);
+          var distance = interruptionPosition!.dy - position.dy;
+          controller.jumpTo(controller.headerHeight + distance);
+        }
+        oldWipeUp = isWipeUp;
+      },
+      onPointerUp: (PointerUpEvent event) {
+        downPosition = null;
+        isWipeUp = null;
+        log('onPointerCancel=====');
+        if (controller.scrollViewPhysics) {
+          controller.webController!.getScrollY().then((value) {
+            log('getScrollY=$value');
+            if (value > 0) {
+              controller.changeScrollWidget().then((value) {
+                setState(() {});
+              });
+            }
 
-    Widget scrollView = NotificationListener<Notification>(
-        onNotification: (Notification notifica) {
-          // notification(notifica);
-          onNotification(notifica);
-          return true;
-        },
-        child: widget.builder(controller, canScroll, placeholder));
-    List<Widget> children = [];
-    children.addAll(isTouch ? [scrollView, webView] : [webView, scrollView]);
-    return Stack(children: children);
-
-    // child: GestureDetector(
-    //   onVerticalDragStart: (DragStartDetails details) {
-    //     startOffset = details.globalPosition;
-    //     // log('start==$startOffset');
-    //   },
-    //   onVerticalDragUpdate: (DragUpdateDetails details) {
-    //     var offset = details.globalPosition;
-    //     // if(offset.dy>start)
-    //     // log('update==$offset');
-    //     if (startOffset.dy > offset.dy) {
-    //       /// 往上滑动
-    //       double dy = startOffset.dy - offset.dy;
-    //
-    //       log('往上滑动==$dy====${dy / getDevicePixelRatio} ');
-    //       dy = dy / getDevicePixelRatio;
-    //       dy = webOffset.dy + dy;
-    //       if (dy > webContentSize.height) {
-    //         return;
-    //       }
-    //
-    //       webOffset = Offset(webOffset.dx, dy);
-    //       // startOffset = webOffset;
-    //       // webController.scrollBy(webOffset.dx.toInt(), dy.toInt());
-    //       webController.scrollTo(webOffset.dx.toInt(), dy.toInt());
-    //     } else {
-    //       /// 往下滑动
-    //       double dy = offset.dy - startOffset.dy;
-    //       // log('update==$dy===${webOffset.dy + dy}');
-    //       log('往下滑动==$dy====${dy / getDevicePixelRatio} ');
-    //       dy = dy / getDevicePixelRatio;
-    //
-    //       // dy = webOffset.dy - dy;
-    //       if (dy <= 0) {
-    //         return;
-    //       }
-    //       webOffset = Offset(webOffset.dx, dy);
-    //       // startOffset = webOffset;
-    //       // webController.scrollBy(webOffset.dx.toInt(), dy.toInt());
-    //       webController.scrollTo(webOffset.dx.toInt(), dy.toInt());
-    //     }
-    //   },
-    //   onVerticalDragEnd: (DragEndDetails details) {},
-    // )
+            // if (value <= controller.headerToleranceHeight / 2) {
+            //   controller.webviewPositioned = ScrollPositioned.start;
+            //   controller.scrollViewPhysics = true;
+            // } else if (controller.webviewPositioned !=
+            //     ScrollPositioned.scrolling) {
+            //   log('设置为滚动中');
+            //   controller.webviewPositioned = ScrollPositioned.scrolling;
+            //   controller.scrollViewPhysics = false;
+            //   controller.webController!.scrollEnabled(true).then((value) {
+            //     setState(() {});
+            //   });
+            // }
+          });
+        }
+      },
+      onPointerCancel: (PointerCancelEvent event) {
+        downPosition = null;
+        isWipeUp = null;
+        interruptionPosition = null;
+        // log('onPointerCancel=====');
+        // webController.getScrollY().then((value) {
+        //   log('=getScrollY=$value');
+        // });
+      },
+      child: NotificationListener(
+          onNotification: (Notification notifica) {
+            onNotification(notifica);
+            return true;
+          },
+          child: widget.builder(
+              controller, controller.scrollViewPhysics, webView)),
+    );
   }
 
-  void onNotification(Notification notifica) {
-    if (controller.offset < (webContentSize.height - widget.webViewHeight)) {
-      var offset = controller.offset.toInt();
-      if (offset <= widget.headerHeight) {
-        if (offset < 0) {
-          offset = offset - widget.headerHeight.toInt();
-        } else {
-          offset = -offset;
-        }
+  void onMoveEnd() {}
+
+  Future<void> onNotification(Notification notifica) async {
+    if (!controller.scrollViewPhysics) return;
+    double offset = controller.offset;
+    if (controller.headerHeight > 0) {
+      // if (offset > controller.headerHeight &&
+      //     offset < controller.headerHeight + controller.webViewHeight) {
+      //   controller.scrollViewPhysics = false;
+      // }
+      // double diffHeader = offset - controller.headerHeight;
+      // if (diffHeader < 0) diffHeader = -diffHeader;
+      // if (diffHeader < controller.headerToleranceHeight) {
+      //   controller.scrollViewPhysics = false;
+      //   // animateTo(widget.headerHeight);
+      //   // await webController.scrollEnabled(true);
+      //   // await scrollTo(widget.headerToleranceHeight);
+      //   // setState(() {});
+      // }
+    }
+
+    // if(offset>controller.headerHeight + controller.webViewHeight)
+    // double diffFooter =
+    //     offset - controller.headerHeight - controller.webViewHeight;
+    // if (diffFooter < 0) diffFooter = -diffFooter;
+    // if (diffFooter < controller.footerToleranceHeight && isWipeUp == true) {
+    //   controller.scrollViewPhysics = false;
+    //   // await webController.scrollEnabled(true);
+    //   // await scrollTo(webContentSize.height - widget.footerToleranceHeight);
+    //   // animateTo(widget.headerHeight + widget.webViewHeight);
+    //   // setState(() {});
+    // }
+  }
+}
+
+enum MoveVerticalEvent {
+  /// 上滑
+  up,
+
+  /// 停留
+  stay,
+
+  /// 下滑
+  down,
+}
+
+typedef PointerMoveEventState = void Function(
+    MoveVerticalEvent moveEvent, PointerMoveEvent event, double distance);
+
+class ScrollListener extends StatelessWidget {
+  const ScrollListener(
+      {Key? key,
+      required this.child,
+      this.onPointerCancel,
+      this.onPointerDown,
+      this.onPointerMove,
+      this.onPointerUp,
+      this.onMoveVerticalEvent})
+      : super(key: key);
+  final Widget child;
+  final PointerCancelEventListener? onPointerCancel;
+  final PointerDownEventListener? onPointerDown;
+  final PointerMoveEventListener? onPointerMove;
+  final PointerUpEventListener? onPointerUp;
+  final PointerMoveEventState? onMoveVerticalEvent;
+
+  @override
+  Widget build(BuildContext context) {
+    MoveVerticalEvent moveEvent = MoveVerticalEvent.stay;
+    Offset? downPosition;
+    return Listener(
+        child: child,
+        onPointerCancel: onPointerCancel,
+        onPointerDown: (PointerDownEvent event) {
+          downPosition = event.localPosition;
+          if (onPointerDown != null) onPointerDown!(event);
+        },
+        onPointerUp: onPointerUp,
+        onPointerMove: (PointerMoveEvent event) {
+          var localDelta = event.localDelta;
+          if (localDelta.dy == 0) {
+            moveEvent = MoveVerticalEvent.stay;
+          } else if (localDelta.dy > 0) {
+            moveEvent = MoveVerticalEvent.down;
+          } else if (localDelta.dy < 0) {
+            moveEvent = MoveVerticalEvent.down;
+          }
+
+          if (onMoveVerticalEvent != null && downPosition != null) {
+            double distance = downPosition!.dy - event.position.dy;
+            onMoveVerticalEvent!(moveEvent, event, distance);
+          }
+          if (onPointerMove != null) onPointerMove!(event);
+        });
+  }
+}
+
+enum CombinedScrollWidget { webView, scrollView }
+
+class ScrollWebViewController extends ScrollController {
+  ScrollWebViewController({required this.webViewHeight, this.headerHeight = 0})
+      : assert(webViewHeight >= 0),
+        super() {
+    _initCombinedScroll();
+  }
+
+  void _initCombinedScroll() {
+    combinedScroll ??= headerHeight == 0
+        ? CombinedScrollWidget.webView
+        : CombinedScrollWidget.scrollView;
+    scrollViewPhysics = headerHeight != 0;
+  }
+
+  /// WebViewController
+  WebViewController? webController;
+
+  /// webview 展示的高度
+  final double webViewHeight;
+
+  /// webView 头部的高度 默认为0
+  final double headerHeight;
+
+  /// 组合总高度 webview + scrollview ;
+  double combinedMaxScrollExtent = 0;
+
+  double webOffset = 0;
+
+  /// webview 内容的真实大小
+  Size webContentSize = const Size(0, 0);
+
+  CombinedScrollWidget? combinedScroll;
+
+  /// 根据此参数设置 ScrollView 的 physics
+  /// [scrollViewPhysics]=false physics 必须设置 [NeverScrollableScrollPhysics]
+  bool scrollViewPhysics = false;
+
+  //
+  // /// 组合总偏移位置
+  // double get combinedOffset {
+  //   double _combinedOffset = 0;
+  //   double halfHeaderTolerance = 0;
+  //   if (headerHeight > 0) halfHeaderTolerance = headerToleranceHeight / 2;
+  //   double actualHeaderHeight = headerHeight - halfHeaderTolerance;
+  //   if (offset < actualHeaderHeight) {
+  //     _combinedOffset = offset;
+  //   } else if (offset >= actualHeaderHeight && offset < headerHeight) {
+  //     double halfFooterTolerance = footerToleranceHeight / 2;
+  //     double actualWebViewHeight = webContentSize.height - halfFooterTolerance;
+  //     if (webOffset <= halfHeaderTolerance) {
+  //       _combinedOffset = headerHeight;
+  //     } else if (webOffset > halfHeaderTolerance &&
+  //         webOffset <= actualWebViewHeight) {
+  //       _combinedOffset = webOffset + headerHeight;
+  //     } else if (webOffset > actualWebViewHeight) {
+  //       _combinedOffset = offset + actualWebViewHeight - webViewHeight;
+  //     }
+  //   }
+  //   return _combinedOffset;
+  // }
+
+  /// webview 滚动的位置
+  ScrollPositioned? webviewPositioned;
+
+  // /// 跳转至指定位置
+  // Future<bool> jumpToOffset(double value,
+  //     {bool animate = false,
+  //     Duration duration = const Duration(milliseconds: 10),
+  //     Curve curve = Curves.linear}) async {
+  //   /// scrollview 跳转
+  //   Future<bool> scrollViewJumpTo(double value) async {
+  //     if (value <= 0) return false;
+  //     if (animate) {
+  //       await animateTo(value, duration: duration, curve: curve);
+  //     } else {
+  //       jumpTo(value);
+  //     }
+  //     return true;
+  //   }
+  //
+  //   /// webview 跳转
+  //   Future<bool> webViewJumoTo(double value) async {
+  //     if (value <= 0) return false;
+  //     assert(webController != null);
+  //     await webController!.scrollTo(0, value.toInt());
+  //     return true;
+  //   }
+  //
+  //   double halfFooterTolerance = footerToleranceHeight / 2;
+  //   double actualWebViewHeight = webContentSize.height - halfFooterTolerance;
+  //
+  //   if (value > combinedMaxScrollExtent) {
+  //     await webViewJumoTo(actualWebViewHeight);
+  //     await scrollViewJumpTo(position.maxScrollExtent);
+  //     return true;
+  //   }
+  //
+  //   /// 容错高度的一半
+  //   double halfHeaderTolerance = 0;
+  //
+  //   if (headerHeight > 0) halfHeaderTolerance = headerToleranceHeight / 2;
+  //
+  //   /// 头部的高度
+  //   double actualHeaderHeight = headerHeight - halfHeaderTolerance;
+  //   bool hasNotifyListeners = false;
+  //   if (value < actualHeaderHeight) {
+  //     log('===header内==有header');
+  //     hasNotifyListeners = await scrollViewJumpTo(value);
+  //     await webViewJumoTo(0);
+  //   } else if (value <= headerHeight && value > actualHeaderHeight) {
+  //     log('===header内容错区域==有header');
+  //     hasNotifyListeners = await scrollViewJumpTo(actualHeaderHeight);
+  //     await webViewJumoTo(halfHeaderTolerance);
+  //   } else if (value > headerHeight &&
+  //       value < headerHeight + halfHeaderTolerance) {
+  //     log('===webview header 容错区域==有header');
+  //     hasNotifyListeners = await scrollViewJumpTo(headerHeight);
+  //     await webViewJumoTo(halfHeaderTolerance);
+  //   } else if (value > headerHeight + halfHeaderTolerance &&
+  //       value <= headerHeight + actualWebViewHeight) {
+  //     log('===webview 内==有header');
+  //     hasNotifyListeners = await scrollViewJumpTo(headerHeight);
+  //     await webViewJumoTo(value);
+  //   } else if (value > headerHeight + actualWebViewHeight &&
+  //       value <= webContentSize.height) {
+  //     log('===webview 内底部容错区域==有header');
+  //     hasNotifyListeners = await scrollViewJumpTo(actualHeaderHeight);
+  //     await webViewJumoTo(webContentSize.height - halfFooterTolerance);
+  //   } else if (value > headerHeight + webContentSize.height &&
+  //       value < headerHeight + webContentSize.height + halfFooterTolerance) {
+  //     log('===fotter 容错区域==footer');
+  //     hasNotifyListeners =
+  //         await scrollViewJumpTo(webViewHeight + halfFooterTolerance);
+  //     await webViewJumoTo(webContentSize.height - halfFooterTolerance);
+  //   } else if (value >
+  //           headerHeight + webContentSize.height + halfFooterTolerance &&
+  //       value < combinedMaxScrollExtent) {
+  //     log('===fotter 外');
+  //     await webViewJumoTo(actualWebViewHeight);
+  //     double v = value - webContentSize.height;
+  //     hasNotifyListeners = await scrollViewJumpTo(webViewHeight + v);
+  //   } else {
+  //     log('===最底部');
+  //     await webViewJumoTo(actualWebViewHeight);
+  //     hasNotifyListeners = await scrollViewJumpTo(position.maxScrollExtent);
+  //     return true;
+  //   }
+  //   if (!hasNotifyListeners) {
+  //     notifyListeners();
+  //   }
+  //   return true;
+  // }
+
+  Future<void> scrollTo(double offset) async {
+    assert(webController != null);
+    await webController!.scrollTo(0, offset.toInt());
+  }
+
+  Future<void> scrollBy(double offset) async {
+    assert(webController != null);
+    await webController!.scrollBy(0, offset.toInt());
+  }
+
+  /// [FlWebView] 的 onScrollChanged
+  void onScrollChanged(
+      Size size, Size contentSize, Offset offset, ScrollPositioned positioned) {
+    webContentSize = contentSize;
+    combinedMaxScrollExtent =
+        contentSize.height + position.maxScrollExtent - webViewHeight;
+    webOffset = offset.dy;
+    if (webviewPositioned != positioned) {
+      webviewPositioned = positioned;
+      if (webviewPositioned == ScrollPositioned.start ||
+          webviewPositioned == ScrollPositioned.end) {
+        combinedScroll = CombinedScrollWidget.scrollView;
+      } else {
+        combinedScroll = CombinedScrollWidget.webView;
       }
-      webController.scrollTo(0, offset);
+      // changeScrollWidget().then((value) {
+      //   notifyListeners();
+      // });
     }
   }
 
-// void notification(Notification notifica) {
-//   if (notifica is ScrollUpdateNotification) {
-//     double offset = controller.offset;
-//     double diffHeader = offset - widget.headerHeight;
-//     if (diffHeader < 0) diffHeader = -diffHeader;
-//     double diffFooter = offset - widget.headerHeight - widget.webViewHeight;
-//     if (diffFooter < 0) diffFooter = -diffFooter;
-//     if (diffHeader < widget.headerToleranceHeight) {
-//       if (canScroll) {
-//         canScroll = false;
-//         setState(() {});
-//         log('====${widget.headerHeight}');
-//         200.milliseconds.delayed(() {
-//           controller.animateTo(widget.headerHeight,
-//               duration: const Duration(milliseconds: 100),
-//               curve: Curves.linear);
-//         });
-//       }
-//     } else if (diffFooter < widget.footerToleranceHeight) {
-//       if (canScroll) {
-//         canScroll = false;
-//         setState(() {});
-//         log('====${widget.headerHeight}');
-//         200.milliseconds.delayed(() {
-//           controller.animateTo(widget.headerHeight + widget.webViewHeight,
-//               duration: const Duration(milliseconds: 100),
-//               curve: Curves.linear);
-//         });
-//       }
-//     }
-//   }
-// }
+  /// 修改滚动组件
+  Future<void> changeScrollWidget() async {
+    assert(combinedScroll != null);
+    assert(webController != null);
+    switch (combinedScroll!) {
+      case CombinedScrollWidget.webView:
+        scrollViewPhysics = false;
+        await webController!.scrollEnabled(true);
+        break;
+      case CombinedScrollWidget.scrollView:
+        scrollViewPhysics = true;
+        await webController!.scrollEnabled(false);
+        break;
+    }
+  }
+
+  /// [FlWebView] 的 onContentSizeChanged
+  void onContentSizeChanged(Size size) {
+    _initCombinedScroll();
+    webContentSize = size;
+    combinedMaxScrollExtent =
+        size.height + position.maxScrollExtent - webViewHeight;
+  }
+
+  /// [FlWebView] 的 onWebViewCreated
+  void onWebViewCreated(WebViewController controller) {
+    _initCombinedScroll();
+    webController = controller;
+  }
 }
 
 class NestedScrollWebView extends StatelessWidget {
@@ -337,23 +557,26 @@ class NestedScrollWebView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ScrollWebViewController? scrollWebViewController;
     double webHeight = deviceHeight -
         getStatusBarHeight -
         getBottomNavigationBarHeight -
         kToolbarHeight -
         10;
     return ExtendedScaffold(
-        appBar: AppBar(title: const Text('FlWebView Example')),
+        appBar: AppBar(title: const Text('NestedScrollWebView Example')),
         body: NestedWebView(
-          headerHeight: 200,
-          webViewHeight: webHeight,
-          builder:
-              (ScrollController controller, bool canScroll, Widget webView) {
+          controller: ScrollWebViewController(
+              headerHeight: 200, webViewHeight: webHeight),
+          builder: (ScrollWebViewController controller, bool canScroll,
+              Widget webView) {
             log('===CustomScrollView=$canScroll==');
-            return CustomScrollView(controller: controller,
-                // physics: canScroll
-                //     ? const BouncingScrollPhysics()
-                //     : const NeverScrollableScrollPhysics(),
+            scrollWebViewController = controller;
+            return CustomScrollView(
+                controller: controller,
+                physics: canScroll
+                    ? const BouncingScrollPhysics()
+                    : const NeverScrollableScrollPhysics(),
                 slivers: [
                   SliverListGrid(
                       itemBuilder: (_, int index) => Container(
@@ -363,7 +586,8 @@ class NestedScrollWebView extends StatelessWidget {
                               ? Colors.lightBlue
                               : Colors.amberAccent),
                       itemCount: 2),
-                  webView,
+                  // webView,
+                  SliverToBoxAdapter(child: webView),
                   SliverListGrid(
                       itemBuilder: (_, int index) => Container(
                           height: 100,

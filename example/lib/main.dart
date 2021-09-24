@@ -1,3 +1,4 @@
+import 'package:example/nested_scroll_webview.dart';
 import 'package:example/nested_webview.dart';
 import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,9 @@ class App extends StatelessWidget {
           ElevatedText(
               text: 'Scrollview nested WebView',
               onPressed: () => push(const NestedScrollWebView())),
+          ElevatedText(
+              text: 'NestedScroll WebView',
+              onPressed: () => push(const NestedScrollViewAndWebView())),
           const SizedBox(height: 10),
           ElevatedText(text: 'Html Text', onPressed: getHtml),
           ElevatedText(
@@ -139,6 +143,12 @@ class _FlWebView extends FlWebView {
               return NavigationDecision.navigate;
             },
             onWebViewCreated: (WebViewController controller) async {
+              5.seconds.delayed(() {
+                controller.scrollEnabled(false);
+              });
+              10.seconds.delayed(() {
+                controller.scrollEnabled(true);
+              });
               log('onWebViewCreated');
               log(await controller.currentUrl());
             },

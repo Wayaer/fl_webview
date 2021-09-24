@@ -94,18 +94,20 @@ class FlWebViewPlatformView(
         return webView
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onMethodCall(
-        methodCall: MethodCall,
+        call: MethodCall,
         result: MethodChannel.Result
     ) {
-        when (methodCall.method) {
-            "loadUrl" -> loadUrl(methodCall, result)
+        when (call.method) {
+            "loadUrl" -> loadUrl(call, result)
             "updateSettings" -> {
-                applySettings(methodCall.arguments as Map<*, *>)
+                applySettings(call.arguments as Map<*, *>)
                 result.success(null)
             }
             "canGoBack" -> result.success(webView.canGoBack())
             "scrollEnabled" -> {
+                webView.scrollEnabled = call.arguments as Boolean
                 result.success(true)
             }
             "canGoForward" -> result.success(webView.canGoForward())
@@ -126,16 +128,16 @@ class FlWebViewPlatformView(
                 result.success(null)
             }
             "currentUrl" -> result.success(webView.url)
-            "evaluateJavascript" -> evaluateJavaScript(methodCall, result)
-            "addJavascriptChannels" -> addJavaScriptChannels(methodCall, result)
+            "evaluateJavascript" -> evaluateJavaScript(call, result)
+            "addJavascriptChannels" -> addJavaScriptChannels(call, result)
             "removeJavascriptChannels" -> removeJavaScriptChannels(
-                methodCall,
+                call,
                 result
             )
             "clearCache" -> clearCache(result)
             "getTitle" -> result.success(webView.title)
-            "scrollTo" -> scrollTo(methodCall, result)
-            "scrollBy" -> scrollBy(methodCall, result)
+            "scrollTo" -> scrollTo(call, result)
+            "scrollBy" -> scrollBy(call, result)
             "getScrollX" -> result.success(webView.scrollX)
             "getScrollY" -> result.success(webView.scrollY)
             else -> result.notImplemented()
@@ -338,8 +340,23 @@ class FlWebViewPlatformView(
         private val methodChannel: MethodChannel,
         private val currentHandler: Handler,
     ) : WebView(context) {
-
+        var scrollEnabled = true
         var hasScrollChangedTracking = false
+        override fun onNestedScroll(
+            target: View?,
+            dxConsumed: Int,
+            dyConsumed: Int,
+            dxUnconsumed: Int,
+            dyUnconsumed: Int
+        ) {
+            super.onNestedScroll(
+                target,
+                dxConsumed,
+                dyConsumed,
+                dxUnconsumed,
+                dyUnconsumed
+            )
+        }
 
         override fun onScrollChanged(
             left: Int, top: Int, oldl: Int, oldt:
@@ -374,6 +391,34 @@ class FlWebViewPlatformView(
                     methodChannel.invokeMethod(method, args)
                 }
             }
+        }
+
+
+        override fun overScrollBy(
+            deltaX: Int,
+            deltaY: Int,
+            scrollX: Int,
+            scrollY: Int,
+            scrollRangeX: Int,
+            scrollRangeY: Int,
+            maxOverScrollX: Int,
+            maxOverScrollY: Int,
+            isTouchEvent: Boolean
+        ): Boolean {
+            if (scrollEnabled) {
+                return super.overScrollBy(
+                    deltaX,
+                    deltaY,
+                    scrollX,
+                    scrollY,
+                    scrollRangeX,
+                    scrollRangeY,
+                    maxOverScrollX,
+                    maxOverScrollY,
+                    isTouchEvent
+                )
+            }
+            return false
         }
     }
 }

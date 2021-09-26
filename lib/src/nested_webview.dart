@@ -28,6 +28,7 @@ class _NestedWebViewState extends State<NestedWebView> {
   MoveVerticalEvent? oldMoveEnvent;
   late ScrollWebViewController controller;
   bool handover = false;
+  bool isNestedScroll = true;
 
   @override
   void initState() {
@@ -44,21 +45,6 @@ class _NestedWebViewState extends State<NestedWebView> {
     Widget webView = SizedBox.fromSize(
         size: Size(double.infinity, controller.webViewHeight),
         child: FlWebView(
-            onContentSizeChanged: (Size size) {
-              controller.onContentSizeChanged(size);
-              if (widget.child.onContentSizeChanged != null) {
-                widget.child.onContentSizeChanged;
-              }
-            },
-            onWebViewCreated: (WebViewController _controller) {
-              controller.onWebViewCreated(_controller);
-              1.seconds.delayed(() {
-                controller.scrollTo(0);
-              });
-              if (widget.child.onWebViewCreated != null) {
-                widget.child.onWebViewCreated!(_controller);
-              }
-            },
             initialUrl: widget.child.initialUrl,
             initialData: widget.child.initialData,
             javascriptMode: widget.child.javascriptMode,
@@ -66,7 +52,8 @@ class _NestedWebViewState extends State<NestedWebView> {
             navigationDelegate: widget.child.navigationDelegate,
             gestureRecognizers: widget.child.gestureRecognizers,
             onPageStarted: widget.child.onPageStarted,
-            onPageFinished: widget.child.onPageFinished,
+            onPageFinished: onPageFinished,
+            onScrollChanged: onScrollChanged,
             onProgress: widget.child.onProgress,
             onWebResourceError: widget.child.onWebResourceError,
             debuggingEnabled: widget.child.debuggingEnabled,
@@ -74,123 +61,11 @@ class _NestedWebViewState extends State<NestedWebView> {
             userAgent: widget.child.userAgent,
             initialMediaPlaybackPolicy: widget.child.initialMediaPlaybackPolicy,
             allowsInlineMediaPlayback: widget.child.allowsInlineMediaPlayback,
-            onScrollChanged: (Size size, Size contentSize, Offset offset,
-                ScrollPositioned positioned) async {
-              controller.onScrollChanged(size, contentSize, offset, positioned);
-              if (positioned == ScrollPositioned.start) {
-                controller.changeScrollWidget(CombinedScrollWidget.scrollView);
-                setState(() {});
-              } else if (positioned == ScrollPositioned.end &&
-                  controller.scrollEvent == ScrollVerticalEvent.down) {
-                controller.changeScrollWidget(CombinedScrollWidget.scrollView);
-                setState(() {});
-              }
-              if (widget.child.onScrollChanged != null) {
-                widget.child.onScrollChanged!(
-                    size, contentSize, offset, positioned);
-              }
-            }));
+            onContentSizeChanged: onContentSizeChanged,
+            onWebViewCreated: onWebViewCreated));
     return ScrollListener(
-      onPointerDown: (PointerDownEvent event) {},
-      onMoveVerticalEvent: (MoveVerticalEvent moveEvent, PointerMoveEvent event,
-          double distance) {
-        return;
-        final position = event.localPosition;
-        if (oldMoveEnvent != moveEvent) {
-          interruptionPosition = null;
-          handover = false;
-        }
-        switch (moveEvent) {
-          case MoveVerticalEvent.up:
-            log('=====$moveEvent===$distance===');
-            if (controller.offset >= controller.headerHeight) {
-              if (interruptionPosition == null) {
-                log('上滑设置拦截开始的坐标==${controller.scrollViewPhysics}');
-                interruptionPosition = position;
-              } else if (controller.scrollViewPhysics) {
-                var distance = (position.dy - interruptionPosition!.dy).abs();
-                log('上滑单次中断滑动距离：$distance');
-                if (controller.offset != controller.headerHeight) {
-                  controller.jumpTo(controller.headerHeight);
-                }
-                controller.scrollTo(distance);
-              }
-            }
-            break;
-          case MoveVerticalEvent.stay:
-            break;
-          case MoveVerticalEvent.down:
-            if (controller.offset >= controller.headerHeight) {
-              if (interruptionPosition == null) {
-                interruptionPosition =
-                    Offset(position.dx.abs(), position.dy.abs());
-                log('下滑滑设置拦截开始的坐标==$interruptionPosition');
-              } else if (controller.scrollViewPhysics) {
-                log('controller.scrollViewPhysics==${controller.scrollViewPhysics}');
-                controller.webController!.getScrollY().then((value) {
-                  log('controller.webController.getScrollY==$value');
-                  if (value > 0) {
-                    var distance =
-                        value - (position.dy - interruptionPosition!.dy).abs();
-                    if (distance <= 0) {
-                      controller.scrollTo(0);
-                    } else {
-                      controller.scrollTo(distance);
-                      if (controller.offset != controller.headerHeight) {
-                        controller.jumpTo(controller.headerHeight);
-                      }
-                    }
-                    // interruptionPosition =
-                    //     Offset(position.dx.abs(), position.dy.abs());
-                  } else {
-                    var distance = position.dy - interruptionPosition!.dy;
-                    log('上滑到顶部走这里===$distance');
-                    controller.jumpTo(controller.headerHeight - distance);
-                    interruptionPosition = null;
-                    handover = true;
-                  }
-                });
-              }
-            } else {
-              if (interruptionPosition == null) {
-                interruptionPosition =
-                    Offset(position.dx.abs(), position.dy.abs());
-                log('下滑滑设置拦截开始的坐标======$interruptionPosition');
-              } else if (handover) {
-                var distance = position.dy - interruptionPosition!.dy;
-                log('上滑到顶部走这里=======$distance');
-                controller.jumpTo(controller.headerHeight - distance);
-              }
-            }
-            break;
-        }
-        oldMoveEnvent = moveEvent;
-      },
-      onPointerUp: (PointerUpEvent event) {
-        handover = false;
-        if (controller.scrollViewPhysics) {
-          if (controller.offset == controller.webViewHeight) {
-            controller.webController!.getScrollY().then((value) {
-              log('onPointerCancel=====${controller.scrollViewPhysics}');
-              log('getScrollY=$value');
-              if (value > 0) {
-                controller
-                    .changeScrollWidget(CombinedScrollWidget.webView)
-                    .then((value) {
-                  setState(() {});
-                });
-              }
-            });
-          }
-        } else if (controller.webviewPositioned == ScrollPositioned.end) {
-          log('onPointerCancel=====ScrollPositioned.end');
-          controller
-              .changeScrollWidget(CombinedScrollWidget.scrollView)
-              .then((value) {
-            setState(() {});
-          });
-        }
-      },
+      onMoveVerticalEvent: onMoveVerticalEvent,
+      onPointerUp: onPointerUp,
       onPointerCancel: (PointerCancelEvent event) {
         interruptionPosition = null;
       },
@@ -202,8 +77,157 @@ class _NestedWebViewState extends State<NestedWebView> {
     );
   }
 
+  void onContentSizeChanged(Size size) {
+    controller.onContentSizeChanged(size);
+    if (widget.child.onContentSizeChanged != null) {
+      widget.child.onContentSizeChanged;
+    }
+  }
+
+  void onWebViewCreated(WebViewController _controller) {
+    controller.onWebViewCreated(_controller);
+    800.milliseconds.delayed(() {
+      controller.scrollTo(0);
+    });
+    if (widget.child.onWebViewCreated != null) {
+      widget.child.onWebViewCreated!(_controller);
+    }
+  }
+
+  void onPageFinished(String url) {
+    if (controller.webContentSize.height < controller.webViewHeight) {
+      controller.webViewHeight = controller.webContentSize.height;
+      controller.webController?.scrollEnabled(false);
+      isNestedScroll = false;
+      setState(() {});
+    }
+
+    if (widget.child.onPageFinished != null) {
+      widget.child.onPageFinished!(url);
+    }
+  }
+
+  Future<void> onScrollChanged(Size size, Size contentSize, Offset offset,
+      ScrollPositioned positioned) async {
+    controller.onScrollChanged(size, contentSize, offset, positioned);
+    if (!isNestedScroll) return;
+    if (positioned == ScrollPositioned.start) {
+      controller.changeScrollWidget(CombinedScrollWidget.scrollView);
+      setState(() {});
+    } else if (positioned == ScrollPositioned.end &&
+        controller.scrollEvent == ScrollVerticalEvent.down) {
+      controller.changeScrollWidget(CombinedScrollWidget.scrollView);
+      setState(() {});
+    }
+    if (widget.child.onScrollChanged != null) {
+      widget.child.onScrollChanged!(size, contentSize, offset, positioned);
+    }
+  }
+
+  void onPointerUp(PointerUpEvent event) {
+    if (!isNestedScroll) return;
+    handover = false;
+    if (controller.scrollViewPhysics) {
+      if (controller.offset == controller.webViewHeight) {
+        controller.webController!.getScrollY().then((value) {
+          log('onPointerCancel=====${controller.scrollViewPhysics}');
+          log('getScrollY=$value');
+          if (value > 0) {
+            controller
+                .changeScrollWidget(CombinedScrollWidget.webView)
+                .then((value) {
+              setState(() {});
+            });
+          }
+        });
+      }
+    } else if (controller.webviewPositioned == ScrollPositioned.end) {
+      log('onPointerCancel=====ScrollPositioned.end');
+      controller
+          .changeScrollWidget(CombinedScrollWidget.scrollView)
+          .then((value) {
+        setState(() {});
+      });
+    }
+  }
+
+  Future<void> onMoveVerticalEvent(MoveVerticalEvent moveEvent,
+      PointerMoveEvent event, double distance) async {
+    if (!isNestedScroll) return;
+    return;
+    final position = event.localPosition;
+    if (oldMoveEnvent != moveEvent) {
+      interruptionPosition = null;
+      handover = false;
+    }
+    switch (moveEvent) {
+      case MoveVerticalEvent.up:
+        log('=====$moveEvent===$distance===');
+        if (controller.offset >= controller.headerHeight) {
+          if (interruptionPosition == null) {
+            log('上滑设置拦截开始的坐标==${controller.scrollViewPhysics}');
+            interruptionPosition = position;
+          } else if (controller.scrollViewPhysics) {
+            var distance = (position.dy - interruptionPosition!.dy).abs();
+            log('上滑单次中断滑动距离：$distance');
+            if (controller.offset != controller.headerHeight) {
+              controller.jumpTo(controller.headerHeight);
+            }
+            controller.scrollTo(distance);
+          }
+        }
+        break;
+      case MoveVerticalEvent.stay:
+        break;
+      case MoveVerticalEvent.down:
+        if (controller.offset >= controller.headerHeight) {
+          if (interruptionPosition == null) {
+            interruptionPosition = Offset(position.dx.abs(), position.dy.abs());
+            log('下滑滑设置拦截开始的坐标==$interruptionPosition');
+          } else if (controller.scrollViewPhysics) {
+            log('controller.scrollViewPhysics==${controller.scrollViewPhysics}');
+            controller.webController!.getScrollY().then((value) {
+              log('controller.webController.getScrollY==$value');
+              if (value > 0) {
+                var distance =
+                    value - (position.dy - interruptionPosition!.dy).abs();
+                if (distance <= 0) {
+                  controller.scrollTo(0);
+                } else {
+                  controller.scrollTo(distance);
+                  if (controller.offset != controller.headerHeight) {
+                    controller.jumpTo(controller.headerHeight);
+                  }
+                }
+                // interruptionPosition =
+                //     Offset(position.dx.abs(), position.dy.abs());
+              } else {
+                var distance = position.dy - interruptionPosition!.dy;
+                log('上滑到顶部走这里===$distance');
+                controller.jumpTo(controller.headerHeight - distance);
+                interruptionPosition = null;
+                handover = true;
+              }
+            });
+          }
+        } else {
+          if (interruptionPosition == null) {
+            interruptionPosition = Offset(position.dx.abs(), position.dy.abs());
+            log('下滑滑设置拦截开始的坐标======$interruptionPosition');
+          } else if (handover) {
+            var distance = position.dy - interruptionPosition!.dy;
+            log('上滑到顶部走这里=======$distance');
+            controller.jumpTo(controller.headerHeight - distance);
+          }
+        }
+        break;
+    }
+    oldMoveEnvent = moveEvent;
+  }
+
   Future<void> onScrollVerticalEvent(Notification notifica) async {
     if (!controller.scrollViewPhysics) return;
+    if (!isNestedScroll) return;
     double offset = controller.offset;
     Future<void> webScroll(double value) async {
       controller.isJumpScroll = true;
@@ -235,123 +259,6 @@ class _NestedWebViewState extends State<NestedWebView> {
   }
 }
 
-enum ScrollVerticalEvent {
-  /// 往上滚动
-  up,
-
-  /// 往下滚动
-  down,
-}
-
-typedef ScrollVerticalEventState = void Function(Notification notification);
-
-class ScrollNotificationListener extends StatelessWidget {
-  const ScrollNotificationListener(
-      {Key? key,
-      required this.child,
-      required this.controller,
-      this.onScrollVerticalEvent})
-      : super(key: key);
-  final Widget child;
-  final ScrollWebViewController controller;
-  final ScrollVerticalEventState? onScrollVerticalEvent;
-
-  @override
-  Widget build(BuildContext context) {
-    double? y;
-    return NotificationListener(
-        onNotification: (Notification notification) {
-          if (notification is ScrollStartNotification) {
-            y = controller.offset;
-          } else if (notification is ScrollUpdateNotification) {
-            if (y != null) {
-              if (controller.offset > y!) {
-                controller.scrollEvent = ScrollVerticalEvent.down;
-              } else {
-                controller.scrollEvent = ScrollVerticalEvent.up;
-              }
-            }
-          } else if (notification is ScrollEndNotification) {
-            controller.scrollEvent = null;
-            y = null;
-            controller.isJumpScroll = false;
-            500.milliseconds.delayed(() {
-              controller.isGestureScroll = true;
-            });
-          }
-          if (onScrollVerticalEvent != null &&
-              controller.scrollEvent != null &&
-              controller.isGestureScroll) {
-            onScrollVerticalEvent!(notification);
-          }
-          return true;
-        },
-        child: child);
-  }
-}
-
-enum MoveVerticalEvent {
-  /// 上滑
-  up,
-
-  /// 停留
-  stay,
-
-  /// 下滑
-  down,
-}
-
-typedef PointerMoveEventState = void Function(
-    MoveVerticalEvent moveEvent, PointerMoveEvent event, double distance);
-
-class ScrollListener extends StatelessWidget {
-  const ScrollListener(
-      {Key? key,
-      required this.child,
-      this.onPointerCancel,
-      this.onPointerDown,
-      this.onPointerMove,
-      this.onPointerUp,
-      this.onMoveVerticalEvent})
-      : super(key: key);
-  final Widget child;
-  final PointerCancelEventListener? onPointerCancel;
-  final PointerDownEventListener? onPointerDown;
-  final PointerMoveEventListener? onPointerMove;
-  final PointerUpEventListener? onPointerUp;
-  final PointerMoveEventState? onMoveVerticalEvent;
-
-  @override
-  Widget build(BuildContext context) {
-    MoveVerticalEvent moveEvent = MoveVerticalEvent.stay;
-    Offset? downPosition;
-    return Listener(
-        child: child,
-        onPointerCancel: onPointerCancel,
-        onPointerDown: (PointerDownEvent event) {
-          downPosition = event.localPosition;
-          if (onPointerDown != null) onPointerDown!(event);
-        },
-        onPointerUp: onPointerUp,
-        onPointerMove: (PointerMoveEvent event) {
-          var localDelta = event.localDelta;
-          if (localDelta.dy == 0) {
-            moveEvent = MoveVerticalEvent.stay;
-          } else if (localDelta.dy > 0) {
-            moveEvent = MoveVerticalEvent.down;
-          } else if (localDelta.dy < 0) {
-            moveEvent = MoveVerticalEvent.up;
-          }
-
-          if (onMoveVerticalEvent != null && downPosition != null) {
-            double distance = event.localPosition.dy - downPosition!.dy;
-            onMoveVerticalEvent!(moveEvent, event, distance);
-          }
-          if (onPointerMove != null) onPointerMove!(event);
-        });
-  }
-}
-
 enum CombinedScrollWidget { webView, scrollView }
 
 class ScrollWebViewController extends ScrollController {
@@ -373,7 +280,7 @@ class ScrollWebViewController extends ScrollController {
   WebViewController? webController;
 
   /// webview 展示的高度
-  final double webViewHeight;
+  double webViewHeight;
 
   /// webView 头部的高度 默认为0
   final double headerHeight;
@@ -573,5 +480,122 @@ class ScrollWebViewController extends ScrollController {
   void onWebViewCreated(WebViewController controller) {
     _initCombinedScroll();
     webController = controller;
+  }
+}
+
+enum ScrollVerticalEvent {
+  /// 往上滚动
+  up,
+
+  /// 往下滚动
+  down,
+}
+
+typedef ScrollVerticalEventState = void Function(Notification notification);
+
+class ScrollNotificationListener extends StatelessWidget {
+  const ScrollNotificationListener(
+      {Key? key,
+      required this.child,
+      required this.controller,
+      this.onScrollVerticalEvent})
+      : super(key: key);
+  final Widget child;
+  final ScrollWebViewController controller;
+  final ScrollVerticalEventState? onScrollVerticalEvent;
+
+  @override
+  Widget build(BuildContext context) {
+    double? y;
+    return NotificationListener(
+        onNotification: (Notification notification) {
+          if (notification is ScrollStartNotification) {
+            y = controller.offset;
+          } else if (notification is ScrollUpdateNotification) {
+            if (y != null) {
+              if (controller.offset > y!) {
+                controller.scrollEvent = ScrollVerticalEvent.down;
+              } else {
+                controller.scrollEvent = ScrollVerticalEvent.up;
+              }
+            }
+          } else if (notification is ScrollEndNotification) {
+            controller.scrollEvent = null;
+            y = null;
+            controller.isJumpScroll = false;
+            500.milliseconds.delayed(() {
+              controller.isGestureScroll = true;
+            });
+          }
+          if (onScrollVerticalEvent != null &&
+              controller.scrollEvent != null &&
+              controller.isGestureScroll) {
+            onScrollVerticalEvent!(notification);
+          }
+          return true;
+        },
+        child: child);
+  }
+}
+
+enum MoveVerticalEvent {
+  /// 上滑
+  up,
+
+  /// 停留
+  stay,
+
+  /// 下滑
+  down,
+}
+
+typedef PointerMoveEventState = void Function(
+    MoveVerticalEvent moveEvent, PointerMoveEvent event, double distance);
+
+class ScrollListener extends StatelessWidget {
+  const ScrollListener(
+      {Key? key,
+      required this.child,
+      this.onPointerCancel,
+      this.onPointerDown,
+      this.onPointerMove,
+      this.onPointerUp,
+      this.onMoveVerticalEvent})
+      : super(key: key);
+  final Widget child;
+  final PointerCancelEventListener? onPointerCancel;
+  final PointerDownEventListener? onPointerDown;
+  final PointerMoveEventListener? onPointerMove;
+  final PointerUpEventListener? onPointerUp;
+  final PointerMoveEventState? onMoveVerticalEvent;
+
+  @override
+  Widget build(BuildContext context) {
+    MoveVerticalEvent moveEvent = MoveVerticalEvent.stay;
+    Offset? downPosition;
+    return Listener(
+        child: child,
+        onPointerCancel: onPointerCancel,
+        onPointerDown: (PointerDownEvent event) {
+          downPosition = event.localPosition;
+          if (onPointerDown != null) onPointerDown!(event);
+        },
+        onPointerUp: onPointerUp,
+        onPointerMove: (PointerMoveEvent event) {
+          var localDelta = event.localDelta;
+          if (localDelta.dy == 0) {
+            moveEvent = MoveVerticalEvent.stay;
+          } else if (localDelta.dy > 0) {
+            moveEvent = MoveVerticalEvent.down;
+          } else if (localDelta.dy < 0) {
+            moveEvent = MoveVerticalEvent.up;
+          }
+
+          if (onMoveVerticalEvent != null && downPosition != null) {
+            double distance = event.localPosition.dy - downPosition!.dy;
+            onMoveVerticalEvent!(moveEvent, event, distance);
+          }
+          if (onPointerMove != null) onPointerMove!(event);
+        });
   }
 }

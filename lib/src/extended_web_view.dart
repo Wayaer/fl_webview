@@ -46,11 +46,13 @@ class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
   }
 }
 
+/// 返回的Widget树中需要包含[FlWebView]
 typedef NestedFlWebViewBuilder = Widget Function(
     ContentSizeCallback onContentSizeChanged,
     WebViewCreatedCallback onWebViewCreated,
     ScrollChangedCallback onScrollChanged);
 
+/// 返回的Widget树中需要包含[ScrollView]
 typedef NestedScrollViewBuilder = Widget Function(
     ScrollController controller, bool canScroll, Widget webView);
 
@@ -84,9 +86,10 @@ class ExtendedFlWebViewWithScrollView extends StatefulWidget {
 class _ExtendedFlWebViewWithScrollViewState
     extends State<ExtendedFlWebViewWithScrollView> {
   bool scrollViewPhysics = false;
-  double webViewHeight = 10;
-  Size contentSize = const Size(0, 0);
 
+  double webViewHeight = 10;
+  bool noScrollWeb = true;
+  Size contentSize = const Size(0, 0);
   late ScrollController controller;
 
   late WebViewController webViewController;
@@ -104,10 +107,11 @@ class _ExtendedFlWebViewWithScrollViewState
   }
 
   void listener() {
-    if (controller.offset <= 0 && scrollViewPhysics) {
+    if (controller.offset <= 0 && scrollViewPhysics && noScrollWeb) {
       scrollViewPhysics = false;
       controller.jumpTo(0);
       webViewController.scrollEnabled(true).then((value) {
+        webViewController.scrollBy(0, -10);
         setState(() {});
       });
     }
@@ -133,6 +137,7 @@ class _ExtendedFlWebViewWithScrollViewState
   void onContentSizeChanged(Size size) {
     contentSize = size;
     if (size.height > widget.webViewHeight) {
+      noScrollWeb = true;
       if (webViewHeight != widget.webViewHeight) {
         setState(() {
           webViewHeight = widget.webViewHeight;
@@ -140,6 +145,7 @@ class _ExtendedFlWebViewWithScrollViewState
       }
     } else {
       webViewHeight = size.height;
+      noScrollWeb = false;
       setState(() {});
     }
   }
@@ -150,9 +156,12 @@ class _ExtendedFlWebViewWithScrollViewState
 
   Future<void> onScrollChanged(Size size, Size contentSize, Offset offset,
       ScrollPositioned positioned) async {
-    if (positioned == ScrollPositioned.end && !scrollViewPhysics) {
+    if (positioned == ScrollPositioned.end &&
+        !scrollViewPhysics &&
+        noScrollWeb) {
       scrollViewPhysics = true;
       await webViewController.scrollEnabled(false);
+      controller.jumpTo(10);
       setState(() {});
     }
   }

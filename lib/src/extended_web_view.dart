@@ -51,7 +51,7 @@ typedef NestedFlWebViewBuilder = Widget Function(
     WebViewCreatedCallback onWebViewCreated,
     ScrollChangedCallback onScrollChanged);
 
-typedef NestedScrollViewBuilder = ScrollView Function(
+typedef NestedScrollViewBuilder = Widget Function(
     ScrollController controller, bool canScroll, Widget webView);
 
 /// 固定的webview 高度，建议设置为当前可视高度

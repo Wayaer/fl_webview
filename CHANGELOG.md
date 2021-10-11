@@ -1,4 +1,4 @@
-## 0.2.1
+## 0.2.2
  * modify `onSizeChanged` to `onContentSizeChanged`
  * modify `FlAdaptWevView` to `FlAdaptHeightWevView`
  * modify rendering

@@ -46,7 +46,7 @@ class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
   }
 }
 
-typedef NestedFlWebViewBuilder = FlWebView Function(
+typedef NestedFlWebViewBuilder = Widget Function(
     ContentSizeCallback onContentSizeChanged,
     WebViewCreatedCallback onWebViewCreated,
     ScrollChangedCallback onScrollChanged);

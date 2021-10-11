@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 
-// const String url = 'https://www.zhihu.com/';
-const String url =
-    'https://mp.weixin.qq.com/s?__biz=Mzk0ODEwNDgwNg==&mid=100043746&idx=1&sn=5da29970d3c39271f4d285d7d093099f&chksm=436e90eb741919fd6a804f5a7a1ef36d2b53422891640fc55b84d422e8f24d38fbc5bfb77de7#rd';
+const String url = 'https://www.zhihu.com/';
 
 void main() {
   runApp(ExtendedWidgetsApp(home: const App(), title: 'FlWebview'));

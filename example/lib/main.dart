@@ -1,5 +1,4 @@
-import 'package:example/nested_scroll_webview.dart';
-import 'package:example/nested_webview.dart';
+import 'package:example/extended_web_view.dart';
 import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,11 +29,12 @@ class App extends StatelessWidget {
               onPressed: () => push(const _AdaptHeightFlWebView())),
           const SizedBox(height: 10),
           ElevatedText(
-              text: 'Scrollview nested WebView',
-              onPressed: () => push(const NestedScrollWebView())),
-          ElevatedText(
-              text: 'NestedScroll WebView',
-              onPressed: () => push(const NestedScrollViewAndWebView())),
+              text: 'WebView With ScrollView',
+              onPressed: () =>
+                  push(const ExtendedFlWebViewWithScrollViewPage())),
+          // ElevatedText(
+          //     text: 'Scrollview nested WebView',
+          //     onPressed: () => push(const NestedScrollWebView())),
           const SizedBox(height: 10),
           ElevatedText(text: 'Html Text', onPressed: getHtml),
           ElevatedText(
@@ -68,7 +68,11 @@ class _AdaptHtmlTextFlWebView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: const Text('Header'),
               height: 100),
-          FlAdaptHeightWevView(child: _FlWebView(initialData: initialData)),
+          FlAdaptHeightWevView(
+              builder: (onContentSizeChanged, onScrollChanged) => _FlWebView(
+                  initialData: initialData,
+                  onContentSizeChanged: onContentSizeChanged,
+                  onScrollChanged: onScrollChanged)),
           Container(
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
@@ -107,7 +111,11 @@ class _AdaptHeightFlWebView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: const Text('Header'),
               height: 100),
-          FlAdaptHeightWevView(child: _FlWebView(initialUrl: url)),
+          FlAdaptHeightWevView(
+              builder: (onContentSizeChanged, onScrollChanged) => _FlWebView(
+                  initialUrl: url,
+                  onContentSizeChanged: onContentSizeChanged,
+                  onScrollChanged: onScrollChanged)),
           Container(
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
@@ -131,7 +139,12 @@ class _FixedHeightFlWebView extends StatelessWidget {
 }
 
 class _FlWebView extends FlWebView {
-  _FlWebView({Key? key, HtmlData? initialData, String? initialUrl})
+  _FlWebView(
+      {Key? key,
+      HtmlData? initialData,
+      String? initialUrl,
+      ContentSizeCallback? onContentSizeChanged,
+      ScrollChangedCallback? onScrollChanged})
       : assert(initialData == null || initialUrl == null),
         super(
             key: key,
@@ -165,11 +178,15 @@ class _FlWebView extends FlWebView {
               log(progress);
             },
             onContentSizeChanged: (Size size) {
+              if (onContentSizeChanged != null) onContentSizeChanged(size);
               log('onContentSizeChanged');
               log(size);
             },
             onScrollChanged: (Size size, Size contentSize, Offset offset,
                 ScrollPositioned positioned) {
+              if (onScrollChanged != null) {
+                onScrollChanged(size, contentSize, offset, positioned);
+              }
               log('onScrollChanged');
               log(offset);
             },

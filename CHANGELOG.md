@@ -1,8 +1,9 @@
 ## 0.2.0
  * modify `onSizeChanged` to `onContentSizeChanged`
  * modify `FlAdaptWevView` to `FlAdaptHeightWevView`
+ * modify rendering
  * add `onScrollChanged`
- * add `onScrollChanged`
+ * add `ExtendedFlWebViewWithScrollView()`,Improve the scrolling performance of WebView
 ## 0.1.0
  * fix bugs
  * update flutter version 2.5.0

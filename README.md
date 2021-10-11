@@ -2,8 +2,8 @@
 
 使用方式和 [webview_flutter](https://pub.dev/packages/webview_flutter) 一致
 
-- 添加了 `onSizeChanged` , 可以在必须设置高度的组件中动态设置高度，参考 [example](https://github.com/Wayaer/fl_webview/blob/main/example/lib/main.dart)
-- `onSizeChanged` is added. You can dynamically set the height in components that must be set. Refer to [example](https://github.com/Wayaer/fl_webview/blob/main/example/lib/main.dart)
+- 添加了 `onContentSizeChanged` , 可以在必须设置高度的组件中动态设置高度，参考 [example](https://github.com/Wayaer/fl_webview/blob/main/example/lib/main.dart)
+- `onContentSizeChanged` is added. You can dynamically set the height in components that must be set. Refer to [example](https://github.com/Wayaer/fl_webview/blob/main/example/lib/main.dart)
 
 - Android 端支持缩放，且自适应屏幕，解决android上webview中有视频时无法播放问题
 - Android supports zooming and adaptive screen, which solves the problem that video cannot be played when there is video in WebView on Android
@@ -37,9 +37,14 @@ Widget build(BuildContext context) {
         log('onProgress');
         log(progress);
       },
-      onSizeChanged: (Size size) {
-        log('onSizeChanged');
+      onContentSizeChanged: (Size size) {
+        log('onContentSizeChanged');
         log(size);
+      },
+      onScrollChanged: (Size size, Size contentSize, Offset offset,
+          ScrollPositioned positioned) {
+        log('onScrollChanged');
+        log(offset);
       },
       initialUrl: 'https://zhuanlan.zhihu.com/p/62821195');
 }
@@ -52,6 +57,10 @@ Widget build(BuildContext context) {
 
 @override
 Widget build(BuildContext context) {
-  return FlAdaptHeightWevView(child: FlWebView());
+ return FlAdaptHeightWevView(
+      builder: (onContentSizeChanged, onScrollChanged) => _FlWebView(
+          initialUrl: url,
+          onContentSizeChanged: onContentSizeChanged,
+          onScrollChanged: onScrollChanged));
 }
 ```

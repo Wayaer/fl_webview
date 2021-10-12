@@ -12,7 +12,8 @@ class ExtendedFlWebViewWithScrollViewPage extends StatelessWidget {
   Widget build(BuildContext context) {
     double webHeight = deviceHeight - getStatusBarHeight - kToolbarHeight;
     return ExtendedScaffold(
-        appBar: AppBar(title: const Text('WebViewWithScrollView Example')),
+        appBar: AppBar(
+            title: const Text('ExtendedFlWebViewWithScrollViewPage Example')),
         body: ExtendedFlWebViewWithScrollView(
           webViewHeight: webHeight,
           scrollViewBuilder:
@@ -23,6 +24,58 @@ class ExtendedFlWebViewWithScrollViewPage extends StatelessWidget {
                     ? const BouncingScrollPhysics()
                     : const NeverScrollableScrollPhysics(),
                 slivers: [
+                  SliverToBoxAdapter(child: webView),
+                  SliverListGrid(
+                      itemBuilder: (_, int index) => Container(
+                          height: 100,
+                          width: double.infinity,
+                          color: index.isEven
+                              ? Colors.lightBlue
+                              : Colors.amberAccent),
+                      itemCount: 30)
+                ]);
+          },
+          webViewBuilder: (ContentSizeCallback onContentSizeChanged,
+              WebViewCreatedCallback onWebViewCreated,
+              ScrollChangedCallback onScrollChanged) {
+            return FlWebView(
+                onContentSizeChanged: onContentSizeChanged,
+                onWebViewCreated: onWebViewCreated,
+                onScrollChanged: onScrollChanged,
+                javascriptMode: JavascriptMode.unrestricted,
+                initialUrl: url);
+          },
+        ));
+  }
+}
+
+class NestedScrollWebViewPage extends StatelessWidget {
+  const NestedScrollWebViewPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double webHeight = deviceHeight - getStatusBarHeight - kToolbarHeight;
+    return ExtendedScaffold(
+        appBar: AppBar(title: const Text('NestedScrollWebView Example')),
+        body: NestedScrollWebView(
+          controller: ScrollWebViewController(
+              webViewHeight: webHeight, headerHeight: 200),
+          scrollViewBuilder:
+              (ScrollController controller, bool canScroll, Widget webView) {
+            return CustomScrollView(
+                controller: controller,
+                physics: canScroll
+                    ? const BouncingScrollPhysics()
+                    : const NeverScrollableScrollPhysics(),
+                slivers: [
+                  SliverListGrid(
+                      itemBuilder: (_, int index) => Container(
+                          height: 100,
+                          width: double.infinity,
+                          color: index.isEven
+                              ? Colors.lightBlue
+                              : Colors.amberAccent),
+                      itemCount: 2),
                   SliverToBoxAdapter(child: webView),
                   SliverListGrid(
                       itemBuilder: (_, int index) => Container(

@@ -47,7 +47,7 @@ class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
 }
 
 /// 返回的Widget树中需要包含[FlWebView]
-typedef NestedFlWebViewBuilder = Widget Function(
+typedef ExtendedFlWebViewBuilder = Widget Function(
     ContentSizeCallback onContentSizeChanged,
     WebViewCreatedCallback onWebViewCreated,
     ScrollChangedCallback onScrollChanged);
@@ -72,7 +72,7 @@ class ExtendedFlWebViewWithScrollView extends StatefulWidget {
   final NestedScrollViewBuilder scrollViewBuilder;
 
   /// webview
-  final NestedFlWebViewBuilder webViewBuilder;
+  final ExtendedFlWebViewBuilder webViewBuilder;
 
   /// 必须要把webview 放在 scrollview的初始位置
   /// 建议设置为当前可视高度

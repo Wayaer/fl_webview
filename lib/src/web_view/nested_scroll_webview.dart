@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 typedef NestedWebViewBuilder = FlWebView Function(
     ContentSizeCallback onContentSizeChanged,
-    PageFinishedCallback onPageFinished,
     WebViewCreatedCallback onWebViewCreated,
     ScrollChangedCallback onScrollChanged);
 
@@ -47,8 +46,8 @@ class _NestedScrollWebViewState extends State<NestedScrollWebView> {
   Widget build(BuildContext context) {
     Widget webView = SizedBox.fromSize(
         size: Size(double.infinity, controller.webViewHeight),
-        child: widget.webViewBuilder(onContentSizeChanged, onPageFinished,
-            onWebViewCreated, onScrollChanged));
+        child: widget.webViewBuilder(
+            onContentSizeChanged, onWebViewCreated, onScrollChanged));
     return ScrollNotificationListener(
         onScrollVerticalEvent: onScrollVerticalEvent,
         controller: controller,
@@ -65,15 +64,6 @@ class _NestedScrollWebViewState extends State<NestedScrollWebView> {
     800.milliseconds.delayed(() {
       controller.scrollTo(0);
     });
-  }
-
-  void onPageFinished(String url) {
-    if (controller.webContentSize.height < controller.webViewHeight) {
-      controller.webViewHeight = controller.webContentSize.height;
-      controller.webController?.scrollEnabled(false);
-      isNestedScroll = false;
-      setState(() {});
-    }
   }
 
   Future<void> onScrollChanged(Size size, Size contentSize, Offset offset,
@@ -100,7 +90,7 @@ class _NestedScrollWebViewState extends State<NestedScrollWebView> {
     Future<void> webScroll(double value) async {
       controller.isJumpScroll = true;
       controller.jumpTo(controller.headerHeight);
-      await controller.scrollTo(value);
+      await controller.scrollBy(value);
       await controller.changeScrollWidget(CombinedScrollWidget.webView);
       setState(() {});
     }
@@ -111,7 +101,7 @@ class _NestedScrollWebViewState extends State<NestedScrollWebView> {
             offset <= controller.headerHeight) {
           log(controller.webContentSize.height);
           log(controller.webOffset);
-          webScroll(controller.webContentSize.height - 10);
+          webScroll(-10);
         }
         break;
       case ScrollVerticalEvent.down:

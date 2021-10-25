@@ -1,3 +1,5 @@
+## 0.2.3
+ * fix the caton problem in `ExtendedFlWebViewWithScrollView`
 ## 0.2.2
  * modify `onSizeChanged` to `onContentSizeChanged`
  * modify `FlAdaptWevView` to `FlAdaptHeightWevView`

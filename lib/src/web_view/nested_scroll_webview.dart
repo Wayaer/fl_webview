@@ -48,7 +48,7 @@ class _NestedScrollWebViewState extends State<NestedScrollWebView> {
         size: Size(double.infinity, controller.webViewHeight),
         child: widget.webViewBuilder(
             onContentSizeChanged, onWebViewCreated, onScrollChanged));
-    return ScrollNotificationListener(
+    return _ScrollNotificationListener(
         onScrollVerticalEvent: onScrollVerticalEvent,
         controller: controller,
         child: widget.scrollViewBuilder(
@@ -240,8 +240,8 @@ enum ScrollVerticalEvent {
 
 typedef ScrollVerticalEventState = void Function(Notification notification);
 
-class ScrollNotificationListener extends StatelessWidget {
-  const ScrollNotificationListener(
+class _ScrollNotificationListener extends StatelessWidget {
+  const _ScrollNotificationListener(
       {Key? key,
       required this.child,
       required this.controller,

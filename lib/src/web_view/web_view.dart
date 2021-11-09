@@ -353,20 +353,19 @@ class _WebViewState extends State<FlWebView> {
   @override
   void initState() {
     super.initState();
-    if (_isMobile) {
-      _assertJavascriptChannelNamesAreUnique();
-      _callbackHandler = WebViewCallbacksHandler(widget);
-      switch (defaultTargetPlatform) {
-        case TargetPlatform.android:
-          platform = AndroidWebView();
-          break;
-        case TargetPlatform.iOS:
-          platform = CupertinoWebView();
-          break;
-        default:
-          throw UnsupportedError(
-              "Trying to use the default webview implementation for $defaultTargetPlatform but there isn't a default one");
-      }
+    if (!_isMobile) return;
+    _assertJavascriptChannelNamesAreUnique();
+    _callbackHandler = WebViewCallbacksHandler(widget);
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        platform = AndroidWebView();
+        break;
+      case TargetPlatform.iOS:
+        platform = CupertinoWebView();
+        break;
+      default:
+        throw UnsupportedError(
+            "Trying to use the default webview implementation for $defaultTargetPlatform but there isn't a default one");
     }
   }
 
@@ -388,6 +387,7 @@ class _WebViewState extends State<FlWebView> {
   @override
   void didUpdateWidget(FlWebView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!_isMobile) return;
     _assertJavascriptChannelNamesAreUnique();
     _controller.future.then((WebViewController controller) {
       _callbackHandler._widget = widget;

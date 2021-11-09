@@ -339,6 +339,10 @@ class FlWebView extends StatefulWidget {
   State<StatefulWidget> createState() => _WebViewState();
 }
 
+bool get _isMobile =>
+    defaultTargetPlatform == TargetPlatform.android ||
+    defaultTargetPlatform == TargetPlatform.iOS;
+
 class _WebViewState extends State<FlWebView> {
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
@@ -349,23 +353,30 @@ class _WebViewState extends State<FlWebView> {
   @override
   void initState() {
     super.initState();
-    _assertJavascriptChannelNamesAreUnique();
-    _callbackHandler = WebViewCallbacksHandler(widget);
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        platform = AndroidWebView();
-        break;
-      case TargetPlatform.iOS:
-        platform = CupertinoWebView();
-        break;
-      default:
-        throw UnsupportedError(
-            "Trying to use the default webview implementation for $defaultTargetPlatform but there isn't a default one");
+    if (_isMobile) {
+      _assertJavascriptChannelNamesAreUnique();
+      _callbackHandler = WebViewCallbacksHandler(widget);
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+          platform = AndroidWebView();
+          break;
+        case TargetPlatform.iOS:
+          platform = CupertinoWebView();
+          break;
+        default:
+          throw UnsupportedError(
+              "Trying to use the default webview implementation for $defaultTargetPlatform but there isn't a default one");
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_isMobile) {
+      return Container(
+          alignment: Alignment.center,
+          child: Text('Unsupported platforms $defaultTargetPlatform'));
+    }
     return platform.build(
         context: context,
         onWebViewPlatformCreated: _onWebViewPlatformCreated,

@@ -339,6 +339,10 @@ class FlWebView extends StatefulWidget {
   State<StatefulWidget> createState() => _WebViewState();
 }
 
+bool get _isMobile =>
+    defaultTargetPlatform == TargetPlatform.android ||
+    defaultTargetPlatform == TargetPlatform.iOS;
+
 class _WebViewState extends State<FlWebView> {
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
@@ -349,6 +353,7 @@ class _WebViewState extends State<FlWebView> {
   @override
   void initState() {
     super.initState();
+    if (!_isMobile) return;
     _assertJavascriptChannelNamesAreUnique();
     _callbackHandler = WebViewCallbacksHandler(widget);
     switch (defaultTargetPlatform) {
@@ -366,6 +371,11 @@ class _WebViewState extends State<FlWebView> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_isMobile) {
+      return Container(
+          alignment: Alignment.center,
+          child: Text('Unsupported platforms $defaultTargetPlatform'));
+    }
     return platform.build(
         context: context,
         onWebViewPlatformCreated: _onWebViewPlatformCreated,
@@ -377,6 +387,7 @@ class _WebViewState extends State<FlWebView> {
   @override
   void didUpdateWidget(FlWebView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!_isMobile) return;
     _assertJavascriptChannelNamesAreUnique();
     _controller.future.then((WebViewController controller) {
       _callbackHandler._widget = widget;

@@ -138,6 +138,8 @@ class FlWKContentSizeDelegate: NSObject {
     let contentSizeKeyPath = "contentSize"
     var webView: WKWebView
 
+    var height: CGFloat = 0
+
     init(_ _webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
         channel = methodChannel
         webView = _webView
@@ -154,49 +156,22 @@ class FlWKContentSizeDelegate: NSObject {
     }
 
     override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == contentSizeKeyPath {
-            let size = change?[NSKeyValueChangeKey.newKey] as? CGSize
-            if size != nil {
-                let contentSize = webView.scrollView.contentSize
-                let frame = webView.scrollView.frame
-                channel.invokeMethod("onContentSize", arguments: [
-                    "width": frame.width,
-                    "height": frame.height,
-                    "contentWidth": contentSize.width,
-                    "contentHeight": contentSize.height,
-                ])
-            }
+        if keyPath != contentSizeKeyPath {
+            return
         }
-    }
-}
-
-class FlWKContentOffsetDelegate: NSObject {
-    var channel: FlutterMethodChannel
-    let contentOffsetKeyPath = "contentOffset"
-
-    init(_ webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
-        channel = methodChannel
-        super.init()
-        webView.scrollView.addObserver(
-            self,
-            forKeyPath: contentOffsetKeyPath,
-            options: .new,
-            context: nil)
-    }
-
-    func stopObserving(_ webView: WKWebView?) {
-        webView?.scrollView.removeObserver(self, forKeyPath: contentOffsetKeyPath)
-    }
-
-    override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == contentOffsetKeyPath {
-            let offset = change?[NSKeyValueChangeKey.newKey] as? CGPoint
-            if offset == nil {
-                return
-            }
-            channel.invokeMethod("onScrollChanged", arguments: [
-                "x": offset!.x,
-                "y": offset!.y,
+        let size = change?[NSKeyValueChangeKey.newKey] as? CGSize
+        if size == nil {
+            return
+        }
+        let contentSize = webView.scrollView.contentSize
+        if contentSize.height > height {
+            height = contentSize.height
+            let frame = webView.scrollView.frame
+            channel.invokeMethod("onContentSize", arguments: [
+                "width": frame.width,
+                "height": frame.height,
+                "contentWidth": contentSize.width,
+                "contentHeight": contentSize.height,
             ])
         }
     }

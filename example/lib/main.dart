@@ -159,8 +159,7 @@ class _FlWebView extends FlWebView {
             initialData: initialData,
             javascriptMode: JavascriptMode.unrestricted,
             navigationDelegate: (NavigationRequest navigation) async {
-              log('navigationDelegate');
-              log(navigation.url);
+              log('navigationDelegate = ${navigation.url}');
               return NavigationDecision.navigate;
             },
             onWebViewCreated: onWebViewCreated ??
@@ -171,36 +170,30 @@ class _FlWebView extends FlWebView {
                   10.seconds.delayed(() {
                     controller.scrollEnabled(true);
                   });
-                  log('onWebViewCreated');
-                  log(await controller.currentUrl());
+                  log('onWebViewCreated = ${await controller.currentUrl()}');
                 },
             onPageStarted: (String url) {
-              log('onPageStarted');
-              log(url);
+              log('onPageStarted = $url');
             },
             onPageFinished: (String url) {
-              log('onPageFinished');
-              log(url);
+              log('onPageFinished = $url ');
             },
             onProgress: (int progress) {
-              log('onProgress');
-              log(progress);
+              log('onProgress = $progress');
             },
             useProgressGetContentSize: useProgressGetContentSize,
             onContentSizeChanged: (Size frameSize, Size contentSize) {
               if (onContentSizeChanged != null) {
                 onContentSizeChanged(frameSize, contentSize);
               }
-              log('onContentSizeChanged');
-              log('frameSize= $frameSize, contentSize= $contentSize');
+              log('onContentSizeChanged  frameSize= $frameSize, contentSize= $contentSize');
             },
-            onScrollChanged: (Size size, Size contentSize, Offset offset,
+            onScrollChanged: (Size frameSize, Size contentSize, Offset offset,
                 ScrollPositioned positioned) {
               if (onScrollChanged != null) {
-                onScrollChanged(size, contentSize, offset, positioned);
+                onScrollChanged(frameSize, contentSize, offset, positioned);
               }
-              log('onScrollChanged');
-              log(offset);
+              log('onScrollChanged :  frameSize = $frameSize  contentSize = $contentSize offset = $offset positioned = $offset');
             },
             initialUrl: initialUrl);
 }

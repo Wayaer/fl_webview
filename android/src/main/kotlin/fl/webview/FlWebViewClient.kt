@@ -17,6 +17,8 @@ class FlWebViewClient(
 ) : WebViewClient() {
 
     var hasNavigationDelegate = false
+    var hasContentSizeTracking = false
+    var useFinishedGetContentSize = false
 
     private fun errorCodeToString(errorCode: Int): String {
         when (errorCode) {
@@ -79,13 +81,21 @@ class FlWebViewClient(
                 "url" to url
             )
         )
-        view?.let {
-            invokeMethod(
-                "onContentSize", mapOf(
-                    "width" to it.width.toDouble(),
-                    "height" to it.contentHeight.toDouble(),
+        if (hasContentSizeTracking) {
+            view?.let {
+                var contentHeight = view.contentHeight
+                if (contentHeight == 0) {
+                    contentHeight = view.height
+                }
+                invokeMethod(
+                    "onContentSize", mapOf(
+                        "width" to it.width.toDouble(),
+                        "height" to it.height.toDouble(),
+                        "contentHeight" to contentHeight.toDouble(),
+                        "contentWidth" to it.width.toDouble(),
+                    )
                 )
-            )
+            }
         }
     }
 

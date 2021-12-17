@@ -3,68 +3,85 @@ import 'package:flutter/material.dart';
 
 typedef FlAdaptHeightWevViewBuilder = Widget Function(
     ContentSizeCallback onContentSizeChanged,
-    ScrollChangedCallback onScrollChanged);
+    ScrollChangedCallback onScrollChanged,
+    WebViewCreatedCallback? onWebViewCreated,
+    bool useProgressGetContentSize);
 
 /// webview content 有多高， widget 就有多高
 /// 在ios 如果webview 太高 图片太多 滑动会卡顿
+/// 仅适用 内容比较少的时候
+/// The widget is as tall as the WebView content is
+/// on ios, if the WebView is too high and there are too many images, swiping will stall
+/// only applicable when there is little content
 class FlAdaptHeightWevView extends StatefulWidget {
   const FlAdaptHeightWevView(
-      {Key? key, required this.builder, this.initialSize})
+      {Key? key, required this.builder, this.initialHeight = 10})
       : super(key: key);
   final FlAdaptHeightWevViewBuilder builder;
-  final Size? initialSize;
+
+  /// 初始高度
+  /// The initial height
+  final double initialHeight;
 
   @override
   _FlAdaptHeightWevViewState createState() => _FlAdaptHeightWevViewState();
 }
 
 class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
-  Size currenrSize = const Size(double.infinity, 50);
+  double currenrHeight = 10;
 
   @override
   void initState() {
     super.initState();
-    if (widget.initialSize != null) currenrSize = widget.initialSize!;
+    currenrHeight = widget.initialHeight;
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox.fromSize(
-        size: currenrSize,
-        child: widget.builder((Size size) {
-          if (currenrSize.height != size.height) {
-            currenrSize = Size(currenrSize.width, size.height);
-            setState(() {});
+        size: Size(double.infinity, currenrHeight),
+        child: widget.builder((Size frameSize, Size contentSize) {
+          if (currenrHeight != contentSize.height) {
+            currenrHeight = contentSize.height;
+            if (mounted) setState(() {});
           }
         }, (Size frameSize, Size contentSize, Offset offset,
             ScrollPositioned positioned) {
-          if (contentSize.height > currenrSize.height) {
-            currenrSize = Size(currenrSize.width, contentSize.height);
-            setState(() {});
+          if (contentSize.height > currenrHeight) {
+            currenrHeight = contentSize.height;
+            if (mounted) setState(() {});
           }
-        }));
+        }, (WebViewController controller) {
+          controller.scrollEnabled(false);
+        }, true));
   }
 }
 
 /// 返回的Widget树中需要包含[FlWebView]
+/// The Widget tree returned needs to include [FlWebView]
 typedef ExtendedFlWebViewBuilder = Widget Function(
     ContentSizeCallback onContentSizeChanged,
     WebViewCreatedCallback onWebViewCreated,
     ScrollChangedCallback onScrollChanged);
 
 /// 返回的Widget树中需要包含[ScrollView]
+/// The Widget tree returned needs to include [ScrollView]
 typedef NestedScrollViewBuilder = Widget Function(
     ScrollController controller, bool canScroll, Widget webView);
 
 /// 固定的webview 高度，建议设置为当前可视高度
 /// 滚动中不会卡顿
+/// Fixed webView height. It is recommended to set it to the current viewable height
+/// There is no lag in scrolling
 class ExtendedFlWebViewWithScrollView extends StatefulWidget {
   const ExtendedFlWebViewWithScrollView({
     Key? key,
     required this.scrollViewBuilder,
     required this.webViewBuilder,
     this.controller,
-    required this.webViewHeight,
+    required this.contentHeight,
+    this.minHeight = 10,
+    this.faultTolerantHeight = 15,
   }) : super(key: key);
 
   /// scrollview
@@ -76,7 +93,15 @@ class ExtendedFlWebViewWithScrollView extends StatefulWidget {
 
   /// 必须要把webview 放在 scrollview的初始位置
   /// 建议设置为当前可视高度
-  final double webViewHeight;
+  final double contentHeight;
+
+  /// 当 webview content 的高度小于 [webViewHeight] 时显示的高度
+  /// 不建议设置为0 最少为10
+  final double minHeight;
+
+  /// 当webview 滚动结束的时候 会自动在外层滚动组件跳转这个高度 即为容错高度
+  /// 当外层滚动组件 到达最头部的时候 webview 自动向上滚动这个高度
+  final int faultTolerantHeight;
 
   @override
   _ExtendedFlWebViewWithScrollViewState createState() =>
@@ -87,16 +112,15 @@ class _ExtendedFlWebViewWithScrollViewState
     extends State<ExtendedFlWebViewWithScrollView> {
   bool scrollViewPhysics = false;
 
-  double webViewHeight = 10;
   bool noScrollWeb = true;
-  Size contentSize = const Size(0, 0);
+  double contentHeight = 10;
   late ScrollController controller;
-
   late WebViewController webViewController;
 
   @override
   void initState() {
     super.initState();
+    contentHeight = widget.minHeight;
     initController();
   }
 
@@ -111,7 +135,7 @@ class _ExtendedFlWebViewWithScrollViewState
       scrollViewPhysics = false;
       controller.jumpTo(0);
       webViewController.scrollEnabled(true).then((value) {
-        webViewController.scrollBy(0, -10);
+        webViewController.scrollBy(0, -(widget.faultTolerantHeight));
         setState(() {});
       });
     }
@@ -120,31 +144,28 @@ class _ExtendedFlWebViewWithScrollViewState
   @override
   void didUpdateWidget(covariant ExtendedFlWebViewWithScrollView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) {
-      initController();
-    }
+    if (oldWidget.controller != widget.controller) initController();
   }
 
   @override
   Widget build(BuildContext context) {
     Widget webView = SizedBox.fromSize(
-        size: Size(double.infinity, webViewHeight),
+        size: Size(double.infinity, contentHeight),
         child: widget.webViewBuilder(
             onContentSizeChanged, onWebViewCreated, onScrollChanged));
     return widget.scrollViewBuilder(controller, scrollViewPhysics, webView);
   }
 
-  void onContentSizeChanged(Size size) {
-    contentSize = size;
-    if (size.height > widget.webViewHeight) {
+  void onContentSizeChanged(Size frameSize, Size contentSize) {
+    if (contentSize.height <= widget.minHeight) return;
+    if (contentSize.height > widget.contentHeight) {
       noScrollWeb = true;
-      if (webViewHeight != widget.webViewHeight) {
-        setState(() {
-          webViewHeight = widget.webViewHeight;
-        });
+      if (contentHeight != widget.contentHeight) {
+        contentHeight = widget.contentHeight;
+        setState(() {});
       }
     } else {
-      webViewHeight = size.height;
+      contentHeight = contentSize.height;
       noScrollWeb = false;
       setState(() {});
     }
@@ -161,7 +182,7 @@ class _ExtendedFlWebViewWithScrollViewState
         noScrollWeb) {
       scrollViewPhysics = true;
       await webViewController.scrollEnabled(false);
-      controller.jumpTo(10);
+      controller.jumpTo(widget.faultTolerantHeight.toDouble());
       setState(() {});
     }
   }

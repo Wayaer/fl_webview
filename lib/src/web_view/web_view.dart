@@ -5,7 +5,6 @@ import 'package:fl_webview/src/method_channel.dart';
 import 'package:fl_webview/src/platform_web_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -92,7 +91,7 @@ typedef PageFinishedCallback = void Function(String url);
 typedef PageLoadingCallback = void Function(int progress);
 
 /// Width and height of web content
-typedef ContentSizeCallback = void Function(Size size);
+typedef ContentSizeCallback = void Function(Size frameSize, Size contentSize);
 
 /// Component size, WebView and wkwebview , scroll offset
 typedef ScrollChangedCallback = void Function(Size frameSize, Size contentSize,
@@ -175,12 +174,11 @@ class FlWebView extends StatefulWidget {
     this.initialMediaPlaybackPolicy =
         AutoMediaPlaybackPolicy.requireUserActionForAllMediaTypes,
     this.allowsInlineMediaPlayback = false,
+    this.useProgressGetContentSize = false,
     this.onContentSizeChanged,
     this.onScrollChanged,
   })  : assert(initialData == null || initialUrl == null,
             'One of them must be used'),
-        // assert(initialData != null && initialUrl != null,
-        //     'One of them must be used'),
         super(key: key);
 
   /// If not null invoked once the web view is created.
@@ -266,6 +264,9 @@ class FlWebView extends StatefulWidget {
   /// By default `allowsInlineMediaPlayback` is false.
   final bool allowsInlineMediaPlayback;
 
+  // /// Get his height in Android via WebView's own onSizeChange
+  // final bool useSizeChangedWithAndroid;
+
   /// Invoked when a page starts loading.
   final PageStartedCallback? onPageStarted;
 
@@ -285,6 +286,7 @@ class FlWebView extends StatefulWidget {
   final PageLoadingCallback? onProgress;
 
   final ContentSizeCallback? onContentSizeChanged;
+  final bool useProgressGetContentSize;
 
   final ScrollChangedCallback? onScrollChanged;
 
@@ -426,6 +428,7 @@ extension ExtensionFlWebView on FlWebView {
       javascriptMode: javascriptMode,
       hasNavigationDelegate: navigationDelegate != null,
       hasProgressTracking: onProgress != null,
+      useProgressGetContentSize: useProgressGetContentSize,
       hasContentSizeTracking: onContentSizeChanged != null,
       hasScrollChangedTracking: onScrollChanged != null,
       debuggingEnabled: debuggingEnabled,
@@ -502,9 +505,9 @@ class WebViewCallbacksHandler {
     }
   }
 
-  void onContentSizeChanged(Size size) {
+  void onContentSizeChanged(Size frameSize, Size contentSize) {
     if (_widget.onContentSizeChanged != null) {
-      _widget.onContentSizeChanged!(size);
+      _widget.onContentSizeChanged!(frameSize, contentSize);
     }
   }
 

@@ -17,6 +17,7 @@ class FlWebChromeClient(
 ) : WebChromeClient() {
     var hasProgressTracking = false
     var hasContentSizeTracking = false
+    var useProgressGetContentSize = false
 
     override fun onCreateWindow(
         view: WebView,
@@ -29,10 +30,7 @@ class FlWebChromeClient(
                 view: WebView, request: WebResourceRequest
             ): Boolean {
                 val url = request.url.toString()
-                if (!flWebViewClient.shouldOverrideUrlLoading(
-                        webView, request
-                    )
-                ) {
+                if (!flWebViewClient.shouldOverrideUrlLoading(webView, request)) {
                     webView.loadUrl(url)
                 }
                 return true
@@ -55,14 +53,21 @@ class FlWebChromeClient(
                 )
             )
         }
-
-        if (view != null && hasContentSizeTracking && progress > 10) {
-            invokeMethod(
-                "onContentSize", mapOf(
-                    "width" to view.width.toDouble(),
-                    "height" to view.contentHeight.toDouble(),
+        if (useProgressGetContentSize && hasContentSizeTracking && progress > 10) {
+            view?.let {
+                var contentHeight = it.contentHeight
+                if (contentHeight == 0) {
+                    contentHeight = it.height
+                }
+                invokeMethod(
+                    "onContentSize", mapOf(
+                        "width" to it.width.toDouble(),
+                        "height" to it.height.toDouble(),
+                        "contentHeight" to contentHeight.toDouble(),
+                        "contentWidth" to it.width.toDouble(),
+                    )
                 )
-            )
+            }
         }
     }
 

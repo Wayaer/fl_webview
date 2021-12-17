@@ -230,16 +230,23 @@ class FlWebViewPlatformView(
                     }
                 }
                 "hasContentSizeTracking" -> {
-                    if (value as Boolean) {
+                    webView.hasContentSizeTracking = value as Boolean
+                    if (value) {
                         getFlWebChromeClient()
                         flWebChromeClient?.hasContentSizeTracking = true
+                        flWebViewClient?.hasContentSizeTracking = true
                     }
+                }
+                "useProgressGetContentSize" -> {
+                    webView.useProgressGetContentSize = value as Boolean
+                    getFlWebChromeClient()
+                    flWebChromeClient?.useProgressGetContentSize = value
+                    flWebViewClient?.useFinishedGetContentSize = value
                 }
                 "hasScrollChangedTracking" -> {
                     webView.hasScrollChangedTracking = value as Boolean
                 }
                 "gestureNavigationEnabled" -> {
-
                 }
                 "autoMediaPlaybackPolicy" -> {
                     val requireUserGesture = value != 1
@@ -342,25 +349,29 @@ class FlWebViewPlatformView(
     ) : WebView(context) {
         var scrollEnabled = true
         var hasScrollChangedTracking = false
-        override fun onNestedScroll(
-            target: View?,
-            dxConsumed: Int,
-            dyConsumed: Int,
-            dxUnconsumed: Int,
-            dyUnconsumed: Int
-        ) {
-            super.onNestedScroll(
-                target,
-                dxConsumed,
-                dyConsumed,
-                dxUnconsumed,
-                dyUnconsumed
-            )
+        var hasContentSizeTracking = false
+        var useProgressGetContentSize = false
+
+        override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
+            super.onSizeChanged(width, height, oldWidth, oldHeight)
+            if (hasContentSizeTracking && !useProgressGetContentSize) {
+                var currentHeight = contentHeight;
+                if (currentHeight == 0) {
+                    currentHeight = height;
+                }
+                invokeMethod(
+                    "onContentSize", mapOf(
+                        "width" to width.toDouble(),
+                        "height" to height.toDouble(),
+                        "contentHeight" to currentHeight.toDouble(),
+                        "contentWidth" to width.toDouble(),
+                    )
+                )
+            }
         }
 
         override fun onScrollChanged(
-            left: Int, top: Int, oldl: Int, oldt:
-            Int
+            left: Int, top: Int, oldl: Int, oldt: Int
         ) {
             if (hasScrollChangedTracking) {
                 val scale = resources.displayMetrics.density

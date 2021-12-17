@@ -1,6 +1,5 @@
 import 'package:fl_webview/fl_webview.dart';
 import 'package:fl_webview/src/method_channel.dart';
-import 'package:fl_webview/src/platform_interface.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';

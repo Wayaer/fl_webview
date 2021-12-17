@@ -55,8 +55,8 @@ class _NestedScrollWebViewState extends State<NestedScrollWebView> {
             controller, controller.scrollViewPhysics, webView));
   }
 
-  void onContentSizeChanged(Size size) {
-    controller.onContentSizeChanged(size);
+  void onContentSizeChanged(Size size, Size contentSize) {
+    controller.onContentSizeChanged(size, contentSize);
   }
 
   void onWebViewCreated(WebViewController _controller) {
@@ -216,11 +216,11 @@ class ScrollWebViewController extends ScrollController {
   }
 
   /// [FlWebView] 的 onContentSizeChanged
-  void onContentSizeChanged(Size size) {
+  void onContentSizeChanged(Size size, contentSize) {
     _initCombinedScroll();
-    webContentSize = size;
+    webContentSize = contentSize;
     combinedMaxScrollExtent =
-        size.height + position.maxScrollExtent - webViewHeight;
+        contentSize.height + position.maxScrollExtent - webViewHeight;
   }
 
   /// [FlWebView] 的 onWebViewCreated

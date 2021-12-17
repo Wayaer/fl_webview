@@ -232,6 +232,8 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
                 } else {
                     contentSizeDelegate?.stopObserving(webView)
                 }
+            case "useProgressGetContentSize":
+                break
             case "hasScrollChangedTracking":
                 if value as! Bool {
                     if scrollChangedDelegate == nil {

@@ -136,13 +136,13 @@ class FlWKProgressionDelegate: NSObject {
 class FlWKContentSizeDelegate: NSObject {
     var channel: FlutterMethodChannel
     let contentSizeKeyPath = "contentSize"
+    var webView: WKWebView
 
-    var height: CGFloat = 10
-
-    init(_ webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
+    init(_ _webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
         channel = methodChannel
+        webView = _webView
         super.init()
-        webView.scrollView.addObserver(
+        _webView.scrollView.addObserver(
             self,
             forKeyPath: contentSizeKeyPath,
             options: .new,
@@ -156,14 +156,14 @@ class FlWKContentSizeDelegate: NSObject {
     override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == contentSizeKeyPath {
             let size = change?[NSKeyValueChangeKey.newKey] as? CGSize
-            if size == nil {
-                return
-            }
-            if height < size!.height {
-                height = size!.height
+            if size != nil {
+                let contentSize = webView.scrollView.contentSize
+                let frame = webView.scrollView.frame
                 channel.invokeMethod("onContentSize", arguments: [
-                    "width": size!.width,
-                    "height": size!.height,
+                    "width": frame.width,
+                    "height": frame.height,
+                    "contentWidth": contentSize.width,
+                    "contentHeight": contentSize.height,
                 ])
             }
         }

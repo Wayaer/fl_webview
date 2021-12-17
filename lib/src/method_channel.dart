@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:fl_webview/fl_webview.dart';
-import 'package:fl_webview/src/platform_interface.dart';
 import 'package:flutter/services.dart';
 
 /// A [FlWebViewMethodChannel] that uses a method channel to control the webview.
@@ -41,7 +40,10 @@ class FlWebViewMethodChannel {
       case 'onContentSize':
         final double width = call.arguments['width'] as double;
         final double height = call.arguments['height'] as double;
-        _callbackHandler.onContentSizeChanged(Size(width, height));
+        final double contentHeight = call.arguments['contentHeight'] as double;
+        final double contentWidth = call.arguments['contentWidth'] as double;
+        _callbackHandler.onContentSizeChanged(
+            Size(width, height), Size(contentWidth, contentHeight));
         return null;
       case 'onScrollChanged':
         final double x = call.arguments['x'] as double;

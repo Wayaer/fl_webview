@@ -189,6 +189,7 @@ class WebSettings {
     this.hasProgressTracking = false,
     this.hasContentSizeTracking = false,
     this.hasScrollChangedTracking = false,
+    this.useProgressGetContentSize = true,
     required this.userAgent,
   });
 
@@ -206,6 +207,9 @@ class WebSettings {
   bool hasProgressTracking;
 
   bool hasContentSizeTracking;
+
+  /// Get the Content height in the load progress  Only supports android
+  bool useProgressGetContentSize;
 
   bool hasScrollChangedTracking;
 
@@ -243,6 +247,7 @@ class WebSettings {
         'hasNavigationDelegate': hasNavigationDelegate,
         'hasProgressTracking': hasProgressTracking,
         'hasContentSizeTracking': hasContentSizeTracking,
+        'useProgressGetContentSize': useProgressGetContentSize,
         'hasScrollChangedTracking': hasScrollChangedTracking,
         'autoMediaPlaybackPolicy': autoMediaPlaybackPolicy.index,
       };

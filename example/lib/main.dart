@@ -7,7 +7,7 @@ import 'package:flutter_waya/flutter_waya.dart';
 const String url = 'https://www.zhihu.com/';
 
 void main() {
-  runApp(ExtendedWidgetsApp(home: const App(), title: 'FlWebview'));
+  runApp(const ExtendedWidgetsApp(home: App(), title: 'FlWebview'));
 }
 
 class App extends StatelessWidget {
@@ -67,10 +67,14 @@ class _AdaptHtmlTextFlWebView extends StatelessWidget {
               child: const Text('Header'),
               height: 100),
           FlAdaptHeightWevView(
-              builder: (onContentSizeChanged, onScrollChanged) => _FlWebView(
-                  initialData: initialData,
-                  onContentSizeChanged: onContentSizeChanged,
-                  onScrollChanged: onScrollChanged)),
+              builder: (onContentSizeChanged, onScrollChanged, onWebViewCreated,
+                      bool useProgressGetContentSize) =>
+                  _FlWebView(
+                      initialData: initialData,
+                      useProgressGetContentSize: useProgressGetContentSize,
+                      onWebViewCreated: onWebViewCreated,
+                      onContentSizeChanged: onContentSizeChanged,
+                      onScrollChanged: onScrollChanged)),
           Container(
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
@@ -110,10 +114,14 @@ class _AdaptHeightFlWebView extends StatelessWidget {
               child: const Text('Header'),
               height: 100),
           FlAdaptHeightWevView(
-              builder: (onContentSizeChanged, onScrollChanged) => _FlWebView(
-                  initialUrl: url,
-                  onContentSizeChanged: onContentSizeChanged,
-                  onScrollChanged: onScrollChanged)),
+              builder: (onContentSizeChanged, onScrollChanged, onWebViewCreated,
+                      bool useProgressGetContentSize) =>
+                  _FlWebView(
+                      initialUrl: url,
+                      useProgressGetContentSize: useProgressGetContentSize,
+                      onWebViewCreated: onWebViewCreated,
+                      onContentSizeChanged: onContentSizeChanged,
+                      onScrollChanged: onScrollChanged)),
           Container(
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
@@ -141,6 +149,8 @@ class _FlWebView extends FlWebView {
       {Key? key,
       HtmlData? initialData,
       String? initialUrl,
+      bool useProgressGetContentSize = false,
+      WebViewCreatedCallback? onWebViewCreated,
       ContentSizeCallback? onContentSizeChanged,
       ScrollChangedCallback? onScrollChanged})
       : assert(initialData == null || initialUrl == null),
@@ -153,16 +163,17 @@ class _FlWebView extends FlWebView {
               log(navigation.url);
               return NavigationDecision.navigate;
             },
-            onWebViewCreated: (WebViewController controller) async {
-              5.seconds.delayed(() {
-                controller.scrollEnabled(false);
-              });
-              10.seconds.delayed(() {
-                controller.scrollEnabled(true);
-              });
-              log('onWebViewCreated');
-              log(await controller.currentUrl());
-            },
+            onWebViewCreated: onWebViewCreated ??
+                (WebViewController controller) async {
+                  5.seconds.delayed(() {
+                    controller.scrollEnabled(false);
+                  });
+                  10.seconds.delayed(() {
+                    controller.scrollEnabled(true);
+                  });
+                  log('onWebViewCreated');
+                  log(await controller.currentUrl());
+                },
             onPageStarted: (String url) {
               log('onPageStarted');
               log(url);
@@ -175,10 +186,13 @@ class _FlWebView extends FlWebView {
               log('onProgress');
               log(progress);
             },
-            onContentSizeChanged: (Size size) {
-              if (onContentSizeChanged != null) onContentSizeChanged(size);
+            useProgressGetContentSize: useProgressGetContentSize,
+            onContentSizeChanged: (Size frameSize, Size contentSize) {
+              if (onContentSizeChanged != null) {
+                onContentSizeChanged(frameSize, contentSize);
+              }
               log('onContentSizeChanged');
-              log(size);
+              log('frameSize= $frameSize, contentSize= $contentSize');
             },
             onScrollChanged: (Size size, Size contentSize, Offset offset,
                 ScrollPositioned positioned) {

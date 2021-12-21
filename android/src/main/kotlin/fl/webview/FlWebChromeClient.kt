@@ -55,15 +55,11 @@ class FlWebChromeClient(
         }
         if (useProgressGetContentSize && hasContentSizeTracking && progress > 10) {
             view?.let {
-                var contentHeight = it.contentHeight
-                if (contentHeight == 0) {
-                    contentHeight = it.height
-                }
                 invokeMethod(
                     "onContentSize", mapOf(
                         "width" to it.width.toDouble(),
                         "height" to it.height.toDouble(),
-                        "contentHeight" to contentHeight.toDouble(),
+                        "contentHeight" to it.height.toDouble(),
                         "contentWidth" to it.width.toDouble(),
                     )
                 )

@@ -4,10 +4,7 @@ import 'dart:ui';
 import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/services.dart';
 
-/// A [FlWebViewMethodChannel] that uses a method channel to control the webview.
 class FlWebViewMethodChannel {
-  /// Constructs an instance that will listen for webviews broadcasting to the
-  /// given [id], using the given [WebViewCallbacksHandler].
   FlWebViewMethodChannel(int id, this._callbackHandler)
       : _channel = MethodChannel('fl.webview/$id') {
     _channel.setMethodCallHandler(_onMethodCall);
@@ -104,25 +101,21 @@ class FlWebViewMethodChannel {
   Future<void> updateSettings(WebSettings settings) async {
     final Map<String, dynamic> updatesMap = settings.toMap();
     if (updatesMap.isNotEmpty) {
-      return await _channel.invokeMethod<void>('updateSettings', updatesMap);
+      await _channel.invokeMethod<void>('updateSettings', updatesMap);
     }
   }
 
-  Future<String> evaluateJavascript(String javascriptString) {
-    return _channel
-        .invokeMethod<String>('evaluateJavascript', javascriptString)
-        .then((String? result) => result!);
-  }
+  Future<String> evaluateJavascript(String javascriptString) => _channel
+      .invokeMethod<String>('evaluateJavascript', javascriptString)
+      .then((String? result) => result!);
 
-  Future<void> addJavascriptChannels(Set<String> javascriptChannelNames) {
-    return _channel.invokeMethod<void>(
-        'addJavascriptChannels', javascriptChannelNames.toList());
-  }
+  Future<void> addJavascriptChannels(Set<String> javascriptChannelNames) =>
+      _channel.invokeMethod<void>(
+          'addJavascriptChannels', javascriptChannelNames.toList());
 
-  Future<void> removeJavascriptChannels(Set<String> javascriptChannelNames) {
-    return _channel.invokeMethod<void>(
-        'removeJavascriptChannels', javascriptChannelNames.toList());
-  }
+  Future<void> removeJavascriptChannels(Set<String> javascriptChannelNames) =>
+      _channel.invokeMethod<void>(
+          'removeJavascriptChannels', javascriptChannelNames.toList());
 
   Future<String?> getTitle() => _channel.invokeMethod<String>('getTitle');
 

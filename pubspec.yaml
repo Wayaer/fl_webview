@@ -1,6 +1,6 @@
 name: fl_webview
 description: Based on webView_flutter plugin implemented by flutter supports Android and IOS
-version: 0.3.0
+version: 0.3.1
 repository: https://github.com/Wayaer/fl_webview
 
 environment:

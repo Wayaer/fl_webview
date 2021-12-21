@@ -355,15 +355,11 @@ class FlWebViewPlatformView(
         override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
             super.onSizeChanged(width, height, oldWidth, oldHeight)
             if (hasContentSizeTracking && !useProgressGetContentSize) {
-                var currentHeight = contentHeight;
-                if (currentHeight == 0) {
-                    currentHeight = height;
-                }
                 invokeMethod(
                     "onContentSize", mapOf(
                         "width" to width.toDouble(),
                         "height" to height.toDouble(),
-                        "contentHeight" to currentHeight.toDouble(),
+                        "contentHeight" to contentHeight.toDouble(),
                         "contentWidth" to width.toDouble(),
                     )
                 )

@@ -30,9 +30,6 @@ class App extends StatelessWidget {
               text: 'WebView With ScrollView',
               onPressed: () =>
                   push(const ExtendedFlWebViewWithScrollViewPage())),
-          ElevatedText(
-              text: 'Nested Scroll WebView',
-              onPressed: () => push(const NestedScrollWebViewPage())),
           const SizedBox(height: 10),
           ElevatedText(text: 'Html Text', onPressed: getHtml),
           ElevatedText(

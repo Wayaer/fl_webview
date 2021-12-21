@@ -83,15 +83,11 @@ class FlWebViewClient(
         )
         if (hasContentSizeTracking) {
             view?.let {
-                var contentHeight = view.contentHeight
-                if (contentHeight == 0) {
-                    contentHeight = view.height
-                }
                 invokeMethod(
                     "onContentSize", mapOf(
                         "width" to it.width.toDouble(),
                         "height" to it.height.toDouble(),
-                        "contentHeight" to contentHeight.toDouble(),
+                        "contentHeight" to it.contentHeight.toDouble(),
                         "contentWidth" to it.width.toDouble(),
                     )
                 )

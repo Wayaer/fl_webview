@@ -1,3 +1,7 @@
+## 0.3.1
+
+* Optimize webView height calculation method
+
 ## 0.3.0
 
 * Add two ways to get the content height in Android so that webView content can still be displayed

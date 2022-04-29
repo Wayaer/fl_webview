@@ -16,9 +16,9 @@ import io.flutter.plugin.platform.PlatformView
 
 
 class FlWebViewPlatformView(
-    context: Context,
-    private val methodChannel: MethodChannel,
-    params: Map<*, *>,
+        context: Context,
+        private val methodChannel: MethodChannel,
+        params: Map<*, *>,
 ) : PlatformView, MethodChannel.MethodCallHandler {
     private val webView: FlWebView
 
@@ -31,7 +31,7 @@ class FlWebViewPlatformView(
     init {
         val displayListenerProxy = DisplayListenerProxy()
         val displayManager =
-            context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+                context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
         displayListenerProxy.onPreWebViewInitialization(displayManager)
 
         /// 初始化webView
@@ -41,6 +41,8 @@ class FlWebViewPlatformView(
             settings.apply {
                 loadsImagesAutomatically = true
                 domStorageEnabled = true
+                databaseEnabled = true
+                cacheMode = WebSettings.LOAD_DEFAULT
                 javaScriptCanOpenWindowsAutomatically = true
                 layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
                 mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
@@ -55,7 +57,7 @@ class FlWebViewPlatformView(
                 displayZoomControls = true
                 allowContentAccess = true
                 mediaPlaybackRequiresUserGesture = false
-                databaseEnabled = true
+
             }
         }
 
@@ -74,9 +76,8 @@ class FlWebViewPlatformView(
 
         val userAgent = params["userAgent"] as String?
         if (userAgent != null) {
-            webView.settings.userAgentString = userAgent
+            webView.settings.userAgentString = webView.settings.userAgentString + userAgent
         }
-
         val url = params["initialUrl"] as String?
         if (url != null) webView.loadUrl(url)
         val data = params["initialData"]
@@ -96,8 +97,8 @@ class FlWebViewPlatformView(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onMethodCall(
-        call: MethodCall,
-        result: MethodChannel.Result
+            call: MethodCall,
+            result: MethodChannel.Result
     ) {
         when (call.method) {
             "loadUrl" -> loadUrl(call, result)
@@ -131,8 +132,8 @@ class FlWebViewPlatformView(
             "evaluateJavascript" -> evaluateJavaScript(call, result)
             "addJavascriptChannels" -> addJavaScriptChannels(call, result)
             "removeJavascriptChannels" -> removeJavaScriptChannels(
-                call,
-                result
+                    call,
+                    result
             )
             "clearCache" -> clearCache(result)
             "getTitle" -> result.success(webView.title)
@@ -155,16 +156,16 @@ class FlWebViewPlatformView(
 
 
     private fun evaluateJavaScript(
-        methodCall: MethodCall,
-        result: MethodChannel.Result
+            methodCall: MethodCall,
+            result: MethodChannel.Result
     ) {
         val jsString = methodCall.arguments as String
         webView.evaluateJavascript(jsString) { value -> result.success(value) }
     }
 
     private fun addJavaScriptChannels(
-        methodCall: MethodCall,
-        result: MethodChannel.Result
+            methodCall: MethodCall,
+            result: MethodChannel.Result
     ) {
         val channelNames = methodCall.arguments as List<*>
         registerJavaScriptChannelNames(channelNames)
@@ -172,8 +173,8 @@ class FlWebViewPlatformView(
     }
 
     private fun removeJavaScriptChannels(
-        methodCall: MethodCall,
-        result: MethodChannel.Result
+            methodCall: MethodCall,
+            result: MethodChannel.Result
     ) {
         val channelNames = methodCall.arguments as List<*>
         for (channelName in channelNames) {
@@ -251,10 +252,12 @@ class FlWebViewPlatformView(
                 "autoMediaPlaybackPolicy" -> {
                     val requireUserGesture = value != 1
                     webView.settings.mediaPlaybackRequiresUserGesture =
-                        requireUserGesture
+                            requireUserGesture
                 }
-                "userAgent" -> webView.settings.userAgentString = value as
-                        String?
+                "userAgent" -> {
+                    val userAgent = value as String;
+                    webView.settings.userAgentString = webView.settings.userAgentString + userAgent
+                }
                 "allowsInlineMediaPlayback" -> {
                 }
                 else -> throw IllegalArgumentException("Unknown WebView setting: $key")
@@ -267,10 +270,10 @@ class FlWebViewPlatformView(
         getFlWebViewClient()
         if (flWebChromeClient == null) {
             flWebChromeClient =
-                FlWebChromeClient(
-                    methodChannel, handler, webView,
-                    flWebViewClient!!
-                )
+                    FlWebChromeClient(
+                            methodChannel, handler, webView,
+                            flWebViewClient!!
+                    )
         }
         flWebChromeClient?.let {
             webView.webChromeClient = it
@@ -280,7 +283,7 @@ class FlWebViewPlatformView(
     private fun getFlWebViewClient() {
         if (flWebViewClient == null) {
             flWebViewClient =
-                FlWebViewClient(methodChannel, handler)
+                    FlWebViewClient(methodChannel, handler)
         }
         flWebViewClient?.let {
             webView.webViewClient = it
@@ -301,11 +304,11 @@ class FlWebViewPlatformView(
     private fun registerJavaScriptChannelNames(channelNames: List<*>) {
         for (channelName in channelNames) {
             webView.addJavascriptInterface(
-                JavaScriptChannel(
-                    methodChannel, channelName as String,
-                    handler
-                ),
-                channelName
+                    JavaScriptChannel(
+                            methodChannel, channelName as String,
+                            handler
+                    ),
+                    channelName
             )
         }
     }
@@ -318,19 +321,19 @@ class FlWebViewPlatformView(
 
 
     internal class JavaScriptChannel(
-        private val methodChannel: MethodChannel,
-        private val javaScriptChannelName: String,
-        private val handler: Handler
+            private val methodChannel: MethodChannel,
+            private val javaScriptChannelName: String,
+            private val handler: Handler
     ) {
         @JavascriptInterface
         fun postMessage(message: String) {
             val postMessageRunnable = Runnable {
                 methodChannel.invokeMethod(
-                    "javascriptChannelMessage",
-                    mapOf(
-                        "channel" to javaScriptChannelName,
-                        "message" to message
-                    )
+                        "javascriptChannelMessage",
+                        mapOf(
+                                "channel" to javaScriptChannelName,
+                                "message" to message
+                        )
                 )
             }
             if (handler.looper == Looper.myLooper()) {
@@ -343,9 +346,9 @@ class FlWebViewPlatformView(
 
     @SuppressLint("ViewConstructor")
     internal class FlWebView(
-        context: Context,
-        private val methodChannel: MethodChannel,
-        private val currentHandler: Handler,
+            context: Context,
+            private val methodChannel: MethodChannel,
+            private val currentHandler: Handler,
     ) : WebView(context) {
         var scrollEnabled = true
         var hasScrollChangedTracking = false
@@ -356,18 +359,18 @@ class FlWebViewPlatformView(
             super.onSizeChanged(width, height, oldWidth, oldHeight)
             if (hasContentSizeTracking && !useProgressGetContentSize) {
                 invokeMethod(
-                    "onContentSize", mapOf(
+                        "onContentSize", mapOf(
                         "width" to width.toDouble(),
                         "height" to height.toDouble(),
                         "contentHeight" to contentHeight.toDouble(),
                         "contentWidth" to width.toDouble(),
-                    )
+                )
                 )
             }
         }
 
         override fun onScrollChanged(
-            left: Int, top: Int, oldl: Int, oldt: Int
+                left: Int, top: Int, oldl: Int, oldt: Int
         ) {
             if (hasScrollChangedTracking) {
                 val scale = resources.displayMetrics.density
@@ -377,13 +380,13 @@ class FlWebViewPlatformView(
                     else -> 1
                 }
                 val map = mapOf(
-                    "x" to (left / scale).toDouble(),
-                    "y" to (top / scale).toDouble(),
-                    "width" to width.toDouble(),
-                    "height" to height.toDouble(),
-                    "contentWidth" to width.toDouble(),
-                    "contentHeight" to contentHeight.toDouble(),
-                    "position" to position
+                        "x" to (left / scale).toDouble(),
+                        "y" to (top / scale).toDouble(),
+                        "width" to width.toDouble(),
+                        "height" to height.toDouble(),
+                        "contentWidth" to width.toDouble(),
+                        "contentHeight" to contentHeight.toDouble(),
+                        "position" to position
                 )
                 invokeMethod("onScrollChanged", map)
             }
@@ -402,27 +405,27 @@ class FlWebViewPlatformView(
 
 
         override fun overScrollBy(
-            deltaX: Int,
-            deltaY: Int,
-            scrollX: Int,
-            scrollY: Int,
-            scrollRangeX: Int,
-            scrollRangeY: Int,
-            maxOverScrollX: Int,
-            maxOverScrollY: Int,
-            isTouchEvent: Boolean
+                deltaX: Int,
+                deltaY: Int,
+                scrollX: Int,
+                scrollY: Int,
+                scrollRangeX: Int,
+                scrollRangeY: Int,
+                maxOverScrollX: Int,
+                maxOverScrollY: Int,
+                isTouchEvent: Boolean
         ): Boolean {
             if (scrollEnabled) {
                 return super.overScrollBy(
-                    deltaX,
-                    deltaY,
-                    scrollX,
-                    scrollY,
-                    scrollRangeX,
-                    scrollRangeY,
-                    maxOverScrollX,
-                    maxOverScrollY,
-                    isTouchEvent
+                        deltaX,
+                        deltaY,
+                        scrollX,
+                        scrollY,
+                        scrollRangeX,
+                        scrollRangeY,
+                        maxOverScrollX,
+                        maxOverScrollY,
+                        isTouchEvent
                 )
             }
             return false

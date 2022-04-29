@@ -8,7 +8,7 @@ public class FlWebViewPlugin: NSObject, FlutterPlugin {
         registrar.register(FlWebViewFactory(registrar.messenger()), withId: "fl.webview")
 
         let cookieChannel = FlutterMethodChannel(name: "fl.webview/cookie_manager", binaryMessenger:
-            registrar.messenger())
+        registrar.messenger())
         let instance = FlWebViewPlugin(cookieChannel)
         registrar.addMethodCallDelegate(instance, channel: cookieChannel)
     }
@@ -39,9 +39,9 @@ public class FlWebViewPlugin: NSObject, FlutterPlugin {
             let hasCookies = (cookies?.count ?? 0) > 0
             if let cookies = cookies {
                 dataStore.removeData(
-                    ofTypes: websiteDataTypes,
-                    for: cookies) {
-                        result(NSNumber(value: hasCookies))
+                        ofTypes: websiteDataTypes,
+                        for: cookies) {
+                    result(NSNumber(value: hasCookies))
                 }
             }
         }
@@ -74,11 +74,18 @@ class FlWebView: WKWebView {
                 return
             }
             let insetToAdjust = scrollView.adjustedContentInset
+            scrollView.translatesAutoresizingMaskIntoConstraints = false
             scrollView.contentInset = UIEdgeInsets(
-                top: -insetToAdjust.top,
-                left: -insetToAdjust.left,
-                bottom: -insetToAdjust.bottom,
-                right: -insetToAdjust.right)
+                    top: -insetToAdjust.top,
+                    left: -insetToAdjust.left,
+                    bottom: -insetToAdjust.bottom,
+                    right: -insetToAdjust.right)
+        }
+    }
+
+    func setUserAgent(userAgent: String) {
+        evaluateJavaScript("navigator.userAgent") { info, error in
+            self.customUserAgent = (info as? String ?? "") + userAgent
         }
     }
 }

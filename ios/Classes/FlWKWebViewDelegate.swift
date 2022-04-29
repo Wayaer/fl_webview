@@ -29,27 +29,27 @@ class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
         ] as [String: Any]
 
         methodChannel.invokeMethod(
-            "navigationRequest",
-            arguments: arguments,
-            result: { result in
-                if result is FlutterError {
-                    decisionHandler(.allow)
-                    return
-                }
-                if result as! NSObject == FlutterMethodNotImplemented {
-                    decisionHandler(.allow)
-                    return
-                }
-                if !(result is NSNumber) {
-                    decisionHandler(.allow)
-                    return
-                }
-                let typedResult = result as! Bool
-                decisionHandler(
-                    typedResult
-                        ? .allow
-                        : .cancel)
-            })
+                "navigationRequest",
+                arguments: arguments,
+                result: { result in
+                    if result is FlutterError {
+                        decisionHandler(.allow)
+                        return
+                    }
+                    if result as! NSObject == FlutterMethodNotImplemented {
+                        decisionHandler(.allow)
+                        return
+                    }
+                    if !(result is NSNumber) {
+                        decisionHandler(.allow)
+                        return
+                    }
+                    let typedResult = result as! Bool
+                    decisionHandler(
+                            typedResult
+                                    ? .allow
+                                    : .cancel)
+                })
     }
 
     /// 理网页加载完成
@@ -78,13 +78,13 @@ class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
 
     func onWebResourceError(_ error: Error?) {
         methodChannel.invokeMethod(
-            "onWebResourceError",
-            arguments: [
-                "errorCode": NSNumber(value: (error as NSError?)?.code ?? 0),
-                "domain": (error as NSError?)?.domain ?? "",
-                "description": description,
-                "errorType": errorCode((error as NSError?)?.code),
-            ])
+                "onWebResourceError",
+                arguments: [
+                    "errorCode": NSNumber(value: (error as NSError?)?.code ?? 0),
+                    "domain": (error as NSError?)?.domain ?? "",
+                    "description": description,
+                    "errorType": errorCode((error as NSError?)?.code),
+                ])
     }
 
     /// 处理网页返回内容时发生的失败
@@ -112,10 +112,10 @@ class FlWKProgressionDelegate: NSObject {
         channel = methodChannel
         super.init()
         webView.addObserver(
-            self,
-            forKeyPath: estimatedProgressKeyPath,
-            options: .new,
-            context: nil)
+                self,
+                forKeyPath: estimatedProgressKeyPath,
+                options: .new,
+                context: nil)
     }
 
     func stopObserving(_ webView: WKWebView?) {
@@ -145,10 +145,10 @@ class FlWKContentSizeDelegate: NSObject {
         webView = _webView
         super.init()
         _webView.scrollView.addObserver(
-            self,
-            forKeyPath: contentSizeKeyPath,
-            options: .new,
-            context: nil)
+                self,
+                forKeyPath: contentSizeKeyPath,
+                options: .new,
+                context: nil)
     }
 
     func stopObserving(_ webView: WKWebView?) {

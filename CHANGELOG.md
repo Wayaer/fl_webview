@@ -1,3 +1,8 @@
+## 0.3.2
+
+* Merge the default for userAgent
+* Fix ios constraint issues
+
 ## 0.3.1
 
 * Optimize webView height calculation method

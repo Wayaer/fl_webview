@@ -1,3 +1,7 @@
+## 0.3.3
+
+* Fixed issues on Android
+
 ## 0.3.2
 
 * Merge the default for userAgent
@@ -9,11 +13,9 @@
 
 ## 0.3.0
 
-* Add two ways to get the content height in Android so that webView content can still be displayed
-  when the content height is 0
+* Add two ways to get the content height in Android so that webView content can still be displayed when the content height is 0
 * `onContentSizeChanged` add two callback sizes
-* Add `useProgressGetContentSize`, When you use `FlAdaptHeightWevView` in Android it has to be set
-  to true,
+* Add `useProgressGetContentSize`, When you use `FlAdaptHeightWevView` in Android it has to be set to true,
 
 ## 0.2.5
 

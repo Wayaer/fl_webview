@@ -192,7 +192,7 @@ class FlWebViewPlatformView(
 
     private fun scrollTo(methodCall: MethodCall, result: MethodChannel.Result) {
         val request = methodCall.arguments<Map<String, Any>>()
-        val x = request["x"] as Int
+        val x = request?.get("x") as Int
         val y = request["y"] as Int
         webView.scrollTo(x, y)
         result.success(null)
@@ -200,7 +200,7 @@ class FlWebViewPlatformView(
 
     private fun scrollBy(methodCall: MethodCall, result: MethodChannel.Result) {
         val request = methodCall.arguments<Map<String, Any>>()
-        val x = request["x"] as Int
+        val x = request?.get("x") as Int
         val y = request["y"] as Int
         webView.scrollBy(x, y)
         result.success(null)
@@ -255,7 +255,7 @@ class FlWebViewPlatformView(
                         requireUserGesture
                 }
                 "userAgent" -> {
-                    val userAgent = value as String?;
+                    val userAgent = value as String?
                     if (userAgent != null) {
                         webView.settings.userAgentString =
                             webView.settings.userAgentString + userAgent

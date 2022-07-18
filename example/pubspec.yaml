@@ -7,14 +7,12 @@ environment:
   sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
-
-  cupertino_icons: ^1.0.2
   fl_webview:
     path: ../
   flutter:
     sdk: flutter
-  flutter_curiosity: ^3.3.3
-  flutter_waya: ^1.16.7
+  flutter_curiosity: ^4.0.1
+  flutter_waya: ^2.2.0
 
 dev_dependencies:
   flutter_lints: ^1.0.4

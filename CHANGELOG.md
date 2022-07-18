@@ -1,3 +1,7 @@
+## 0.5.0
+
+* Adaptive flutter 3.0
+
 ## 0.3.3
 
 * Fixed issues on Android

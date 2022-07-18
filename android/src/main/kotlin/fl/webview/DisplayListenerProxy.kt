@@ -4,11 +4,9 @@ import android.hardware.display.DisplayManager
 import android.os.Build
 import android.util.Log
 import java.lang.reflect.Field
-import java.util.*
 
 class DisplayListenerProxy {
-    private var listenersBeforeWebView: ArrayList<DisplayManager.DisplayListener>? =
-        null
+    private var listenersBeforeWebView: ArrayList<DisplayManager.DisplayListener>? = null
 
     /**
      * Should be called prior to the webview's initialization.
@@ -24,7 +22,7 @@ class DisplayListenerProxy {
         val webViewListeners = yoinkDisplayListeners(displayManager)
         // We recorded the list of listeners prior to initializing webview, any new listeners we see
         // after initializing the webview are listeners added by the webview.
-        webViewListeners.removeAll(listenersBeforeWebView!!)
+        webViewListeners.removeAll(listenersBeforeWebView!!.toSet())
         if (webViewListeners.isEmpty()) {
             // The Android WebView registers a single display listener per process (even if there
             // are multiple WebView instances) so this list is expected to be non-empty only the
@@ -68,8 +66,7 @@ class DisplayListenerProxy {
                             listener.onDisplayChanged(displayId)
                         }
                     }
-                },
-                null
+                }, null
             )
         }
     }
@@ -82,16 +79,13 @@ class DisplayListenerProxy {
             // fixed in 61.0.3116.0.
             ArrayList()
         } else try {
-            val displayManagerGlobalField =
-                DisplayManager::class.java.getDeclaredField("mGlobal")
+            val displayManagerGlobalField = DisplayManager::class.java.getDeclaredField("mGlobal")
             displayManagerGlobalField.isAccessible = true
-            val displayManagerGlobal =
-                displayManagerGlobalField[displayManager]!!
+            val displayManagerGlobal = displayManagerGlobalField[displayManager]!!
             val displayListenersField =
                 displayManagerGlobal.javaClass.getDeclaredField("mDisplayListeners")
             displayListenersField.isAccessible = true
-            val delegates =
-                displayListenersField[displayManagerGlobal] as ArrayList<*>
+            val delegates = displayListenersField[displayManagerGlobal] as ArrayList<*>
             var listenerField: Field? = null
             val listeners = ArrayList<DisplayManager.DisplayListener>()
             for (delegate in delegates) {
@@ -99,8 +93,7 @@ class DisplayListenerProxy {
                     listenerField = delegate.javaClass.getField("mListener")
                     listenerField.isAccessible = true
                 }
-                val listener =
-                    listenerField!![delegate] as DisplayManager.DisplayListener
+                val listener = listenerField!![delegate] as DisplayManager.DisplayListener
                 listeners.add(listener)
             }
             listeners

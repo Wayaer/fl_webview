@@ -1,4 +1,4 @@
-## 0.5.0
+## 0.5.1
 
 * Adaptive flutter 3.0
 

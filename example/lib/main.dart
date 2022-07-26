@@ -61,8 +61,8 @@ class _AdaptHtmlTextFlWebView extends StatelessWidget {
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
               padding: const EdgeInsets.symmetric(vertical: 20),
-              child: const Text('Header'),
-              height: 100),
+              height: 100,
+              child: const Text('Header')),
           FlAdaptHeightWevView(
               builder: (onContentSizeChanged, onScrollChanged, onWebViewCreated,
                       bool useProgressGetContentSize) =>
@@ -76,8 +76,8 @@ class _AdaptHtmlTextFlWebView extends StatelessWidget {
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
               padding: const EdgeInsets.symmetric(vertical: 20),
-              child: const Text('Footer'),
-              height: 100),
+              height: 100,
+              child: const Text('Footer')),
         ]);
   }
 }
@@ -108,8 +108,8 @@ class _AdaptHeightFlWebView extends StatelessWidget {
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
               padding: const EdgeInsets.symmetric(vertical: 20),
-              child: const Text('Header'),
-              height: 100),
+              height: 100,
+              child: const Text('Header')),
           FlAdaptHeightWevView(
               builder: (onContentSizeChanged, onScrollChanged, onWebViewCreated,
                       bool useProgressGetContentSize) =>
@@ -123,8 +123,8 @@ class _AdaptHeightFlWebView extends StatelessWidget {
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
               padding: const EdgeInsets.symmetric(vertical: 20),
-              child: const Text('Footer'),
-              height: 100),
+              height: 100,
+              child: const Text('Footer')),
         ]);
   }
 }

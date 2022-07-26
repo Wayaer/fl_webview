@@ -7,8 +7,8 @@ typedef FlAdaptHeightWevViewBuilder = Widget Function(
     WebViewCreatedCallback? onWebViewCreated,
     bool useProgressGetContentSize);
 
-/// webview content 有多高， widget 就有多高
-/// 在ios 如果webview 太高 图片太多 滑动会卡顿
+/// webView content 有多高， widget 就有多高
+/// 在ios 如果 webView 太高 图片太多 滑动会卡顿
 /// 仅适用 内容比较少的时候
 /// The widget is as tall as the WebView content is
 /// on ios, if the WebView is too high and there are too many images, swiping will stall
@@ -31,12 +31,12 @@ class FlAdaptHeightWevView extends StatefulWidget {
   final double gapUpdateHeight;
 
   @override
-  _FlAdaptHeightWevViewState createState() => _FlAdaptHeightWevViewState();
+  State<FlAdaptHeightWevView> createState() => _FlAdaptHeightWevViewState();
 }
 
 class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
-  double currenrHeight = 10;
-  List<double> historyHight = [];
+  double currentHeight = 10;
+  List<double> historyHeight = [];
 
   /// 禁止更新高度
   bool forbidUpdateHeight = false;
@@ -44,21 +44,21 @@ class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
   @override
   void initState() {
     super.initState();
-    currenrHeight = widget.initialHeight;
-    historyHight.add(widget.initialHeight);
+    currentHeight = widget.initialHeight;
+    historyHeight.add(widget.initialHeight);
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox.fromSize(
-        size: Size(double.infinity, currenrHeight),
+        size: Size(double.infinity, currentHeight),
         child: widget.builder(
             (Size frameSize, Size contentSize) =>
                 changeHeight(frameSize, contentSize),
             (Size frameSize, Size contentSize, Offset offset,
                 ScrollPositioned positioned) {
-          if (contentSize.height > currenrHeight) {
-            currenrHeight = contentSize.height;
+          if (contentSize.height > currentHeight) {
+            currentHeight = contentSize.height;
             if (mounted) setState(() {});
           }
         }, (WebViewController controller) {
@@ -67,25 +67,25 @@ class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
   }
 
   void changeHeight(Size frameSize, Size contentSize) {
-    var _contentSizeHeight = contentSize.height;
-    if (_contentSizeHeight == 0 || currenrHeight == _contentSizeHeight) return;
+    var contentSizeHeight = contentSize.height;
+    if (contentSizeHeight == 0 || currentHeight == contentSizeHeight) return;
     if (_differenceWithHeight(
-        _contentSizeHeight, historyHight.last, widget.gapUpdateHeight)) {
+        contentSizeHeight, historyHeight.last, widget.gapUpdateHeight)) {
       return;
-    } else if (historyHight.length > 1) {
+    } else if (historyHeight.length > 1) {
       if (_differenceWithHeight(
-          historyHight[historyHight.length - 1], _contentSizeHeight, 10)) {
+          historyHeight[historyHeight.length - 1], contentSizeHeight, 10)) {
         if (!forbidUpdateHeight) {
           forbidUpdateHeight = true;
-          currenrHeight = historyHight[historyHight.length - 1];
+          currentHeight = historyHeight[historyHeight.length - 1];
           setState(() {});
         }
         return;
       }
     }
-    historyHight.add(_contentSizeHeight);
-    if (currenrHeight != _contentSizeHeight) {
-      currenrHeight = _contentSizeHeight;
+    historyHeight.add(contentSizeHeight);
+    if (currentHeight != contentSizeHeight) {
+      currentHeight = contentSizeHeight;
       if (mounted) setState(() {});
     }
   }
@@ -103,7 +103,7 @@ typedef ExtendedFlWebViewBuilder = Widget Function(
 typedef NestedScrollViewBuilder = Widget Function(
     ScrollController controller, bool canScroll, Widget webView);
 
-/// 固定的webview 高度，建议设置为当前可视高度
+/// 固定的 webView 高度，建议设置为当前可视高度
 /// 滚动中不会卡顿
 /// Fixed webView height. It is recommended to set it to the current viewable height
 /// There is no lag in scrolling
@@ -125,22 +125,22 @@ class ExtendedFlWebViewWithScrollView extends StatefulWidget {
   final ScrollController? controller;
   final NestedScrollViewBuilder scrollViewBuilder;
 
-  /// webview
+  /// webView
   final ExtendedFlWebViewBuilder webViewBuilder;
 
-  /// 必须要把webview 放在 scrollview的初始位置
+  /// 必须要把 webView 放在 scrollview的初始位置
   /// 建议设置为当前可视高度
   final double contentHeight;
 
-  /// 当 webview content 的高度小于 [webViewHeight] 时显示的高度
+  /// 当 webView content 的高度小于 [webViewHeight] 时显示的高度
   /// 不建议设置为0 最少为10
   final double minHeight;
 
   /// 初始高度
   final double initialHeight;
 
-  /// 当webview 滚动结束的时候 会自动在外层滚动组件跳转这个高度 即为容错高度
-  /// 当外层滚动组件 到达最头部的时候 webview 自动向上滚动这个高度
+  /// 当 webView 滚动结束的时候 会自动在外层滚动组件跳转这个高度 即为容错高度
+  /// 当外层滚动组件 到达最头部的时候 webView 自动向上滚动这个高度
   final int faultTolerantHeight;
 
   /// [onContentSizeChanged] 高度差距更新间隔 两次回调高低小于这个值 就不刷新
@@ -148,7 +148,7 @@ class ExtendedFlWebViewWithScrollView extends StatefulWidget {
   final double gapUpdateHeight;
 
   @override
-  _ExtendedFlWebViewWithScrollViewState createState() =>
+  State<ExtendedFlWebViewWithScrollView> createState() =>
       _ExtendedFlWebViewWithScrollViewState();
 }
 
@@ -163,13 +163,13 @@ class _ExtendedFlWebViewWithScrollViewState
   /// scrollView 是否可以滚动
   bool isScrollView = false;
 
-  /// 始终禁止webview 滚动
+  /// 始终禁止 webView 滚动
   bool forbidScrollWeb = false;
 
-  double currenrHeight = 10;
+  double currentHeight = 10;
   late ScrollController controller;
   late WebViewController webViewController;
-  List<double> historyHight = [];
+  List<double> historyHeight = [];
 
   /// 禁止更新高度
   bool forbidUpdateHeight = false;
@@ -177,8 +177,8 @@ class _ExtendedFlWebViewWithScrollViewState
   @override
   void initState() {
     super.initState();
-    currenrHeight = widget.initialHeight;
-    historyHight.add(widget.initialHeight);
+    currentHeight = widget.initialHeight;
+    historyHeight.add(widget.initialHeight);
     // lastHeight = widget.initialHeight;
     initController();
   }
@@ -209,41 +209,41 @@ class _ExtendedFlWebViewWithScrollViewState
   @override
   Widget build(BuildContext context) {
     Widget webView = SizedBox.fromSize(
-        size: Size(double.infinity, currenrHeight),
+        size: Size(double.infinity, currentHeight),
         child: widget.webViewBuilder(
             onContentSizeChanged, onWebViewCreated, onScrollChanged));
     return widget.scrollViewBuilder(controller, isScrollView, webView);
   }
 
   void onContentSizeChanged(Size frameSize, Size contentSize) {
-    var _contentSizeHeight = contentSize.height;
-    if (_contentSizeHeight == 0 || currenrHeight == _contentSizeHeight) return;
+    var contentSizeHeight = contentSize.height;
+    if (contentSizeHeight == 0 || currentHeight == contentSizeHeight) return;
     if (_differenceWithHeight(
-        _contentSizeHeight, historyHight.last, widget.gapUpdateHeight)) {
+        contentSizeHeight, historyHeight.last, widget.gapUpdateHeight)) {
       return;
-    } else if (historyHight.length > 1) {
+    } else if (historyHeight.length > 1) {
       if (_differenceWithHeight(
-          historyHight[historyHight.length - 1], _contentSizeHeight, 10)) {
+          historyHeight[historyHeight.length - 1], contentSizeHeight, 10)) {
         if (!forbidUpdateHeight) {
           forbidUpdateHeight = true;
-          currenrHeight = historyHight[historyHight.length - 1];
+          currentHeight = historyHeight[historyHeight.length - 1];
           setState(() {});
         }
         return;
       }
     }
-    historyHight.add(_contentSizeHeight);
-    if (_contentSizeHeight <= widget.contentHeight * 1.5) {
+    historyHeight.add(contentSizeHeight);
+    if (contentSizeHeight <= widget.contentHeight * 1.5) {
       isScrollView = true;
-      if (currenrHeight != _contentSizeHeight) {
-        currenrHeight = _contentSizeHeight;
+      if (currentHeight != contentSizeHeight) {
+        currentHeight = contentSizeHeight;
         webViewController.scrollEnabled(false);
         forbidScrollWeb = true;
         if (mounted) setState(() {});
       }
     } else {
-      if (currenrHeight != widget.contentHeight) {
-        currenrHeight = widget.contentHeight;
+      if (currentHeight != widget.contentHeight) {
+        currentHeight = widget.contentHeight;
         isScrollView = false;
         forbidScrollWeb = false;
         webViewController.scrollEnabled(true);

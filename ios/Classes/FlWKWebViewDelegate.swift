@@ -2,11 +2,11 @@ import Flutter
 import WebKit
 
 class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
-    var methodChannel: FlutterMethodChannel
+    let methodChannel: FlutterMethodChannel
     public var hasDartNavigationDelegate = false
 
-    init(_ _methodChannel: FlutterMethodChannel) {
-        methodChannel = _methodChannel
+    init(_ methodChannel: FlutterMethodChannel) {
+        self.methodChannel = methodChannel
         super.init()
     }
 

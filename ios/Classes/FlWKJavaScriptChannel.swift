@@ -2,12 +2,12 @@ import Flutter
 import WebKit
 
 class FlWKJavaScriptChannel: NSObject, WKScriptMessageHandler {
-    var channel: FlutterMethodChannel
+    let channel: FlutterMethodChannel
     let javaScriptChannelName: String
 
-    init(_ methodChannel: FlutterMethodChannel, _ _javaScriptChannelName: String) {
-        channel = methodChannel
-        javaScriptChannelName = _javaScriptChannelName
+    init(_ channel: FlutterMethodChannel, _ javaScriptChannelName: String) {
+        self.channel = channel
+        self.javaScriptChannelName = javaScriptChannelName
         super.init()
     }
 

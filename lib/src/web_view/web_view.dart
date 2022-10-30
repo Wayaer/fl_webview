@@ -264,9 +264,6 @@ class FlWebView extends StatefulWidget {
   /// By default `allowsInlineMediaPlayback` is false.
   final bool allowsInlineMediaPlayback;
 
-  // /// Get his height in Android via WebView's own onSizeChange
-  // final bool useSizeChangedWithAndroid;
-
   /// Invoked when a page starts loading.
   final PageStartedCallback? onPageStarted;
 

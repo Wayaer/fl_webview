@@ -11,8 +11,8 @@ dependencies:
     path: ../
   flutter:
     sdk: flutter
-  flutter_curiosity: ^4.0.1
-  flutter_waya: ^2.2.0
+  flutter_curiosity: ^4.1.0
+  flutter_waya: ^3.3.2+2
 
 dev_dependencies:
   flutter_lints: ^2.0.1

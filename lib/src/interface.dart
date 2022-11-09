@@ -1,5 +1,96 @@
 import 'package:fl_webview/fl_webview.dart';
-import 'package:flutter/widgets.dart';
+
+enum JavascriptMode {
+  /// JavaScript execution is disabled.
+  disabled,
+
+  /// JavaScript execution is not restricted.
+  unrestricted,
+}
+
+/// Specifies possible restrictions on automatic media playback.
+///
+/// This is typically used in [WebView.initialMediaPlaybackPolicy].
+enum AutoMediaPlaybackPolicy {
+  /// Starting any kind of media playback requires a user action.
+  ///
+  /// For example: JavaScript code cannot start playing media unless the code was executed
+  /// as a result of a user action (like a touch event).
+  requireUserActionForAllMediaTypes,
+
+  /// Starting any kind of media playback is always allowed.
+  ///
+  /// For example: JavaScript code that's triggered when the page is loaded can start playing
+  /// video or audio.
+  alwaysAllow,
+}
+
+/// Scroll Positioned
+enum ScrollPositioned {
+  /// At the very top
+  start,
+
+  /// On the roll
+  scrolling,
+
+  /// At the very bottom
+  end,
+}
+
+class HtmlData {
+  HtmlData(
+      {required this.html,
+      this.baseURL,
+      this.mimeType = 'text/html',
+      this.encoding = 'UTF-8'});
+
+  String html;
+
+  /// Valid on IOS
+  String? baseURL;
+
+  /// Valid on Android
+  String mimeType;
+  String encoding;
+
+  Map<String, String?> toMap() => {
+        'html': html,
+        'baseURL': baseURL,
+        'mimeType': mimeType,
+        'encoding': encoding
+      };
+}
+
+/// A message that was sent by JavaScript code running in a [WebView].
+class JavascriptMessage {
+  const JavascriptMessage(this.message);
+
+  /// The contents of the message that was sent by the JavaScript code.
+  final String message;
+}
+
+final RegExp _validChannelNames = RegExp('^[a-zA-Z_][a-zA-Z0-9_]*\$');
+
+/// A named channel for receiving messaged from JavaScript code running inside a web view.
+class JavascriptChannel {
+  JavascriptChannel({
+    required this.name,
+    required this.onMessageReceived,
+  }) : assert(_validChannelNames.hasMatch(name));
+
+  final String name;
+
+  final JavascriptMessageHandler onMessageReceived;
+}
+
+/// A decision on how to handle a navigation request.
+enum NavigationDecision {
+  /// Prevent the navigation from taking place.
+  prevent,
+
+  /// Allow the navigation to take place.
+  navigate,
+}
 
 /// Possible error type categorizations used by [WebResourceError].
 enum WebResourceErrorType {
@@ -115,47 +206,25 @@ class WebResourceError {
   final String? failingUrl;
 }
 
-/// A single setting for configuring a WebViewPlatform which may be absent.
 class WebSetting<T> {
-  /// Constructs an absent setting instance.
-  ///
-  /// The [isPresent] field for the instance will be false.
-  ///
-  /// Accessing [value] for an absent instance will throw.
   WebSetting.absent()
       : _value = null,
         isPresent = false;
 
-  /// Constructs a setting of the given `value`.
-  ///
-  /// The [isPresent] field for the instance will be true.
   WebSetting.of(T value)
       : _value = value,
         isPresent = true;
 
   final T? _value;
 
-  /// The setting's value.
-  ///
-  /// Throws if [WebSetting.isPresent] is false.
   T get value {
     if (!isPresent) {
       throw StateError('Cannot access a value of an absent WebSetting');
     }
     assert(isPresent);
-    // The intention of this getter is to return T whether it is nullable or
-    // not whereas _value is of type T? since _value can be null even when
-    // T is not nullable (when isPresent == false).
-    //
-    // We promote _value to T using `as T` instead of `!` operator to handle
-    // the case when _value is legitimately null (and T is a nullable type).
-    // `!` operator would always throw if _value is null.
     return _value as T;
   }
 
-  /// True when this web setting instance contains a value.
-  ///
-  /// When false the [WebSetting.value] getter throws.
   final bool isPresent;
 
   @override
@@ -165,20 +234,10 @@ class WebSetting<T> {
       _value == other._value;
 
   @override
-  int get hashCode => hashValues(_value, isPresent);
+  int get hashCode => Object.hash(_value, isPresent);
 }
 
-/// Settings for configuring a WebViewPlatform.
-///
-/// Initial settings are passed as part of [CreationParams], settings updates are sent with
-/// [WebViewPlatform#updateSettings].
-///
-/// The `userAgent` parameter must not be null.
 class WebSettings {
-  /// Construct an instance with initial settings. Future setting changes can be
-  /// sent with [WebviewPlatform#updateSettings].
-  ///
-  /// The `userAgent` parameter must not be null.
   WebSettings({
     this.autoMediaPlaybackPolicy = AutoMediaPlaybackPolicy.alwaysAllow,
     this.javascriptMode,
@@ -193,49 +252,26 @@ class WebSettings {
     required this.userAgent,
   });
 
-  /// Which restrictions apply on automatic media playback.
   final AutoMediaPlaybackPolicy autoMediaPlaybackPolicy;
 
-  /// The JavaScript execution mode to be used by the webview.
   JavascriptMode? javascriptMode;
 
-  /// Whether the [WebView] has a [NavigationDelegate] set.
   bool hasNavigationDelegate;
 
-  /// Whether the [WebView] should track page loading progress.
-  /// See also: [WebViewCallbacksHandler.onProgress] to get the progress.
   bool hasProgressTracking;
 
   bool hasContentSizeTracking;
 
-  /// Get the Content height in the load progress  Only supports android
   bool useProgressGetContentSize;
 
   bool hasScrollChangedTracking;
 
-  /// Whether to enable the platform's webview content debugging tools.
-  ///
-  /// See also: [WebView.debuggingEnabled].
   bool debuggingEnabled;
 
-  /// Whether to play HTML5 videos inline or use the native full-screen controller on iOS.
-  ///
-  /// This will have no effect on Android.
   bool? allowsInlineMediaPlayback;
 
-  /// The value used for the HTTP `User-Agent:` request header.
-  ///
-  /// If [userAgent.value] is null the platform's default user agent should be used.
-  ///
-  /// An absent value ([userAgent.isPresent] is false) represents no change to this setting from the
-  /// last time it was set.
-  ///
-  /// See also [WebView.userAgent].
   WebSetting<String?> userAgent;
 
-  /// Whether to allow swipe based navigation in iOS.
-  ///
-  /// See also: [WebView.gestureNavigationEnabled]
   bool? gestureNavigationEnabled;
 
   Map<String, dynamic> toMap() => <String, dynamic>{
@@ -279,59 +315,34 @@ class WebSettings {
   }
 }
 
-/// Configuration to use when creating a new [WebViewPlatformController].
-///
-/// The `autoMediaPlaybackPolicy` parameter must not be null.
-class CreationParams {
-  /// Constructs an instance to use when creating a new
-  /// [WebViewPlatformController].
-  ///
-  /// The `autoMediaPlaybackPolicy` parameter must not be null.
-  CreationParams({
+class WebViewParams {
+  WebViewParams({
     this.initialUrl,
     this.initialData,
     this.webSettings,
     this.javascriptChannelNames = const <String>{},
     this.userAgent,
+    this.deleteWindowSharedWorkerForIOS = false,
   });
 
-  /// The initialUrl to load in the webview.
-  ///
-  /// When null the webview will be created without loading any page.
   final String? initialUrl;
 
-  /// The initialData to load in the webview.
-  ///
-  /// When null the webview will be created without loading any page.
   final HtmlData? initialData;
 
-  /// The initial [WebSettings] for the new webview.
-  ///
-  /// This can later be updated with [WebViewPlatformController.updateSettings].
   final WebSettings? webSettings;
 
-  /// The initial set of JavaScript channels that are configured for this webview.
-  ///
-  /// For each value in this set the platform's webview should make sure that a corresponding
-  /// property with a postMessage method is set on `window`. For example for a JavaScript channel
-  /// named `Foo` it should be possible for JavaScript code executing in the webview to do
-  ///
-  /// ```javascript
-  /// Foo.postMessage('hello');
-  /// ```
-  // to PlatformWebView.
   final Set<String> javascriptChannelNames;
 
-  /// The value used for the HTTP User-Agent: request header.
-  ///
-  /// When null the platform's webview default is used for the User-Agent header.
   final String? userAgent;
+
+  bool deleteWindowSharedWorkerForIOS;
 
   Map<String, dynamic> toMap() => <String, dynamic>{
         'initialUrl': initialUrl,
         'initialData': initialData?.toMap(),
         'settings': webSettings?.toMap(),
         'javascriptChannelNames': javascriptChannelNames.toList(),
-        'userAgent': userAgent
+        'userAgent': userAgent,
+        'deleteWindowSharedWorkerForIOS': deleteWindowSharedWorkerForIOS
       };
 }

@@ -28,6 +28,13 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
 
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = userContentController
+        
+        let deleteWindowSharedWorker = args["deleteWindowSharedWorkerForIOS"] as? Bool ?? false
+        if(deleteWindowSharedWorker){
+        let dropSharedWorkersScript = WKUserScript(source: "delete window.SharedWorker;", injectionTime: WKUserScriptInjectionTime.atDocumentStart, forMainFrameOnly: false)
+        configuration.userContentController.addUserScript(dropSharedWorkersScript)
+        }
+    
         webView = FlWebView(frame: _frame, configuration: configuration)
 
         navigationDelegate = FlWKNavigationDelegate(channel)

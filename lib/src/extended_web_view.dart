@@ -179,7 +179,6 @@ class _ExtendedFlWebViewWithScrollViewState
     super.initState();
     currentHeight = widget.initialHeight;
     historyHeight.add(widget.initialHeight);
-    // lastHeight = widget.initialHeight;
     initController();
   }
 

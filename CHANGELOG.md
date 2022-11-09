@@ -1,3 +1,7 @@
+## 0.6.0
+
+* Fixed a problem with ios16, `Error acquiring assertion: <Error Domain=RBSServiceErrorDomain Code=1 "target is not running or doesn't have entitlement com.apple.runningboard.assertions.webkit" UserInfo={NSLocalizedFailureReason=target is not running or doesn't have entitlement com.apple.runningboard.assertions.webkit}>`
+
 ## 0.5.1
 
 * Adaptive flutter 3.0

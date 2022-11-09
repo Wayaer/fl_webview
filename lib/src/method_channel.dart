@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/services.dart';

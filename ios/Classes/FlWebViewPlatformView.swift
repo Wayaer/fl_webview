@@ -144,13 +144,15 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
 
     func onEvaluateJavaScript(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         let jsString = call.arguments as! String
-        webView!.evaluateJavaScript(jsString) { _, error in
+        webView!.evaluateJavaScript(jsString) { value, error in
             if let error = error {
                 result(
                         FlutterError(
                                 code: "evaluateJavaScript_failed",
                                 message: "Failed evaluating JavaScript",
                                 details: "JavaScript string was: '\(jsString)'\n\(error)"))
+            } else {
+                result(value)
             }
         }
     }

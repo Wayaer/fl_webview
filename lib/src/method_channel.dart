@@ -104,9 +104,8 @@ class FlWebViewMethodChannel {
     }
   }
 
-  Future<String> evaluateJavascript(String javascriptString) => _channel
-      .invokeMethod<String>('evaluateJavascript', javascriptString)
-      .then((String? result) => result!);
+  Future<String?> evaluateJavascript(String javascriptString) =>
+      _channel.invokeMethod<String?>('evaluateJavascript', javascriptString);
 
   Future<void> addJavascriptChannels(Set<String> javascriptChannelNames) =>
       _channel.invokeMethod<void>(

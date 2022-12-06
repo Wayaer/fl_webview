@@ -30,7 +30,7 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         configuration.userContentController = userContentController
 
         let deleteWindowSharedWorker = args["deleteWindowSharedWorkerForIOS"] as? Bool ?? false
-        if (deleteWindowSharedWorker) {
+        if deleteWindowSharedWorker {
             let dropSharedWorkersScript = WKUserScript(source: "delete window.SharedWorker;", injectionTime: WKUserScriptInjectionTime.atDocumentStart, forMainFrameOnly: false)
             configuration.userContentController.addUserScript(dropSharedWorkersScript)
         }
@@ -102,20 +102,21 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     }
 
     func registerJavaScriptChannels(
-            _ channelNames: Set<AnyHashable>?, controller userContentController: WKUserContentController?) {
+        _ channelNames: Set<AnyHashable>?, controller userContentController: WKUserContentController?)
+    {
         for channelName in channelNames ?? [] {
             guard let channelName = channelName as? String else {
                 continue
             }
             let channel = FlWKJavaScriptChannel(
-                    channel,
-                    channelName)
+                channel,
+                channelName)
             userContentController?.add(channel, name: channelName)
             let wrapperSource = "window.\(channelName) = webkit.messageHandlers.\(channelName);"
             let wrapperScript = WKUserScript(
-                    source: wrapperSource,
-                    injectionTime: .atDocumentStart,
-                    forMainFrameOnly: false)
+                source: wrapperSource,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: false)
             userContentController?.addUserScript(wrapperScript)
         }
     }
@@ -133,10 +134,10 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         let args = call.arguments as! [String: Any?]
         if !loadRequest(args, [:]) {
             result(
-                    FlutterError(
-                            code: "loadUrl_failed",
-                            message: "Failed parsing the URL",
-                            details: "Request was: '\(call.arguments ?? "")'"))
+                FlutterError(
+                    code: "loadUrl_failed",
+                    message: "Failed parsing the URL",
+                    details: "Request was: '\(call.arguments ?? "")'"))
         } else {
             result(nil)
         }
@@ -147,10 +148,10 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         webView!.evaluateJavaScript(jsString) { value, error in
             if let error = error {
                 result(
-                        FlutterError(
-                                code: "evaluateJavaScript_failed",
-                                message: "Failed evaluating JavaScript",
-                                details: "JavaScript string was: '\(jsString)'\n\(error)"))
+                    FlutterError(
+                        code: "evaluateJavaScript_failed",
+                        message: "Failed evaluating JavaScript",
+                        details: "JavaScript string was: '\(jsString)'\n\(error)"))
             } else {
                 result(value)
             }
@@ -166,8 +167,8 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         }
 
         registerJavaScriptChannels(
-                channelNamesSet,
-                controller: webView!.configuration.userContentController)
+            channelNamesSet,
+            controller: webView!.configuration.userContentController)
         result(nil)
     }
 
@@ -182,8 +183,8 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             javaScriptChannelNames.remove(key)
         }
         registerJavaScriptChannels(
-                javaScriptChannelNames,
-                controller: webView!.configuration.userContentController)
+            javaScriptChannelNames,
+            controller: webView!.configuration.userContentController)
         result(nil)
     }
 
@@ -192,9 +193,9 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         let dataStore = WKWebsiteDataStore.default()
         let dateFrom = Date(timeIntervalSince1970: 0)
         dataStore.removeData(
-                ofTypes: cacheDataTypes,
-                modifiedSince: dateFrom) {
-            result(nil)
+            ofTypes: cacheDataTypes,
+            modifiedSince: dateFrom) {
+                result(nil)
         }
     }
 
@@ -325,8 +326,9 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     }
 
     func registerJavaScriptChannels(
-            _ channelNames: Set<AnyHashable>,
-            _ userContentController: WKUserContentController?) {
+        _ channelNames: Set<AnyHashable>,
+        _ userContentController: WKUserContentController?)
+    {
         for channelName in channelNames {
             guard let channelName = channelName as? String else {
                 continue
@@ -335,9 +337,9 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             userContentController?.add(channel, name: channelName)
             let wrapperSource = "window.\(channelName) = webkit.messageHandlers.\(channelName);"
             let wrapperScript = WKUserScript(
-                    source: wrapperSource,
-                    injectionTime: .atDocumentStart,
-                    forMainFrameOnly: false)
+                source: wrapperSource,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: false)
             userContentController?.addUserScript(wrapperScript)
         }
     }

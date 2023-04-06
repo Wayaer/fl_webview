@@ -19,7 +19,7 @@ class FlWebViewPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         binding.platformViewRegistry.registerViewFactory(
             "fl.webview", FlWebViewFactory(messenger, binding.applicationContext)
         )
-        cookieChannel = MethodChannel(messenger, "fl.webview/cookie_manager")
+        cookieChannel = MethodChannel(messenger, "fl.webview.channel")
         cookieChannel.setMethodCallHandler(this)
     }
 

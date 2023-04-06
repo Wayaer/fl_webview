@@ -6,8 +6,7 @@ public class FlWebViewPlugin: NSObject, FlutterPlugin {
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         registrar.register(FlWebViewFactory(registrar.messenger()), withId: "fl.webview")
-
-        let cookieChannel = FlutterMethodChannel(name: "fl.webview/cookie_manager", binaryMessenger:
+        let cookieChannel = FlutterMethodChannel(name: "fl.webview.channel", binaryMessenger:
         registrar.messenger())
         let instance = FlWebViewPlugin(cookieChannel)
         registrar.addMethodCallDelegate(instance, channel: cookieChannel)

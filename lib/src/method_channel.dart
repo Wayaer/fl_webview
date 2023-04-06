@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fl_webview/fl_webview.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class FlWebViewMethodChannel {
@@ -72,9 +73,8 @@ class FlWebViewMethodChannel {
         '${call.method} was invoked but has no handler');
   }
 
-  Future<void> loadUrl(String url, Map<String, String>? headers) =>
-      _channel.invokeMethod<void>(
-          'loadUrl', <String, dynamic>{'url': url, 'headers': headers});
+  Future<void> loadUrl(UrlData urlData) =>
+      _channel.invokeMethod<void>('loadUrl', urlData.toMap());
 
   Future<String?> currentUrl() => _channel.invokeMethod<String>('currentUrl');
 
@@ -128,4 +128,107 @@ class FlWebViewMethodChannel {
 
   Future<int> getScrollY() =>
       _channel.invokeMethod<int>('getScrollY').then((int? result) => result!);
+}
+
+const MethodChannel _flChannel = MethodChannel('fl.webview.channel');
+
+/// Manages cookies pertaining to all [WebView]s.
+class CookieManager {
+  /// Creates a [CookieManager] -- returns the instance if it's already been called.
+  factory CookieManager() => _instance ??= CookieManager._();
+
+  CookieManager._();
+
+  static CookieManager? _instance;
+
+  /// Clears all cookies for all [WebView] instances.
+  ///
+  /// This is a no op on iOS version smaller than 9.
+  ///
+  /// Returns true if cookies were present before clearing, else false.
+
+  Future<bool> clearCookies() => _flChannel
+      .invokeMethod<bool>('clearCookies')
+      .then<bool>((bool? result) => result ?? false);
+}
+
+enum PresentationStyle {
+  modal,
+  sheet,
+}
+
+class MacOSWebView {
+  MacOSWebView({
+    this.onOpen,
+    this.onClose,
+    this.onPageStarted,
+    this.onPageFinished,
+    this.onWebResourceError,
+  }) : assert(defaultTargetPlatform == TargetPlatform.macOS);
+
+  final void Function()? onOpen;
+  final void Function()? onClose;
+  final void Function(String? url)? onPageStarted;
+  final void Function(String? url)? onPageFinished;
+  final void Function(WebResourceError error)? onWebResourceError;
+
+  Future<bool?> open({
+    required UrlData url,
+    JavascriptMode javascriptMode = JavascriptMode.disabled,
+    PresentationStyle presentationStyle = PresentationStyle.sheet,
+    Size? size,
+    String? userAgent,
+    String modalTitle = '',
+    String sheetCloseButtonTitle = 'Close',
+  }) async {
+    _flChannel.setMethodCallHandler(_onMethodCall);
+    return await _flChannel.invokeMethod<bool?>('openWebView', {
+      'urlData': url.toMap(),
+      'javascriptMode': javascriptMode.index,
+      'presentationStyle': presentationStyle.index,
+      'customSize': size != null,
+      'width': size?.width,
+      'height': size?.height,
+      'userAgent': userAgent,
+      'modalTitle': modalTitle,
+      'sheetCloseButtonTitle': sheetCloseButtonTitle,
+    });
+  }
+
+  /// Closes WebView
+  Future<bool?> close() async {
+    _flChannel.setMethodCallHandler(null);
+    return await _flChannel.invokeMethod<bool?>('closeWebView');
+  }
+
+  Future<void> _onMethodCall(MethodCall call) async {
+    switch (call.method) {
+      case 'onOpen':
+        onOpen?.call();
+        return;
+      case 'onClose':
+        onClose?.call();
+        return;
+      case 'onPageStarted':
+        onPageStarted?.call(call.arguments['url']);
+        return;
+      case 'onPageFinished':
+        onPageFinished?.call(call.arguments['url']);
+        return;
+      case 'onWebResourceError':
+        onWebResourceError?.call(WebResourceError(
+            errorCode: call.arguments['errorCode'],
+            description: call.arguments['description'],
+            domain: call.arguments['domain'],
+            errorType: call.arguments['errorType'] == null
+                ? null
+                : WebResourceErrorType.values.firstWhere(
+                    (type) {
+                      return type.toString() ==
+                          '$WebResourceErrorType.${call.arguments['errorType']}';
+                    },
+                  )));
+        return;
+    }
+  }
 }

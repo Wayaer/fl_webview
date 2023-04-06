@@ -30,8 +30,7 @@ class FlWebViewPlatformView(
 
     init {
         val displayListenerProxy = DisplayListenerProxy()
-        val displayManager =
-            context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+        val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
         displayListenerProxy.onPreWebViewInitialization(displayManager)
 
         /// 初始化webView
@@ -78,16 +77,11 @@ class FlWebViewPlatformView(
         if (userAgent != null) {
             webView.settings.userAgentString = webView.settings.userAgentString + userAgent
         }
-        val url = params["initialUrl"] as String?
-        if (url != null) webView.loadUrl(url)
-        val data = params["initialData"]
-        if (data != null) {
-            val initialData = data as Map<String, String>
-            val html = initialData["html"] as String
-            val mimeType = initialData["mimeType"] as String
-            val encoding = initialData["encoding"] as String
-            webView.loadData(html, mimeType, encoding)
-        }
+
+        val urlData = params["initialUrl"] as Map<*, *>?
+        if (urlData != null) loadUrl(urlData)
+        val htmlData = params["initialHtml"] as Map<*, *>?
+        if (htmlData != null) loadHtml(htmlData)
     }
 
 
@@ -97,11 +91,13 @@ class FlWebViewPlatformView(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onMethodCall(
-        call: MethodCall,
-        result: MethodChannel.Result
+        call: MethodCall, result: MethodChannel.Result
     ) {
         when (call.method) {
-            "loadUrl" -> loadUrl(call, result)
+            "loadUrl" -> {
+                loadUrl(call.arguments as Map<*, *>)
+                result.success(null)
+            }
             "updateSettings" -> {
                 applySettings(call.arguments as Map<*, *>)
                 result.success(null)
@@ -132,8 +128,7 @@ class FlWebViewPlatformView(
             "evaluateJavascript" -> evaluateJavaScript(call, result)
             "addJavascriptChannels" -> addJavaScriptChannels(call, result)
             "removeJavascriptChannels" -> removeJavaScriptChannels(
-                call,
-                result
+                call, result
             )
             "clearCache" -> clearCache(result)
             "getTitle" -> result.success(webView.title)
@@ -145,27 +140,29 @@ class FlWebViewPlatformView(
         }
     }
 
-    private fun loadUrl(methodCall: MethodCall, result: MethodChannel.Result) {
-        val request = methodCall.arguments as Map<*, *>
-        val url = request["url"] as String?
-        var headers = request["headers"] as Map<String?, String?>?
-        if (headers == null) headers = emptyMap<String?, String>()
-        webView.loadUrl(url!!, headers)
-        result.success(null)
+    private fun loadUrl(args: Map<*, *>) {
+        val url = args["url"] as String
+        var headers = args["headers"] as Map<String, String>?
+        if (headers == null) headers = emptyMap()
+        webView.loadUrl(url, headers)
     }
 
+    private fun loadHtml(args: Map<*, *>) {
+        val html = args["html"] as String
+        val mimeType = args["mimeType"] as String
+        val encoding = args["encoding"] as String
+        webView.loadData(html, mimeType, encoding)
+    }
 
     private fun evaluateJavaScript(
-        methodCall: MethodCall,
-        result: MethodChannel.Result
+        methodCall: MethodCall, result: MethodChannel.Result
     ) {
         val jsString = methodCall.arguments as String
         webView.evaluateJavascript(jsString) { value -> result.success(value) }
     }
 
     private fun addJavaScriptChannels(
-        methodCall: MethodCall,
-        result: MethodChannel.Result
+        methodCall: MethodCall, result: MethodChannel.Result
     ) {
         val channelNames = methodCall.arguments as List<*>
         registerJavaScriptChannelNames(channelNames)
@@ -173,8 +170,7 @@ class FlWebViewPlatformView(
     }
 
     private fun removeJavaScriptChannels(
-        methodCall: MethodCall,
-        result: MethodChannel.Result
+        methodCall: MethodCall, result: MethodChannel.Result
     ) {
         val channelNames = methodCall.arguments as List<*>
         for (channelName in channelNames) {
@@ -212,9 +208,9 @@ class FlWebViewPlatformView(
             val key = entry.key
             val value = entry.value
             when (key) {
-                "jsMode" -> {
+                "javascriptMode" -> {
                     val mode = settings[key] as Int?
-                    mode?.let { updateJsMode(it) }
+                    mode?.let { webView.settings.javaScriptEnabled = it == 1 }
                 }
                 "hasNavigationDelegate" -> {
                     if (value as Boolean) {
@@ -222,8 +218,7 @@ class FlWebViewPlatformView(
                         flWebViewClient?.hasNavigationDelegate = value
                     }
                 }
-                "debuggingEnabled" ->
-                    WebView.setWebContentsDebuggingEnabled(value as Boolean)
+                "debuggingEnabled" -> WebView.setWebContentsDebuggingEnabled(value as Boolean)
                 "hasProgressTracking" -> {
                     if (value as Boolean) {
                         getFlWebChromeClient()
@@ -251,8 +246,7 @@ class FlWebViewPlatformView(
                 }
                 "autoMediaPlaybackPolicy" -> {
                     val requireUserGesture = value != 1
-                    webView.settings.mediaPlaybackRequiresUserGesture =
-                        requireUserGesture
+                    webView.settings.mediaPlaybackRequiresUserGesture = requireUserGesture
                 }
                 "userAgent" -> {
                     val userAgent = value as String?
@@ -272,11 +266,9 @@ class FlWebViewPlatformView(
     private fun getFlWebChromeClient() {
         getFlWebViewClient()
         if (flWebChromeClient == null) {
-            flWebChromeClient =
-                FlWebChromeClient(
-                    methodChannel, handler, webView,
-                    flWebViewClient!!
-                )
+            flWebChromeClient = FlWebChromeClient(
+                methodChannel, handler, webView, flWebViewClient!!
+            )
         }
         flWebChromeClient?.let {
             webView.webChromeClient = it
@@ -285,20 +277,10 @@ class FlWebViewPlatformView(
 
     private fun getFlWebViewClient() {
         if (flWebViewClient == null) {
-            flWebViewClient =
-                FlWebViewClient(methodChannel, handler)
+            flWebViewClient = FlWebViewClient(methodChannel, handler)
         }
         flWebViewClient?.let {
             webView.webViewClient = it
-        }
-    }
-
-    @SuppressLint("SetJavaScriptEnabled")
-    private fun updateJsMode(mode: Int) {
-        when (mode) {
-            0 -> webView.settings.javaScriptEnabled = false
-            1 -> webView.settings.javaScriptEnabled = true
-            else -> throw IllegalArgumentException("Trying to set unknown JavaScript mode: $mode")
         }
     }
 
@@ -308,10 +290,8 @@ class FlWebViewPlatformView(
         for (channelName in channelNames) {
             webView.addJavascriptInterface(
                 JavaScriptChannel(
-                    methodChannel, channelName as String,
-                    handler
-                ),
-                channelName
+                    methodChannel, channelName as String, handler
+                ), channelName
             )
         }
     }
@@ -332,10 +312,8 @@ class FlWebViewPlatformView(
         fun postMessage(message: String) {
             val postMessageRunnable = Runnable {
                 methodChannel.invokeMethod(
-                    "javascriptChannelMessage",
-                    mapOf(
-                        "channel" to javaScriptChannelName,
-                        "message" to message
+                    "javascriptChannelMessage", mapOf(
+                        "channel" to javaScriptChannelName, "message" to message
                     )
                 )
             }

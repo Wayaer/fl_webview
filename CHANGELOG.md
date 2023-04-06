@@ -1,3 +1,7 @@
+## 0.7.0
+
+* Added `MacOSWebView()` support for macos
+
 ## 0.6.1
 
 * Fixed an `evaluateJavascript()` bug on ios

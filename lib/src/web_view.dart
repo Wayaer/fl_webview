@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:fl_webview/fl_webview.dart';
 import 'package:fl_webview/src/extension.dart';
-import 'package:fl_webview/src/method_channel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
@@ -112,7 +111,7 @@ class FlWebView extends StatefulWidget {
     Key? key,
     this.onWebViewCreated,
     this.initialUrl,
-    this.initialData,
+    this.initialHtml,
     this.javascriptMode = JavascriptMode.disabled,
     this.javascriptChannels,
     this.navigationDelegate,
@@ -131,7 +130,7 @@ class FlWebView extends StatefulWidget {
     this.useProgressGetContentSize = false,
     this.onContentSizeChanged,
     this.onScrollChanged,
-  })  : assert(initialData == null || initialUrl == null,
+  })  : assert(initialHtml == null || initialUrl == null,
             'One of them must be used'),
         super(key: key);
 
@@ -139,9 +138,9 @@ class FlWebView extends StatefulWidget {
 
   final Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers;
 
-  final String? initialUrl;
+  final UrlData? initialUrl;
 
-  final HtmlData? initialData;
+  final HtmlData? initialHtml;
 
   final JavascriptMode javascriptMode;
 
@@ -183,24 +182,30 @@ bool get _isMobile =>
     defaultTargetPlatform == TargetPlatform.iOS;
 
 class _WebViewState extends State<FlWebView> {
-  final Completer<WebViewController> _controller =
+  final Completer<WebViewController> controller =
       Completer<WebViewController>();
 
-  late WebViewCallbacksHandler _callbackHandler;
-  late WebViewPlatform platform;
+  WebViewCallbacksHandler? callbackHandler;
+  WebViewPlatform? platform;
+  MacOSWebView? macOSWebView;
 
   @override
   void initState() {
     super.initState();
-    if (!_isMobile) return;
-    _assertJavascriptChannelNamesAreUnique();
-    _callbackHandler = WebViewCallbacksHandler(widget);
+
+    if (_isMobile) {
+      assertJavascriptChannelNamesAreUnique();
+      callbackHandler = WebViewCallbacksHandler(widget);
+    }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         platform = AndroidWebView();
         break;
       case TargetPlatform.iOS:
         platform = IOSWebView();
+        break;
+      case TargetPlatform.macOS:
+        macOSWebView = MacOSWebView();
         break;
       default:
         throw UnsupportedError(
@@ -211,14 +216,15 @@ class _WebViewState extends State<FlWebView> {
   @override
   Widget build(BuildContext context) {
     if (!_isMobile) {
-      return Container(
-          alignment: Alignment.center,
-          child: Text('Unsupported platforms $defaultTargetPlatform'));
+      return Center(
+          child: Text(defaultTargetPlatform == TargetPlatform.macOS
+              ? 'Please see the new window'
+              : 'Unsupported platforms $defaultTargetPlatform'));
     }
-    return platform.build(
+    return platform!.build(
         context: context,
         onWebViewPlatformCreated: _onWebViewPlatformCreated,
-        webViewPlatformCallbacksHandler: _callbackHandler,
+        webViewPlatformCallbacksHandler: callbackHandler!,
         gestureRecognizers: widget.gestureRecognizers,
         webViewParams: widget.webViewParams);
   }
@@ -227,23 +233,21 @@ class _WebViewState extends State<FlWebView> {
   void didUpdateWidget(FlWebView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_isMobile) return;
-    _assertJavascriptChannelNamesAreUnique();
-    _controller.future.then((WebViewController controller) {
-      _callbackHandler._widget = widget;
+    assertJavascriptChannelNamesAreUnique();
+    controller.future.then((WebViewController controller) {
+      callbackHandler!._widget = widget;
       controller._updateWidget(widget);
     });
   }
 
   void _onWebViewPlatformCreated(FlWebViewMethodChannel? webViewPlatform) {
-    final WebViewController controller =
-        WebViewController._(widget, webViewPlatform!, _callbackHandler);
-    _controller.complete(controller);
-    if (widget.onWebViewCreated != null) {
-      widget.onWebViewCreated!(controller);
-    }
+    final webViewController =
+        WebViewController._(widget, webViewPlatform!, callbackHandler!);
+    controller.complete(webViewController);
+    widget.onWebViewCreated?.call(webViewController);
   }
 
-  void _assertJavascriptChannelNamesAreUnique() {
+  void assertJavascriptChannelNamesAreUnique() {
     if (widget.javascriptChannels == null ||
         widget.javascriptChannels!.isEmpty) {
       return;
@@ -343,10 +347,7 @@ class WebViewCallbacksHandler {
 
 class WebViewController {
   WebViewController._(
-    this._flWebView,
-    this._methodChannel,
-    this._callbackHandler,
-  ) {
+      this._flWebView, this._methodChannel, this._callbackHandler) {
     _settings = _flWebView.webSettings;
   }
 
@@ -358,16 +359,16 @@ class WebViewController {
 
   FlWebView _flWebView;
 
-  Future<void> loadUrl(String url, {Map<String, String>? headers}) async {
+  Future<void> loadUrl(UrlData urlData) async {
     try {
-      final Uri uri = Uri.parse(url);
+      final Uri uri = Uri.parse(urlData.url);
       if (uri.scheme.isEmpty) {
-        throw ArgumentError('Missing scheme in URL string: "$url"');
+        throw ArgumentError('Missing scheme in URL string: "${urlData.url}"');
       }
     } on FormatException catch (e) {
       throw ArgumentError(e);
     }
-    return _methodChannel.loadUrl(url, headers);
+    return _methodChannel.loadUrl(urlData);
   }
 
   /// Accessor to the current URL that the WebView is displaying.
@@ -486,27 +487,4 @@ class WebViewController {
 
   Future<bool?> scrollEnabled(bool enabled) =>
       _methodChannel.scrollEnabled(enabled);
-}
-
-/// Manages cookies pertaining to all [WebView]s.
-class CookieManager {
-  /// Creates a [CookieManager] -- returns the instance if it's already been called.
-  factory CookieManager() => _instance ??= CookieManager._();
-
-  CookieManager._();
-
-  static CookieManager? _instance;
-
-  final MethodChannel _cookieManagerChannel =
-      const MethodChannel('fl.webview/cookie_manager');
-
-  /// Clears all cookies for all [WebView] instances.
-  ///
-  /// This is a no op on iOS version smaller than 9.
-  ///
-  /// Returns true if cookies were present before clearing, else false.
-
-  Future<bool> clearCookies() => _cookieManagerChannel
-      .invokeMethod<bool>('clearCookies')
-      .then<bool>((bool? result) => result ?? false);
 }

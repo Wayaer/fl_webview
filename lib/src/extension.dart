@@ -16,7 +16,7 @@ extension DurationExtension on Duration {
 extension ExtensionFlWebView on FlWebView {
   WebViewParams get webViewParams => WebViewParams(
       initialUrl: initialUrl,
-      initialData: initialData,
+      initialHtml: initialHtml,
       webSettings: webSettings,
       javascriptChannelNames: javascriptChannels.extract,
       deleteWindowSharedWorkerForIOS: deleteWindowSharedWorkerForIOS,

@@ -49,15 +49,32 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
                 webView!.scrollView.automaticallyAdjustsScrollIndicatorInsets = false
             }
         }
-        _ = loadRequest(args, [:])
+        let urlData = args["initialUrl"] as? [String: Any?]
+        if urlData != nil {
+            _ = loadUrl(urlData!)
+        }
+        let htmlData = args["initialHtml"] as? [String: Any?]
+        if htmlData != nil {
+            _ = loadHtml(htmlData!)
+        }
     }
+
 
     func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "updateSettings":
             onUpdateSettings(call, result)
         case "loadUrl":
-            onLoadUrl(call, result)
+            let args = call.arguments as! [String: Any?]
+            if !loadUrl(args) {
+                result(
+                        FlutterError(
+                                code: "loadUrl_failed",
+                                message: "Failed parsing the URL",
+                                details: "Request was: '\(call.arguments ?? "")'"))
+            } else {
+                result(nil)
+            }
         case "canGoBack":
             result(webView!.canGoBack)
         case "canGoForward":
@@ -102,21 +119,20 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     }
 
     func registerJavaScriptChannels(
-        _ channelNames: Set<AnyHashable>?, controller userContentController: WKUserContentController?)
-    {
+            _ channelNames: Set<AnyHashable>?, controller userContentController: WKUserContentController?) {
         for channelName in channelNames ?? [] {
             guard let channelName = channelName as? String else {
                 continue
             }
             let channel = FlWKJavaScriptChannel(
-                channel,
-                channelName)
+                    channel,
+                    channelName)
             userContentController?.add(channel, name: channelName)
             let wrapperSource = "window.\(channelName) = webkit.messageHandlers.\(channelName);"
             let wrapperScript = WKUserScript(
-                source: wrapperSource,
-                injectionTime: .atDocumentStart,
-                forMainFrameOnly: false)
+                    source: wrapperSource,
+                    injectionTime: .atDocumentStart,
+                    forMainFrameOnly: false)
             userContentController?.addUserScript(wrapperScript)
         }
     }
@@ -130,28 +146,16 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         result(FlutterError(code: "updateSettings_failed", message: error, details: nil))
     }
 
-    func onLoadUrl(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
-        let args = call.arguments as! [String: Any?]
-        if !loadRequest(args, [:]) {
-            result(
-                FlutterError(
-                    code: "loadUrl_failed",
-                    message: "Failed parsing the URL",
-                    details: "Request was: '\(call.arguments ?? "")'"))
-        } else {
-            result(nil)
-        }
-    }
 
     func onEvaluateJavaScript(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         let jsString = call.arguments as! String
         webView!.evaluateJavaScript(jsString) { value, error in
             if let error = error {
                 result(
-                    FlutterError(
-                        code: "evaluateJavaScript_failed",
-                        message: "Failed evaluating JavaScript",
-                        details: "JavaScript string was: '\(jsString)'\n\(error)"))
+                        FlutterError(
+                                code: "evaluateJavaScript_failed",
+                                message: "Failed evaluating JavaScript",
+                                details: "JavaScript string was: '\(jsString)'\n\(error)"))
             } else {
                 result(value)
             }
@@ -167,8 +171,8 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         }
 
         registerJavaScriptChannels(
-            channelNamesSet,
-            controller: webView!.configuration.userContentController)
+                channelNamesSet,
+                controller: webView!.configuration.userContentController)
         result(nil)
     }
 
@@ -183,8 +187,8 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             javaScriptChannelNames.remove(key)
         }
         registerJavaScriptChannels(
-            javaScriptChannelNames,
-            controller: webView!.configuration.userContentController)
+                javaScriptChannelNames,
+                controller: webView!.configuration.userContentController)
         result(nil)
     }
 
@@ -193,9 +197,9 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         let dataStore = WKWebsiteDataStore.default()
         let dateFrom = Date(timeIntervalSince1970: 0)
         dataStore.removeData(
-            ofTypes: cacheDataTypes,
-            modifiedSince: dateFrom) {
-                result(nil)
+                ofTypes: cacheDataTypes,
+                modifiedSince: dateFrom) {
+            result(nil)
         }
     }
 
@@ -209,7 +213,6 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
 
     func onScrollBy(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         let contentOffset = webView!.scrollView.contentOffset
-
         let arguments = call.arguments as! [String: Any]
         let x = CGFloat(arguments["x"] as! Double) + contentOffset.x
         let y = CGFloat(arguments["y"] as! Double) + contentOffset.y
@@ -221,8 +224,8 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         var unknownKeys: [String] = []
         settings.forEach { (key: String, value: Any?) in
             switch key {
-            case "jsMode":
-                updateJsMode(value as? NSNumber)
+            case "javascriptMode":
+                webView!.configuration.preferences.javaScriptEnabled = (value as? NSNumber)?.intValue == 1
             case "hasNavigationDelegate":
                 navigationDelegate!.hasDartNavigationDelegate = value as! Bool
             case "hasProgressTracking":
@@ -286,49 +289,33 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         return "fl_webview: unknown setting keys:\(unknownKeys.joined(separator: ","))"
     }
 
-    func updateJsMode(_ mode: NSNumber?) {
-        let preferences = webView!.configuration.preferences
-        switch mode?.intValue ?? 0 {
-        case 0 /* disabled */:
-            preferences.javaScriptEnabled = false
-        case 1 /* unrestricted */:
-            preferences.javaScriptEnabled = true
-        default:
-            print("fl_webview: unknown JavaScript mode: \(mode ?? 0)")
+    func loadHtml(_ args: [String: Any?]) -> Bool {
+        let baseUrl = args["baseURL"] as? String
+        let html = args["html"] as? String
+        if html != nil {
+            webView!.loadHTMLString(html!, baseURL: baseUrl != nil ? URL(string: baseUrl!) : nil)
         }
+        return true
     }
 
-    func loadRequest(_ loadData: [String: Any?], _ headers: [String: String]?) -> Bool {
-        let url = (loadData["initialUrl"] ?? loadData["url"]) as? String
-        if url != nil {
-            let nsUrl = URL(string: url!)
-            if nsUrl == nil {
-                return false
-            }
-            var request = URLRequest(url: nsUrl!)
-            if headers != nil {
-                request.allHTTPHeaderFields = headers
-            }
-            webView!.load(request)
-            return true
-        } else {
-            let initialData = loadData["initialData"] as? [String: Any?]
-            if initialData != nil {
-                let baseUrl = initialData!["baseURL"] as? String
-                let html = initialData!["html"] as? String
-                if html != nil {
-                    webView!.loadHTMLString(html!, baseURL: baseUrl != nil ? URL(string: baseUrl!) : nil)
-                    return true
-                }
-            }
+    func loadUrl(_ args: [String: Any?]) -> Bool {
+        let url = args["url"] as! String
+        let nsUrl = URL(string: url)
+        if nsUrl == nil {
+            return false
         }
-        return false
+        var request = URLRequest(url: nsUrl!)
+        let headers = args["headers"] as? [String: String]
+        if headers != nil {
+            request.allHTTPHeaderFields = headers
+        }
+        webView!.load(request)
+        return true
     }
 
     func registerJavaScriptChannels(
-        _ channelNames: Set<AnyHashable>,
-        _ userContentController: WKUserContentController?)
-    {
+            _ channelNames: Set<AnyHashable>,
+            _ userContentController: WKUserContentController?) {
         for channelName in channelNames {
             guard let channelName = channelName as? String else {
                 continue
@@ -337,9 +324,9 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             userContentController?.add(channel, name: channelName)
             let wrapperSource = "window.\(channelName) = webkit.messageHandlers.\(channelName);"
             let wrapperScript = WKUserScript(
-                source: wrapperSource,
-                injectionTime: .atDocumentStart,
-                forMainFrameOnly: false)
+                    source: wrapperSource,
+                    injectionTime: .atDocumentStart,
+                    forMainFrameOnly: false)
             userContentController?.addUserScript(wrapperScript)
         }
     }

@@ -25,7 +25,7 @@ class ExtendedFlWebViewWithScrollViewPage extends StatelessWidget {
                       : const NeverScrollableScrollPhysics(),
                   slivers: [
                     SliverToBoxAdapter(child: webView),
-                    SliverListGrid(
+                    SliverListGrid.builder(
                         itemBuilder: (_, int index) => Container(
                             height: 100,
                             width: double.infinity,
@@ -43,7 +43,7 @@ class ExtendedFlWebViewWithScrollViewPage extends StatelessWidget {
                   onWebViewCreated: onWebViewCreated,
                   onScrollChanged: onScrollChanged,
                   javascriptMode: JavascriptMode.unrestricted,
-                  initialUrl: url);
+                  initialUrl: url.parseUrlData());
             }));
   }
 }

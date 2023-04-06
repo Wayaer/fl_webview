@@ -2,6 +2,7 @@ import 'package:example/extended_web_view.dart';
 import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_curiosity/flutter_curiosity.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 
 const String url = 'https://www.zhihu.com/';
@@ -10,39 +11,87 @@ void main() {
   runApp(const ExtendedWidgetsApp(home: App(), title: 'FlWebview'));
 }
 
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   const App({Key? key}) : super(key: key);
 
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return ExtendedScaffold(
         appBar: AppBar(title: const Text('FlWebView Example')),
         mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          ElevatedText(
-              text: 'Fixed height',
-              onPressed: () => push(const _FixedHeightFlWebView())),
-          ElevatedText(
-              text: 'Adapt height',
-              onPressed: () => push(const _AdaptHeightFlWebView())),
-          const SizedBox(height: 10),
-          ElevatedText(
-              text: 'WebView With ScrollView',
-              onPressed: () =>
-                  push(const ExtendedFlWebViewWithScrollViewPage())),
-          const SizedBox(height: 10),
-          ElevatedText(text: 'Html Text', onPressed: getHtml),
-          ElevatedText(
-              text: 'Html Text Adapt height', onPressed: () => getHtml(true)),
+        children: [
+          if (isMobile) ...[
+            ElevatedText(
+                text: 'Fixed height',
+                onPressed: () => push(const _FixedHeightFlWebView())),
+            ElevatedText(
+                text: 'Adapt height',
+                onPressed: () => push(const _AdaptHeightFlWebView())),
+            const SizedBox(height: 10),
+            ElevatedText(
+                text: 'WebView With ScrollView',
+                onPressed: () =>
+                    push(const ExtendedFlWebViewWithScrollViewPage())),
+            const SizedBox(height: 10),
+            ElevatedText(text: 'Html Text', onPressed: getHtml),
+            ElevatedText(
+                text: 'Html Text Adapt height', onPressed: () => getHtml(true)),
+          ],
+          if (isMacOS) ...[
+            ElevatedText(
+                onPressed: () => onOpen(PresentationStyle.modal),
+                text: 'Open as modal'),
+            ElevatedText(
+                onPressed: () => onOpen(PresentationStyle.sheet),
+                text: 'Open as sheet'),
+            ElevatedText(
+                onPressed: () async {
+                  var webView = await onOpen(PresentationStyle.sheet);
+                  await showToast('Turn it off in 5 seconds',
+                      options: ToastOptions(duration: 5.seconds));
+                  await webView.close();
+                },
+                text: 'Open as sheet Turn it off in 5 seconds'),
+            ElevatedText(
+                onPressed: () async {
+                  var webView = await onOpen(PresentationStyle.modal);
+                  await showToast('Turn it off in 5 seconds',
+                      options: ToastOptions(duration: 5.seconds));
+                  await webView.close();
+                },
+                text: 'Open as modal Turn it off in 5 seconds'),
+          ]
         ]);
+  }
+
+  Future<MacOSWebView> onOpen(PresentationStyle presentationStyle) async {
+    final webView = MacOSWebView(
+        onOpen: () => log('Opened'),
+        onClose: () => log('Closed'),
+        onPageStarted: (url) => log('Page started: $url'),
+        onPageFinished: (url) => log('Page finished: $url'),
+        onWebResourceError: (err) {
+          log('Error: ${err.errorCode}, ${err.errorType}, ${err.domain}, ${err.description}');
+        });
+
+    await webView.open(
+        url: url.parseUrlData(headers: {'Referer': 'masseuse.com.cn'}),
+        presentationStyle: presentationStyle,
+        size: context.size);
+    return webView;
   }
 
   Future<void> getHtml([bool adaptHight = false]) async {
     final String data = await rootBundle.loadString('lib/res/html.html');
     if (adaptHight) {
-      push(_AdaptHtmlTextFlWebView(HtmlData(html: data)));
+      push(_AdaptHtmlTextFlWebView(HtmlData(data)));
     } else {
-      push(_HtmlTextFlWebView(HtmlData(html: data)));
+      push(_HtmlTextFlWebView(HtmlData(data)));
     }
   }
 }
@@ -153,7 +202,9 @@ class _FlWebView extends FlWebView {
       : assert(initialData == null || initialUrl == null),
         super(
             key: key,
-            initialData: initialData,
+            initialUrl: initialUrl
+                ?.parseUrlData(headers: {'Referer': 'masseuse.com.cn'}),
+            initialHtml: initialData,
             javascriptMode: JavascriptMode.unrestricted,
             navigationDelegate: (NavigationRequest navigation) async {
               log('navigationDelegate = ${navigation.url}');
@@ -191,8 +242,7 @@ class _FlWebView extends FlWebView {
                 onScrollChanged(frameSize, contentSize, offset, positioned);
               }
               log('onScrollChanged :  frameSize = $frameSize  contentSize = $contentSize offset = $offset positioned = $offset');
-            },
-            initialUrl: initialUrl);
+            });
 }
 
 class ElevatedText extends StatelessWidget {

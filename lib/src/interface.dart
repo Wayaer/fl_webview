@@ -37,21 +37,35 @@ enum ScrollPositioned {
   end,
 }
 
-class HtmlData {
-  HtmlData(
-      {required this.html,
-      this.baseURL,
-      this.mimeType = 'text/html',
-      this.encoding = 'UTF-8'});
+extension ExtensionStringToUrlData on String {
+  UrlData parseUrlData({Map<String, String>? headers}) =>
+      UrlData(this, headers: headers);
+}
 
-  String html;
+class UrlData {
+  UrlData(this.url, {this.headers}) : assert(url.trim().isNotEmpty);
+
+  /// url
+  String url;
+
+  /// header
+  Map<String, String>? headers;
+
+  Map<String, dynamic> toMap() => {'url': url, 'headers': headers};
+}
+
+class HtmlData {
+  HtmlData(this.html,
+      {this.baseURL, this.mimeType = 'text/html', this.encoding = 'UTF-8'});
+
+  final String html;
 
   /// Valid on IOS
-  String? baseURL;
+  final String? baseURL;
 
   /// Valid on Android
-  String mimeType;
-  String encoding;
+  final String mimeType;
+  final String encoding;
 
   Map<String, String?> toMap() => {
         'html': html,
@@ -275,7 +289,7 @@ class WebSettings {
   bool? gestureNavigationEnabled;
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'jsMode': javascriptMode?.index,
+        'javascriptMode': javascriptMode?.index,
         'debuggingEnabled': debuggingEnabled,
         'gestureNavigationEnabled': gestureNavigationEnabled,
         'allowsInlineMediaPlayback': allowsInlineMediaPlayback,
@@ -318,16 +332,16 @@ class WebSettings {
 class WebViewParams {
   WebViewParams({
     this.initialUrl,
-    this.initialData,
+    this.initialHtml,
     this.webSettings,
     this.javascriptChannelNames = const <String>{},
     this.userAgent,
     this.deleteWindowSharedWorkerForIOS = false,
   });
 
-  final String? initialUrl;
+  final UrlData? initialUrl;
 
-  final HtmlData? initialData;
+  final HtmlData? initialHtml;
 
   final WebSettings? webSettings;
 
@@ -338,8 +352,8 @@ class WebViewParams {
   bool deleteWindowSharedWorkerForIOS;
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'initialUrl': initialUrl,
-        'initialData': initialData?.toMap(),
+        'initialUrl': initialUrl?.toMap(),
+        'initialHtml': initialHtml?.toMap(),
         'settings': webSettings?.toMap(),
         'javascriptChannelNames': javascriptChannelNames.toList(),
         'userAgent': userAgent,

@@ -202,8 +202,7 @@ class _FlWebView extends FlWebView {
       : assert(initialData == null || initialUrl == null),
         super(
             key: key,
-            initialUrl: initialUrl
-                ?.parseUrlData(headers: {'Referer': 'masseuse.com.cn'}),
+            initialUrl: initialUrl?.parseUrlData(),
             initialHtml: initialData,
             javascriptMode: JavascriptMode.unrestricted,
             navigationDelegate: (NavigationRequest navigation) async {

@@ -1,6 +1,7 @@
 ## 0.7.0
 
 * Added `MacOSWebView()` support for macos
+* The `initialUrl` adds headers
 
 ## 0.6.1
 

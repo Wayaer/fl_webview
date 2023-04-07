@@ -56,7 +56,6 @@ class FlWebViewPlatformView(
                 displayZoomControls = true
                 allowContentAccess = true
                 mediaPlaybackRequiresUserGesture = false
-
             }
         }
 

@@ -192,7 +192,6 @@ class _WebViewState extends State<FlWebView> {
   @override
   void initState() {
     super.initState();
-
     if (_isMobile) {
       assertJavascriptChannelNamesAreUnique();
       callbackHandler = WebViewCallbacksHandler(widget);
@@ -206,6 +205,9 @@ class _WebViewState extends State<FlWebView> {
         break;
       case TargetPlatform.macOS:
         macOSWebView = MacOSWebView();
+        if (widget.initialUrl != null) {
+          macOSWebView?.open(url: widget.initialUrl!);
+        }
         break;
       default:
         throw UnsupportedError(

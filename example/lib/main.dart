@@ -44,6 +44,9 @@ class _AppState extends State<App> {
           ],
           if (isMacOS) ...[
             ElevatedText(
+                text: 'WebView',
+                onPressed: () => push(const _FixedHeightFlWebView())),
+            ElevatedText(
                 onPressed: () => onOpen(PresentationStyle.modal),
                 text: 'Open as modal'),
             ElevatedText(

@@ -89,9 +89,9 @@ class _AppState extends State<App> {
     return webView;
   }
 
-  Future<void> getHtml([bool adaptHight = false]) async {
-    final String data = await rootBundle.loadString('lib/res/html.html');
-    if (adaptHight) {
+  Future<void> getHtml([bool adaptHeight = false]) async {
+    final String data = await rootBundle.loadString('assets/html.html');
+    if (adaptHeight) {
       push(_AdaptHtmlTextFlWebView(HtmlData(data)));
     } else {
       push(_HtmlTextFlWebView(HtmlData(data)));

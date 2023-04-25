@@ -3,6 +3,7 @@ package fl.webview
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import android.webkit.GeolocationPermissions
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -20,10 +21,7 @@ class FlWebChromeClient(
     var useProgressGetContentSize = false
 
     override fun onCreateWindow(
-        view: WebView,
-        isDialog: Boolean,
-        isUserGesture: Boolean,
-        resultMsg: Message
+        view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
     ): Boolean {
         val webViewClient: WebViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(
@@ -80,6 +78,12 @@ class FlWebChromeClient(
 
     override fun onCloseWindow(window: WebView?) {
         super.onCloseWindow(window)
+    }
+
+    override fun onGeolocationPermissionsShowPrompt(
+        origin: String?, callback: GeolocationPermissions.Callback?
+    ) {
+        callback?.invoke(origin, true, false);
     }
 
 }

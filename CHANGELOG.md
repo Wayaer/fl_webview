@@ -1,3 +1,7 @@
+## 0.7.1
+
+* Support for h5 location capture on Android
+
 ## 0.7.0
 
 * Added `MacOSWebView()` support for macos

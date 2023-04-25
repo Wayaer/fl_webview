@@ -58,7 +58,6 @@ class FlWebViewPlatformView(
                 mediaPlaybackRequiresUserGesture = false
             }
         }
-
         /// 初始化 MethodCallHandler
         methodChannel.setMethodCallHandler(this)
 
@@ -97,15 +96,18 @@ class FlWebViewPlatformView(
                 loadUrl(call.arguments as Map<*, *>)
                 result.success(null)
             }
+
             "updateSettings" -> {
                 applySettings(call.arguments as Map<*, *>)
                 result.success(null)
             }
+
             "canGoBack" -> result.success(webView.canGoBack())
             "scrollEnabled" -> {
                 webView.scrollEnabled = call.arguments as Boolean
                 result.success(true)
             }
+
             "canGoForward" -> result.success(webView.canGoForward())
             "goBack" -> {
                 if (webView.canGoBack()) {
@@ -113,22 +115,23 @@ class FlWebViewPlatformView(
                 }
                 result.success(null)
             }
+
             "goForward" -> {
                 if (webView.canGoForward()) {
                     webView.goForward()
                 }
                 result.success(null)
             }
+
             "reload" -> {
                 webView.reload()
                 result.success(null)
             }
+
             "currentUrl" -> result.success(webView.url)
             "evaluateJavascript" -> evaluateJavaScript(call, result)
             "addJavascriptChannels" -> addJavaScriptChannels(call, result)
-            "removeJavascriptChannels" -> removeJavaScriptChannels(
-                call, result
-            )
+            "removeJavascriptChannels" -> removeJavaScriptChannels(call, result)
             "clearCache" -> clearCache(result)
             "getTitle" -> result.success(webView.title)
             "scrollTo" -> scrollTo(call, result)
@@ -211,12 +214,14 @@ class FlWebViewPlatformView(
                     val mode = settings[key] as Int?
                     mode?.let { webView.settings.javaScriptEnabled = it == 1 }
                 }
+
                 "hasNavigationDelegate" -> {
                     if (value as Boolean) {
                         getFlWebViewClient()
                         flWebViewClient?.hasNavigationDelegate = value
                     }
                 }
+
                 "debuggingEnabled" -> WebView.setWebContentsDebuggingEnabled(value as Boolean)
                 "hasProgressTracking" -> {
                     if (value as Boolean) {
@@ -224,6 +229,7 @@ class FlWebViewPlatformView(
                         flWebChromeClient?.hasProgressTracking = true
                     }
                 }
+
                 "hasContentSizeTracking" -> {
                     webView.hasContentSizeTracking = value as Boolean
                     if (value) {
@@ -232,21 +238,26 @@ class FlWebViewPlatformView(
                         flWebViewClient?.hasContentSizeTracking = true
                     }
                 }
+
                 "useProgressGetContentSize" -> {
                     webView.useProgressGetContentSize = value as Boolean
                     getFlWebChromeClient()
                     flWebChromeClient?.useProgressGetContentSize = value
                     flWebViewClient?.useFinishedGetContentSize = value
                 }
+
                 "hasScrollChangedTracking" -> {
                     webView.hasScrollChangedTracking = value as Boolean
                 }
+
                 "gestureNavigationEnabled" -> {
                 }
+
                 "autoMediaPlaybackPolicy" -> {
                     val requireUserGesture = value != 1
                     webView.settings.mediaPlaybackRequiresUserGesture = requireUserGesture
                 }
+
                 "userAgent" -> {
                     val userAgent = value as String?
                     if (userAgent != null) {
@@ -254,8 +265,10 @@ class FlWebViewPlatformView(
                             webView.settings.userAgentString + userAgent
                     }
                 }
+
                 "allowsInlineMediaPlayback" -> {
                 }
+
                 else -> throw IllegalArgumentException("Unknown WebView setting: $key")
             }
         }

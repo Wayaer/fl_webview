@@ -257,7 +257,6 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
                     scrollChangedDelegate = nil
                 }
             case "debuggingEnabled":
-                // no-op debugging is always enabled on iOS.
                 break
             case "gestureNavigationEnabled":
                 webView!.allowsBackForwardNavigationGestures = value as! Bool

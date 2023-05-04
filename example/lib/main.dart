@@ -74,18 +74,18 @@ class _AppState extends State<App> {
 
   Future<MacOSWebView> onOpen(PresentationStyle presentationStyle) async {
     final webView = MacOSWebView(
-        onOpen: () => log('Opened'),
-        onClose: () => log('Closed'),
+        presentationStyle: presentationStyle,
+        size: context.size,
+        onOpen: (_) => log('Opened'),
+        onClose: (_) => log('Closed'),
         onPageStarted: (url) => log('Page started: $url'),
         onPageFinished: (url) => log('Page finished: $url'),
         onWebResourceError: (err) {
           log('Error: ${err.errorCode}, ${err.errorType}, ${err.domain}, ${err.description}');
-        });
+        },
+        url: url.parseUrlData(headers: {'Referer': 'masseuse.com.cn'}));
 
-    await webView.open(
-        url: url.parseUrlData(headers: {'Referer': 'masseuse.com.cn'}),
-        presentationStyle: presentationStyle,
-        size: context.size);
+    await webView.open();
     return webView;
   }
 

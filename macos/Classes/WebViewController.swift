@@ -69,7 +69,7 @@ class WebViewTools: NSObject {
             ))
             return
         }
-        var javascriptMode = args["javascriptMode"] as! NSNumber
+        let javascriptMode = args["javascriptMode"] as! NSNumber
         webView.javascriptEnabled = javascriptMode == 1
 
         webView.userAgent = args["userAgent"] as? String

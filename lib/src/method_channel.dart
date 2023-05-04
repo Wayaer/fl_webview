@@ -157,6 +157,8 @@ enum PresentationStyle {
   sheet,
 }
 
+typedef MacOSWebViewCallbackUrl = void Function(String url);
+
 class MacOSWebView {
   MacOSWebView({
     this.onOpen,
@@ -164,26 +166,35 @@ class MacOSWebView {
     this.onPageStarted,
     this.onPageFinished,
     this.onWebResourceError,
+    required this.url,
+    this.javascriptMode = JavascriptMode.disabled,
+    this.presentationStyle = PresentationStyle.sheet,
+    this.size,
+    this.userAgent,
+    this.modalTitle = '',
+    this.sheetCloseButtonTitle = 'Close',
   }) : assert(defaultTargetPlatform == TargetPlatform.macOS);
 
-  final void Function()? onOpen;
-  final void Function()? onClose;
-  final void Function(String? url)? onPageStarted;
-  final void Function(String? url)? onPageFinished;
+  UrlData url;
+  final JavascriptMode javascriptMode;
+  final PresentationStyle presentationStyle;
+  final Size? size;
+  final String? userAgent;
+  final String modalTitle;
+  final String sheetCloseButtonTitle;
+  final MacOSWebViewCallbackUrl? onOpen;
+  final MacOSWebViewCallbackUrl? onClose;
+  final MacOSWebViewCallbackUrl? onPageStarted;
+  final MacOSWebViewCallbackUrl? onPageFinished;
   final void Function(WebResourceError error)? onWebResourceError;
 
-  Future<bool?> open({
-    required UrlData url,
-    JavascriptMode javascriptMode = JavascriptMode.disabled,
-    PresentationStyle presentationStyle = PresentationStyle.sheet,
-    Size? size,
-    String? userAgent,
-    String modalTitle = '',
-    String sheetCloseButtonTitle = 'Close',
-  }) async {
+  Future<bool?> open({UrlData? url}) async {
+    if (url != null) {
+      this.url = url;
+    }
     _flChannel.setMethodCallHandler(_onMethodCall);
     return await _flChannel.invokeMethod<bool?>('openWebView', {
-      'urlData': url.toMap(),
+      'urlData': this.url.toMap(),
       'javascriptMode': javascriptMode.index,
       'presentationStyle': presentationStyle.index,
       'customSize': size != null,
@@ -204,10 +215,10 @@ class MacOSWebView {
   Future<void> _onMethodCall(MethodCall call) async {
     switch (call.method) {
       case 'onOpen':
-        onOpen?.call();
+        onOpen?.call(url.url);
         return;
       case 'onClose':
-        onClose?.call();
+        onClose?.call(url.url);
         return;
       case 'onPageStarted':
         onPageStarted?.call(call.arguments['url']);

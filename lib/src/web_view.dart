@@ -130,6 +130,7 @@ class FlWebView extends StatefulWidget {
     this.useProgressGetContentSize = false,
     this.onContentSizeChanged,
     this.onScrollChanged,
+    this.macOSWebView,
   })  : assert(initialHtml == null || initialUrl == null,
             'One of them must be used'),
         super(key: key);
@@ -173,6 +174,8 @@ class FlWebView extends StatefulWidget {
 
   final AutoMediaPlaybackPolicy initialMediaPlaybackPolicy;
 
+  final MacOSWebView? macOSWebView;
+
   @override
   State<StatefulWidget> createState() => _WebViewState();
 }
@@ -187,7 +190,6 @@ class _WebViewState extends State<FlWebView> {
 
   WebViewCallbacksHandler? callbackHandler;
   WebViewPlatform? platform;
-  MacOSWebView? macOSWebView;
 
   @override
   void initState() {
@@ -204,9 +206,8 @@ class _WebViewState extends State<FlWebView> {
         platform = IOSWebView();
         break;
       case TargetPlatform.macOS:
-        macOSWebView = MacOSWebView();
         if (widget.initialUrl != null) {
-          macOSWebView?.open(url: widget.initialUrl!);
+          widget.macOSWebView?.open(url: widget.initialUrl);
         }
         break;
       default:

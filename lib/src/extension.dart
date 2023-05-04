@@ -13,28 +13,23 @@ extension DurationExtension on Duration {
       Future<T>.delayed(this, callback);
 }
 
-extension ExtensionFlWebView on FlWebView {
-  WebViewParams get webViewParams => WebViewParams(
-      initialUrl: initialUrl,
-      initialHtml: initialHtml,
-      webSettings: webSettings,
-      javascriptChannelNames: javascriptChannels.extract,
-      deleteWindowSharedWorkerForIOS: deleteWindowSharedWorkerForIOS,
-      userAgent: userAgent);
-
-  WebSettings get webSettings => WebSettings(
-      javascriptMode: javascriptMode,
-      hasNavigationDelegate: navigationDelegate != null,
-      hasProgressTracking: onProgress != null,
-      useProgressGetContentSize: useProgressGetContentSize,
-      hasContentSizeTracking: onContentSizeChanged != null,
-      hasScrollChangedTracking: onScrollChanged != null,
-      debuggingEnabled: debuggingEnabled,
-      autoMediaPlaybackPolicy: initialMediaPlaybackPolicy,
-      gestureNavigationEnabled: gestureNavigationEnabled,
-      allowsInlineMediaPlayback: allowsInlineMediaPlayback,
-      userAgent: WebSetting<String?>.of(userAgent));
-}
+// extension ExtensionFlWebView on FlWebView {
+//   WebViewParams get webViewParams => WebViewParams(
+//       initialUrl: initialUrl,
+//       initialHtml: initialHtml,
+//       webSettings: webSettings,
+//       javascriptChannelNames: javascriptChannels.extract,
+//       deleteWindowSharedWorkerForIOS: deleteWindowSharedWorkerForIOS,
+//       userAgent: userAgent);
+//
+//   WebSettings get webSettings => WebSettings(
+//       javascriptMode: javascriptMode,
+//       useProgressGetContentSize: useProgressGetContentSize,
+//       autoMediaPlaybackPolicy: initialMediaPlaybackPolicy,
+//       gestureNavigationEnabled: gestureNavigationEnabled,
+//       allowsInlineMediaPlayback: allowsInlineMediaPlayback,
+//       userAgent: WebSetting<String?>.of(userAgent));
+// }
 
 extension ExtensionJavascriptChannel on Set<JavascriptChannel>? {
   Set<String> get extract => this == null

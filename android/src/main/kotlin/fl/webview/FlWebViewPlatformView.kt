@@ -25,17 +25,12 @@ class FlWebViewPlatformView(
     private var flWebViewClient: FlWebViewClient? = null
     private var flWebChromeClient: FlWebChromeClient? = null
     private val handler: Handler = Handler(context.mainLooper)
-    private val javascriptChannelNames = "javascriptChannelNames"
-
 
     init {
         val displayListenerProxy = DisplayListenerProxy()
         val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
         displayListenerProxy.onPreWebViewInitialization(displayManager)
-
-        /// 初始化webView
         webView = FlWebView(context, methodChannel, handler)
-
         webView.apply {
             settings.apply {
                 loadsImagesAutomatically = true
@@ -60,26 +55,24 @@ class FlWebViewPlatformView(
         }
         /// 初始化 MethodCallHandler
         methodChannel.setMethodCallHandler(this)
-
         displayListenerProxy.onPostWebViewInitialization(displayManager)
-
         /// 初始化相关参数
-        applySettings(params["settings"] as HashMap<*, *>)
+//        applySettings(params["settings"] as HashMap<*, *>)
 
-        if (params.containsKey(javascriptChannelNames)) {
-            val names = params[javascriptChannelNames] as List<*>?
-            names?.let { registerJavaScriptChannelNames(it) }
-        }
-
-        val userAgent = params["userAgent"] as String?
-        if (userAgent != null) {
-            webView.settings.userAgentString = webView.settings.userAgentString + userAgent
-        }
-
-        val urlData = params["initialUrl"] as Map<*, *>?
-        if (urlData != null) loadUrl(urlData)
-        val htmlData = params["initialHtml"] as Map<*, *>?
-        if (htmlData != null) loadHtml(htmlData)
+//        if (params.containsKey(javascriptChannelNames)) {
+//            val names = params[javascriptChannelNames] as List<*>?
+//            names?.let { registerJavaScriptChannelNames(it) }
+//        }
+//
+//        val userAgent = params["userAgent"] as String?
+//        if (userAgent != null) {
+//            webView.settings.userAgentString = webView.settings.userAgentString + userAgent
+//        }
+//
+//        val urlData = params["initialUrl"] as Map<*, *>?
+//        if (urlData != null) loadUrl(urlData)
+//        val htmlData = params["initialHtml"] as Map<*, *>?
+//        if (htmlData != null) loadHtml(htmlData)
     }
 
 
@@ -97,17 +90,17 @@ class FlWebViewPlatformView(
                 result.success(null)
             }
 
-            "updateSettings" -> {
-                applySettings(call.arguments as Map<*, *>)
+            "setWebSettings" -> {
+                setWebSettings(call.arguments as Map<*, *>)
                 result.success(null)
             }
 
-            "canGoBack" -> result.success(webView.canGoBack())
-            "scrollEnabled" -> {
-                webView.scrollEnabled = call.arguments as Boolean
+            "isScroll" -> {
+                webView.isScroll = call.arguments as Boolean
                 result.success(true)
             }
 
+            "canGoBack" -> result.success(webView.canGoBack())
             "canGoForward" -> result.success(webView.canGoForward())
             "goBack" -> {
                 if (webView.canGoBack()) {
@@ -129,9 +122,20 @@ class FlWebViewPlatformView(
             }
 
             "currentUrl" -> result.success(webView.url)
-            "evaluateJavascript" -> evaluateJavaScript(call, result)
-            "addJavascriptChannels" -> addJavaScriptChannels(call, result)
-            "removeJavascriptChannels" -> removeJavaScriptChannels(call, result)
+            "evaluateJavascript" -> {
+                webView.evaluateJavascript(call.arguments as String) { value -> result.success(value) }
+            }
+
+            "addJavascriptChannel" -> {
+                registerJavaScriptChannelName(call.arguments as String)
+                result.success(null)
+            }
+
+            "removeJavascriptChannel" -> {
+                webView.removeJavascriptInterface(call.arguments as String)
+                result.success(null)
+            }
+
             "clearCache" -> clearCache(result)
             "getTitle" -> result.success(webView.title)
             "scrollTo" -> scrollTo(call, result)
@@ -156,30 +160,6 @@ class FlWebViewPlatformView(
         webView.loadData(html, mimeType, encoding)
     }
 
-    private fun evaluateJavaScript(
-        methodCall: MethodCall, result: MethodChannel.Result
-    ) {
-        val jsString = methodCall.arguments as String
-        webView.evaluateJavascript(jsString) { value -> result.success(value) }
-    }
-
-    private fun addJavaScriptChannels(
-        methodCall: MethodCall, result: MethodChannel.Result
-    ) {
-        val channelNames = methodCall.arguments as List<*>
-        registerJavaScriptChannelNames(channelNames)
-        result.success(null)
-    }
-
-    private fun removeJavaScriptChannels(
-        methodCall: MethodCall, result: MethodChannel.Result
-    ) {
-        val channelNames = methodCall.arguments as List<*>
-        for (channelName in channelNames) {
-            webView.removeJavascriptInterface(channelName as String)
-        }
-        result.success(null)
-    }
 
     private fun clearCache(result: MethodChannel.Result) {
         webView.clearCache(true)
@@ -205,7 +185,7 @@ class FlWebViewPlatformView(
     }
 
 
-    private fun applySettings(settings: Map<*, *>) {
+    private fun setWebSettings(settings: Map<*, *>) {
         settings.forEach { entry ->
             val key = entry.key
             val value = entry.value
@@ -298,14 +278,10 @@ class FlWebViewPlatformView(
 
 
     @SuppressLint("AddJavascriptInterface")
-    private fun registerJavaScriptChannelNames(channelNames: List<*>) {
-        for (channelName in channelNames) {
-            webView.addJavascriptInterface(
-                JavaScriptChannel(
-                    methodChannel, channelName as String, handler
-                ), channelName
-            )
-        }
+    private fun registerJavaScriptChannelName(channelName: String) {
+        webView.addJavascriptInterface(
+            JavaScriptChannel(methodChannel, channelName, handler), channelName
+        )
     }
 
 
@@ -317,15 +293,15 @@ class FlWebViewPlatformView(
 
     internal class JavaScriptChannel(
         private val methodChannel: MethodChannel,
-        private val javaScriptChannelName: String,
+        private val name: String,
         private val handler: Handler
     ) {
         @JavascriptInterface
         fun postMessage(message: String) {
             val postMessageRunnable = Runnable {
                 methodChannel.invokeMethod(
-                    "javascriptChannelMessage", mapOf(
-                        "channel" to javaScriptChannelName, "message" to message
+                    "onJavascriptChannelMessage", mapOf(
+                        "channel" to name, "message" to message
                     )
                 )
             }
@@ -343,7 +319,7 @@ class FlWebViewPlatformView(
         private val methodChannel: MethodChannel,
         private val currentHandler: Handler,
     ) : WebView(context) {
-        var scrollEnabled = true
+        var isScroll = true
         var hasScrollChangedTracking = false
         var hasContentSizeTracking = false
         var useProgressGetContentSize = false
@@ -352,7 +328,7 @@ class FlWebViewPlatformView(
             super.onSizeChanged(width, height, oldWidth, oldHeight)
             if (hasContentSizeTracking && !useProgressGetContentSize) {
                 invokeMethod(
-                    "onContentSize", mapOf(
+                    "onSizeChanged", mapOf(
                         "width" to width.toDouble(),
                         "height" to height.toDouble(),
                         "contentHeight" to contentHeight.toDouble(),
@@ -408,7 +384,7 @@ class FlWebViewPlatformView(
             maxOverScrollY: Int,
             isTouchEvent: Boolean
         ): Boolean {
-            if (scrollEnabled) {
+            if (isScroll) {
                 return super.overScrollBy(
                     deltaX,
                     deltaY,

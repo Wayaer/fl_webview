@@ -3,8 +3,8 @@ import WebKit
 
 public class FlWebViewPlugin: NSObject, FlutterPlugin {
     public var flChannel: FlutterMethodChannel
-    var webView: WebViewTools?
     public var registrar: FlutterPluginRegistrar
+    var webViewMap = [Int: FlWebViewController]()
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let flChannel = FlutterMethodChannel(name: "fl.webview.channel", binaryMessenger:
@@ -23,15 +23,20 @@ public class FlWebViewPlugin: NSObject, FlutterPlugin {
         switch call.method {
         case "clearCookies":
             clearCookies(result)
-        case "openWebView":
-            if webView == nil {
-                webView = WebViewTools(flChannel, registrar)
+        case "createWebView":
+            let id = millisecond
+            webViewMap[id] = FlWebViewController(id, registrar)
+            result(id)
+        case "disposeWebView":
+            let id = call.arguments as! Int
+            let isContains = webViewMap.contains { (key: Int, _: FlWebViewController) in
+                key == id
             }
-            webView!.openWebview(call, result)
-
-        case "closeWebView":
-            webView?.closeWebView()
-            result(webView != nil)
+            if isContains {
+                webViewMap[id]!.dispose()
+                webViewMap.removeValue(forKey: id)
+            }
+            result(true)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -55,5 +60,11 @@ public class FlWebViewPlugin: NSObject, FlutterPlugin {
             }
         }
         dataStore.fetchDataRecords(ofTypes: websiteDataTypes, completionHandler: deleteAndNotify!)
+    }
+
+    var millisecond: Int {
+        let timeInterval: TimeInterval = Date().timeIntervalSince1970
+        let millisecond = CLongLong(round(timeInterval * 1000))
+        return Int(millisecond)
     }
 }

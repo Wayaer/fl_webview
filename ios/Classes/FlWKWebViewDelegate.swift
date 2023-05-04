@@ -3,7 +3,7 @@ import WebKit
 
 class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
     let methodChannel: FlutterMethodChannel
-    public var hasDartNavigationDelegate = false
+    public var enabledNavigationDelegate = false
 
     init(_ methodChannel: FlutterMethodChannel) {
         self.methodChannel = methodChannel
@@ -19,37 +19,20 @@ class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
 
     /// 决定网页能否被允许跳转
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        if !hasDartNavigationDelegate {
+        if !enabledNavigationDelegate {
             decisionHandler(.allow)
             return
         }
-        let arguments = [
-            "url": navigationAction.request.url?.absoluteString ?? "",
-            "isForMainFrame": NSNumber(value: navigationAction.targetFrame?.isMainFrame ?? false),
-        ] as [String: Any]
 
         methodChannel.invokeMethod(
-                "navigationRequest",
-                arguments: arguments,
-                result: { result in
-                    if result is FlutterError {
-                        decisionHandler(.allow)
-                        return
-                    }
-                    if result as! NSObject == FlutterMethodNotImplemented {
-                        decisionHandler(.allow)
-                        return
-                    }
-                    if !(result is NSNumber) {
-                        decisionHandler(.allow)
-                        return
-                    }
-                    let typedResult = result as! Bool
-                    decisionHandler(
-                            typedResult
-                                    ? .allow
-                                    : .cancel)
-                })
+            "onNavigationRequest",
+            arguments: [
+                "url": navigationAction.request.url?.absoluteString ?? "",
+                "isForMainFrame": NSNumber(value: navigationAction.targetFrame?.isMainFrame ?? false),
+            ],
+            result: { result in
+                decisionHandler(result is Bool && (result as! Bool) == false ? .cancel : .allow)
+            })
     }
 
     /// 理网页加载完成
@@ -78,13 +61,13 @@ class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
 
     func onWebResourceError(_ error: Error?) {
         methodChannel.invokeMethod(
-                "onWebResourceError",
-                arguments: [
-                    "errorCode": NSNumber(value: (error as NSError?)?.code ?? 0),
-                    "domain": (error as NSError?)?.domain ?? "",
-                    "description": description,
-                    "errorType": errorCode((error as NSError?)?.code),
-                ])
+            "onWebResourceError",
+            arguments: [
+                "errorCode": NSNumber(value: (error as NSError?)?.code ?? 0),
+                "domain": (error as NSError?)?.domain ?? "",
+                "description": description,
+                "errorType": errorCode((error as NSError?)?.code),
+            ])
     }
 
     /// 处理网页返回内容时发生的失败
@@ -99,8 +82,8 @@ class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
 
     /// 处理网页进程终止
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
-        let contentProcessTerminatedError = NSError(domain: WKErrorDomain, code: WKError.Code.webContentProcessTerminated.rawValue, userInfo: nil)
-        onWebResourceError(contentProcessTerminatedError)
+        let error = NSError(domain: WKErrorDomain, code: WKError.Code.webContentProcessTerminated.rawValue, userInfo: nil)
+        onWebResourceError(error)
     }
 }
 
@@ -112,10 +95,10 @@ class FlWKProgressionDelegate: NSObject {
         channel = methodChannel
         super.init()
         webView.addObserver(
-                self,
-                forKeyPath: estimatedProgressKeyPath,
-                options: .new,
-                context: nil)
+            self,
+            forKeyPath: estimatedProgressKeyPath,
+            options: .new,
+            context: nil)
     }
 
     func stopObserving(_ webView: WKWebView?) {
@@ -145,10 +128,10 @@ class FlWKContentSizeDelegate: NSObject {
         webView = _webView
         super.init()
         _webView.scrollView.addObserver(
-                self,
-                forKeyPath: contentSizeKeyPath,
-                options: .new,
-                context: nil)
+            self,
+            forKeyPath: contentSizeKeyPath,
+            options: .new,
+            context: nil)
     }
 
     func stopObserving(_ webView: WKWebView?) {
@@ -167,7 +150,7 @@ class FlWKContentSizeDelegate: NSObject {
         if contentSize.height > height {
             height = contentSize.height
             let frame = webView.scrollView.frame
-            channel.invokeMethod("onContentSize", arguments: [
+            channel.invokeMethod("onSizeChanged", arguments: [
                 "width": frame.width,
                 "height": frame.height,
                 "contentWidth": contentSize.width,

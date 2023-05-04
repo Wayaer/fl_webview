@@ -12,7 +12,7 @@ class FlWKJavaScriptChannel: NSObject, WKScriptMessageHandler {
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        channel.invokeMethod("javascriptChannelMessage", arguments: [
+        channel.invokeMethod("onJavascriptChannelMessage", arguments: [
             "channel": javaScriptChannelName,
             "message": "\(message.body)",
         ])

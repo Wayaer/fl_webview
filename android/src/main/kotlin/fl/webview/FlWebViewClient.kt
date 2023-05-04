@@ -12,8 +12,7 @@ import io.flutter.plugin.common.MethodChannel
 import java.util.*
 
 class FlWebViewClient(
-    private val methodChannel: MethodChannel,
-    private val handler: Handler
+    private val methodChannel: MethodChannel, private val handler: Handler
 ) : WebViewClient() {
 
     var hasNavigationDelegate = false
@@ -40,23 +39,17 @@ class FlWebViewClient(
             ERROR_UNSUPPORTED_SCHEME -> return "unsupportedScheme"
         }
         val message = String.format(
-            Locale.getDefault(),
-            "Could not find a string for errorCode: %d",
-            errorCode
+            Locale.getDefault(), "Could not find a string for errorCode: %d", errorCode
         )
         throw IllegalArgumentException(message)
     }
 
     override fun shouldOverrideUrlLoading(
-        view: WebView?,
-        request: WebResourceRequest?
+        view: WebView?, request: WebResourceRequest?
     ): Boolean {
         if (hasNavigationDelegate && view != null && request != null) {
             notifyOnNavigationRequest(
-                request.url.toString(),
-                request.requestHeaders,
-                view,
-                request.isForMainFrame
+                request.url.toString(), request.requestHeaders, view, request.isForMainFrame
             )
             return request.isForMainFrame
         }
@@ -84,7 +77,7 @@ class FlWebViewClient(
         if (hasContentSizeTracking) {
             view?.let {
                 invokeMethod(
-                    "onContentSize", mapOf(
+                    "onSizeChanged", mapOf(
                         "width" to it.width.toDouble(),
                         "height" to it.height.toDouble(),
                         "contentHeight" to it.contentHeight.toDouble(),
@@ -97,17 +90,13 @@ class FlWebViewClient(
 
 
     override fun onReceivedError(
-        view: WebView?,
-        request: WebResourceRequest?,
-        error: WebResourceError?
+        view: WebView?, request: WebResourceRequest?, error: WebResourceError?
     ) {
         super.onReceivedError(view, request, error)
         if (request?.isForMainFrame == true) {
             if (error != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 onWebResourceError(
-                    error.errorCode,
-                    error.description.toString(),
-                    request.url.toString()
+                    error.errorCode, error.description.toString(), request.url.toString()
                 )
             }
         }
@@ -138,10 +127,7 @@ class FlWebViewClient(
     }
 
     private fun notifyOnNavigationRequest(
-        url: String,
-        headers: Map<String, String>?,
-        webView: WebView,
-        isMainFrame: Boolean
+        url: String, headers: Map<String, String>?, webView: WebView, isMainFrame: Boolean
     ) {
         val args = HashMap<String, Any>()
         args["url"] = url
@@ -149,13 +135,11 @@ class FlWebViewClient(
         if (isMainFrame) {
             handler.post {
                 methodChannel.invokeMethod(
-                    "navigationRequest",
-                    args,
-                    OnNavigationRequestResult(url, headers, webView)
+                    "onNavigationRequest", args, OnNavigationRequestResult(url, headers, webView)
                 )
             }
         } else {
-            invokeMethod("navigationRequest", args)
+            invokeMethod("onNavigationRequest", args)
         }
     }
 

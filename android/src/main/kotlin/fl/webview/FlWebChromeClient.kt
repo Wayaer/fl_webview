@@ -54,7 +54,7 @@ class FlWebChromeClient(
         if (useProgressGetContentSize && hasContentSizeTracking && progress > 10) {
             view?.let {
                 invokeMethod(
-                    "onContentSize", mapOf(
+                    "onSizeChanged", mapOf(
                         "width" to it.width.toDouble(),
                         "height" to it.height.toDouble(),
                         "contentHeight" to it.height.toDouble(),

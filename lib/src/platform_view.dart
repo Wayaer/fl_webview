@@ -9,9 +9,12 @@ typedef WebViewCreatedCallback = void Function(FlWebViewController controller);
 
 class _WebViewPlatformWithMacOS extends StatefulWidget {
   const _WebViewPlatformWithMacOS(
-      {Key? key, required this.onWebViewPlatformCreated})
+      {Key? key,
+      required this.onWebViewPlatformCreated,
+      required this.webSettings})
       : super(key: key);
   final WebViewCreatedCallback onWebViewPlatformCreated;
+  final WebSettings webSettings;
 
   @override
   State<_WebViewPlatformWithMacOS> createState() =>
@@ -25,7 +28,7 @@ class _WebViewPlatformWithMacOSState extends State<_WebViewPlatformWithMacOS> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      id = await FlWebViewManager().createMacWebView();
+      id = await FlWebViewManager().createMacWebView(widget.webSettings);
       if (id == null) return;
       widget.onWebViewPlatformCreated(FlWebViewController._(id!));
     });
@@ -51,13 +54,13 @@ class WebViewPlatform extends StatelessWidget {
       required this.onWebViewPlatformCreated,
       this.creationParamsCodec = const StandardMessageCodec(),
       this.gestureRecognizers,
-      this.deleteWindowSharedWorkerForIOS = false});
+      required this.webSettings});
 
   final WebViewCreatedCallback onWebViewPlatformCreated;
   final Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers;
   final TextDirection layoutDirection;
   final MessageCodec<dynamic> creationParamsCodec;
-  final bool deleteWindowSharedWorkerForIOS;
+  final WebSettings webSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +75,7 @@ class WebViewPlatform extends StatelessWidget {
         break;
       case TargetPlatform.macOS:
         return _WebViewPlatformWithMacOS(
+            webSettings: webSettings,
             onWebViewPlatformCreated: onWebViewPlatformCreated);
       case TargetPlatform.windows:
         break;
@@ -92,6 +96,7 @@ class WebViewPlatform extends StatelessWidget {
             id: params.id,
             viewType: 'fl.webview',
             layoutDirection: layoutDirection,
+            creationParams: webSettings.toMap(),
             creationParamsCodec: creationParamsCodec)
           ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
           ..addOnPlatformViewCreatedListener((int id) {
@@ -102,9 +107,7 @@ class WebViewPlatform extends StatelessWidget {
 
   Widget get iosView => UiKitView(
       viewType: 'fl.webview',
-      creationParams: {
-        'deleteWindowSharedWorker': deleteWindowSharedWorkerForIOS
-      },
+      creationParams: webSettings.toMap(),
       layoutDirection: layoutDirection,
       onPlatformViewCreated: (int id) {
         onWebViewPlatformCreated.call(FlWebViewController._(id));
@@ -120,10 +123,9 @@ class FlWebViewController {
 
   final MethodChannel _channel;
 
-  FlWebViewCallbackHandler? _callbackHandler;
+  FlWebViewDelegate? _delegate;
 
-  set callbackHandler(FlWebViewCallbackHandler delegate) =>
-      _callbackHandler = delegate;
+  set delegate(FlWebViewDelegate delegate) => _delegate = delegate;
 
   Future<dynamic> _onMethodCall(MethodCall call) async {
     switch (call.method) {
@@ -133,46 +135,38 @@ class FlWebViewController {
         _javascriptChannels[channel]?.onMessageReceived(message);
         break;
       case 'onNavigationRequest':
-        final value = await _callbackHandler?.onNavigationRequest?.call(
+        final value = await _delegate?.onNavigationRequest?.call(
             NavigationRequest(
                 url: call.arguments['url']! as String,
                 isForMainFrame: call.arguments['isForMainFrame']! as bool));
         if (value != null) return value.index == 1;
         break;
+      case 'onPageStarted':
+        _delegate?.onPageStarted?.call((call.arguments as String?) ?? "");
+        break;
       case 'onPageFinished':
-        _callbackHandler?.onPageFinished
-            ?.call(call.arguments['url']! as String);
+        _delegate?.onPageFinished?.call((call.arguments as String?) ?? "");
         break;
       case 'onProgress':
-        _callbackHandler?.onProgress?.call(call.arguments['progress'] as int);
-        break;
-      case 'onPageStarted':
-        _callbackHandler?.onPageStarted?.call(call.arguments['url']! as String);
+        _delegate?.onProgress?.call((call.arguments as int?) ?? 0);
         break;
       case 'onSizeChanged':
-        final double width = call.arguments['width'] as double;
-        final double height = call.arguments['height'] as double;
-        final double contentHeight = call.arguments['contentHeight'] as double;
-        final double contentWidth = call.arguments['contentWidth'] as double;
-        _callbackHandler?.onSizeChanged
-            ?.call(Size(width, height), Size(contentWidth, contentHeight));
+        _delegate?.onSizeChanged
+            ?.call(WebViewSize.formMap(call.arguments as Map));
         break;
       case 'onScrollChanged':
-        final double x = call.arguments['x'] as double;
-        final double y = call.arguments['y'] as double;
-        final double width = call.arguments['width'] as double;
-        final double height = call.arguments['height'] as double;
-        final double contentWidth = call.arguments['contentWidth'] as double;
-        final double contentHeight = call.arguments['contentHeight'] as double;
         final int position = call.arguments['position'] as int;
-        _callbackHandler?.onScrollChanged?.call(
-            Size(width, height),
-            Size(contentWidth, contentHeight),
-            Offset(x, y),
+        _delegate?.onScrollChanged?.call(
+            WebViewSize.formMap(call.arguments as Map),
+            Offset(
+                call.arguments['x'] as double, call.arguments['y'] as double),
             ScrollPositioned.values[position]);
         break;
+      case 'onUrlChanged':
+        _delegate?.onUrlChanged?.call((call.arguments as String?) ?? "");
+        break;
       case 'onWebResourceError':
-        _callbackHandler?.onWebResourceError?.call(WebResourceError(
+        _delegate?.onWebResourceError?.call(WebResourceError(
             errorCode: call.arguments['errorCode']! as int,
             description: call.arguments['description']! as String,
             failingUrl: call.arguments['failingUrl'] as String,
@@ -185,20 +179,26 @@ class FlWebViewController {
                     '$WebResourceErrorType.${call.arguments['errorType']}')));
         break;
       case 'onClosed':
-        _callbackHandler?.onClosed?.call(call.arguments['url']! as String);
+        _delegate?.onClosed?.call((call.arguments as String?) ?? "");
         break;
     }
   }
 
-  // Future<void> loadUrl(UrlData urlData) =>
-  //     _channel.invokeMethod<void>('loadUrl', urlData.toMap());
+  Future<void> loadUrl(LoadUrlRequest urlRequest) =>
+      _channel.invokeMethod<void>('loadUrl', urlRequest.toMap());
+
+  Future<void> loadData(LoadDataRequest dataRequest) =>
+      _channel.invokeMethod<void>('loadData', dataRequest.toMap());
 
   Future<String?> currentUrl() => _channel.invokeMethod<String>('currentUrl');
 
+  Future<String?> getUserAgent() =>
+      _channel.invokeMethod<String>('getUserAgent');
+
   Future<bool?> canGoBack() => _channel.invokeMethod<bool>('canGoBack');
 
-  Future<bool?> isScroll(bool enabled) =>
-      _channel.invokeMethod<bool>('isScroll', enabled);
+  Future<bool?> enabledScroll(bool enabled) =>
+      _channel.invokeMethod<bool>('enabledScroll', enabled);
 
   Future<bool?> canGoForward() => _channel.invokeMethod<bool>('canGoForward');
 
@@ -210,8 +210,13 @@ class FlWebViewController {
 
   Future<void> clearCache() => _channel.invokeMethod<void>('clearCache');
 
-  Future<void> setWebSettings(WebSettings settings) =>
-      _channel.invokeMethod<void>('setWebSettings', settings.toMap());
+  Future<void> applyWebSettings(WebSettings settings) async {
+    settings.enableSizeChanged = _delegate?.onSizeChanged != null;
+    settings.enabledNavigationDelegate = _delegate?.onNavigationRequest != null;
+    settings.enabledProgressChanged = _delegate?.onProgress != null;
+    settings.enabledScrollChanged = _delegate?.onScrollChanged != null;
+    _channel.invokeMethod<void>('applyWebSettings', settings.toMap());
+  }
 
   Future<String?> evaluateJavascript(String javascriptString) =>
       _channel.invokeMethod<String?>('evaluateJavascript', javascriptString);
@@ -233,14 +238,22 @@ class FlWebViewController {
   Future<String?> getTitle() => _channel.invokeMethod<String>('getTitle');
 
   Future<void> scrollTo(int x, int y) =>
-      _channel.invokeMethod<void>('scrollTo', <String, int>{'x': x, 'y': y});
+      _channel.invokeMethod<void>('scrollTo', {'x': x, 'y': y});
 
   Future<void> scrollBy(int x, int y) =>
-      _channel.invokeMethod<void>('scrollBy', <String, int>{'x': x, 'y': y});
+      _channel.invokeMethod<void>('scrollBy', {'x': x, 'y': y});
 
-  Future<int?> getScrollX() => _channel.invokeMethod<int>('getScrollX');
+  Future<Offset?> getScrollXY() async {
+    final map = await _channel.invokeMethod<Map>('getScrollXY');
+    return map == null
+        ? null
+        : Offset((map['x'] as double?) ?? 0, (map['y'] as double?) ?? 0);
+  }
 
-  Future<int?> getScrollY() => _channel.invokeMethod<int>('getScrollY');
+  Future<WebViewSize?> getWebViewSize() async {
+    final map = await _channel.invokeMethod<Map>('getWebViewSize');
+    return map == null ? null : WebViewSize.formMap(map);
+  }
 
   void dispose() {
     _channel.setMethodCallHandler(null);
@@ -260,9 +273,10 @@ class FlWebViewManager {
 
   Future<bool?> clearCookies() => _flChannel.invokeMethod<bool>('clearCookies');
 
-  Future<int?> createMacWebView() async {
+  Future<int?> createMacWebView(WebSettings webSettings) async {
     if (!_isMacOS) return null;
-    final value = await _flChannel.invokeMethod<int>('createWebView');
+    final value = await _flChannel.invokeMethod<int>(
+        'createWebView', webSettings.toMap());
     return value;
   }
 

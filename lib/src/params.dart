@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:fl_webview/src/platform_view.dart';
 import 'package:flutter/material.dart';
 
 final RegExp _validChannelNames = RegExp('^[a-zA-Z_][a-zA-Z0-9_]*\$');
@@ -162,43 +161,41 @@ class WebResourceError {
 }
 
 class WebSettings {
-  const WebSettings({
-    this.autoMediaPlaybackPolicy = AutoMediaPlaybackPolicy.alwaysAllow,
+  WebSettings({
     this.javascriptMode = JavascriptMode.disabled,
     this.enabledDebugging = false,
     this.gestureNavigationEnabled = false,
-    this.allowsInlineMediaPlayback = false,
-    this.enabledNavigationDelegate = false,
-    this.enableContentSizeTracking = false,
-    this.enabledProgressTracking = false,
-    this.enabledScrollChanged = false,
-    this.useProgressGetContentSize = true,
+    this.allowsInlineMediaPlayback = true,
+    this.allowsAutoMediaPlayback = true,
+    this.enabledZoom = true,
+    this.deleteWindowSharedWorker = false,
     this.userAgent,
   });
 
-  final AutoMediaPlaybackPolicy autoMediaPlaybackPolicy;
+  /// navigationDelegate
+  bool enabledNavigationDelegate = false;
+
+  /// 加载进度变化回调
+  bool enabledProgressChanged = false;
+
+  /// 是否开启webview变化回调
+  bool enableSizeChanged = false;
+
+  /// 是否开启滚动变化回调
+  bool enabledScrollChanged = false;
+
+  ///
+  final bool allowsAutoMediaPlayback;
 
   final JavascriptMode javascriptMode;
 
-  final bool enabledNavigationDelegate;
-
-  final bool enabledProgressTracking;
-
-  /// 是否开启滚动变化回调
-  final bool enableContentSizeTracking;
-
-  /// 是否开启滚动变化回调
-  final bool enabledScrollChanged;
-
   final String? userAgent;
+
+  final bool enabledZoom;
 
   /// Supports only android
   /// 开启debug
   final bool enabledDebugging;
-
-  /// Supports only android
-  /// 在android中使用onProgress获取ContentSize
-  final bool useProgressGetContentSize;
 
   /// Supports only ios
   final bool gestureNavigationEnabled;
@@ -206,18 +203,23 @@ class WebSettings {
   /// Supports only ios
   final bool allowsInlineMediaPlayback;
 
+  /// Supports only ios
+  /// 解决ios16以上部分webview无法加载
+  final bool deleteWindowSharedWorker;
+
   Map<String, dynamic> toMap() => {
-        'autoMediaPlaybackPolicy': autoMediaPlaybackPolicy.index,
-        'javascriptMode': javascriptMode.index,
         'enabledNavigationDelegate': enabledNavigationDelegate,
-        'enabledProgressTracking': enabledProgressTracking,
-        'enableContentSizeTracking': enableContentSizeTracking,
+        'enabledProgressChanged': enabledProgressChanged,
+        'enableSizeChanged': enableSizeChanged,
         'enabledScrollChanged': enabledScrollChanged,
+        'javascriptMode': javascriptMode.index,
+        'allowsAutoMediaPlayback': allowsAutoMediaPlayback,
         'userAgent': userAgent,
         'enabledDebugging': enabledDebugging,
-        'useProgressGetContentSize': useProgressGetContentSize,
         'gestureNavigationEnabled': gestureNavigationEnabled,
         'allowsInlineMediaPlayback': allowsInlineMediaPlayback,
+        'deleteWindowSharedWorker': deleteWindowSharedWorker,
+        'enabledZoom': enabledZoom,
       };
 }
 
@@ -227,11 +229,6 @@ enum JavascriptMode {
 
   /// JavaScript execution is not restricted.
   unrestricted,
-}
-
-enum AutoMediaPlaybackPolicy {
-  requireUserActionForAllMediaTypes,
-  alwaysAllow,
 }
 
 /// Scroll Positioned
@@ -246,8 +243,34 @@ enum ScrollPositioned {
   end,
 }
 
-class FlWebViewCallbackHandler {
-  FlWebViewCallbackHandler({
+class WebViewSize {
+  WebViewSize.formMap(Map<dynamic, dynamic> map)
+      : frameSize = Size(
+            (map['width'] as double?) ?? 0, (map['height'] as double?) ?? 0),
+        contentSize = Size((map['contentWidth'] as double?) ?? 0,
+            (map['contentHeight'] as double?) ?? 0);
+
+  final Size frameSize;
+  final Size contentSize;
+}
+
+typedef FlWebViewDelegateWithUrl = void Function(String url);
+
+typedef FlWebViewDelegateWithUrlAndSize = void Function(
+    String url, WebViewSize webViewSize);
+
+typedef FlWebViewDelegateWithProgress = void Function(int progress);
+
+typedef FlWebViewDelegateWithSize = void Function(WebViewSize webViewSize);
+
+typedef FlWebViewDelegateWithScrollChanged = void Function(
+    WebViewSize webViewSize, Offset offset, ScrollPositioned positioned);
+
+typedef FlWebViewDelegateWithNavigationRequest = FutureOr<NavigationDecision>
+    Function(NavigationRequest request);
+
+class FlWebViewDelegate {
+  FlWebViewDelegate({
     this.onPageStarted,
     this.onPageFinished,
     this.onProgress,
@@ -256,26 +279,24 @@ class FlWebViewCallbackHandler {
     this.onScrollChanged,
     this.onWebResourceError,
     this.onClosed,
-    this.onUrlChange,
+    this.onUrlChanged,
   });
 
-  final void Function(String url)? onPageStarted;
+  final FlWebViewDelegateWithUrl? onPageStarted;
 
-  final void Function(String url)? onPageFinished;
+  final FlWebViewDelegateWithUrl? onPageFinished;
 
-  final void Function(int progress)? onProgress;
+  final FlWebViewDelegateWithProgress? onProgress;
 
-  final void Function(Size frameSize, Size contentSize)? onSizeChanged;
+  final FlWebViewDelegateWithSize? onSizeChanged;
 
-  final FutureOr<NavigationDecision> Function(NavigationRequest request)?
-      onNavigationRequest;
+  final FlWebViewDelegateWithScrollChanged? onScrollChanged;
 
-  final void Function(Size frameSize, Size contentSize, Offset offset,
-      ScrollPositioned positioned)? onScrollChanged;
+  final FlWebViewDelegateWithNavigationRequest? onNavigationRequest;
 
-  final void Function(String url)? onClosed;
+  final FlWebViewDelegateWithUrl? onClosed;
 
-  final void Function(String url)? onUrlChange;
+  final FlWebViewDelegateWithUrl? onUrlChanged;
 
   final void Function(WebResourceError error)? onWebResourceError;
 }

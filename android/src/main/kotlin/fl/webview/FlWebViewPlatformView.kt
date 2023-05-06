@@ -2,9 +2,11 @@ package fl.webview
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Canvas
 import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebSettings
@@ -14,24 +16,27 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
 
-
 class FlWebViewPlatformView(
     context: Context,
-    private val methodChannel: MethodChannel,
+    private val channel: MethodChannel,
     params: Map<*, *>,
 ) : PlatformView, MethodChannel.MethodCallHandler {
     private val webView: FlWebView
-
-    private var flWebViewClient: FlWebViewClient? = null
-    private var flWebChromeClient: FlWebChromeClient? = null
+    private var flWebViewClient: FlWebViewClient
+    private var flWebChromeClient: FlWebChromeClient
     private val handler: Handler = Handler(context.mainLooper)
 
     init {
         val displayListenerProxy = DisplayListenerProxy()
         val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
         displayListenerProxy.onPreWebViewInitialization(displayManager)
-        webView = FlWebView(context, methodChannel, handler)
+        flWebViewClient = FlWebViewClient(channel, handler)
+        webView = FlWebView(context, channel, handler)
+        flWebChromeClient = FlWebChromeClient(channel, handler, webView, flWebViewClient)
+        applyWebSettings(params)
         webView.apply {
+            webViewClient = flWebViewClient
+            webChromeClient = flWebChromeClient
             settings.apply {
                 loadsImagesAutomatically = true
                 domStorageEnabled = true
@@ -42,7 +47,6 @@ class FlWebViewPlatformView(
                 mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
                 setSupportMultipleWindows(true)
                 allowFileAccess = true
-                setSupportZoom(true)
                 setGeolocationEnabled(true)
                 useWideViewPort = true
                 blockNetworkImage = false
@@ -54,25 +58,8 @@ class FlWebViewPlatformView(
             }
         }
         /// 初始化 MethodCallHandler
-        methodChannel.setMethodCallHandler(this)
+        channel.setMethodCallHandler(this)
         displayListenerProxy.onPostWebViewInitialization(displayManager)
-        /// 初始化相关参数
-//        applySettings(params["settings"] as HashMap<*, *>)
-
-//        if (params.containsKey(javascriptChannelNames)) {
-//            val names = params[javascriptChannelNames] as List<*>?
-//            names?.let { registerJavaScriptChannelNames(it) }
-//        }
-//
-//        val userAgent = params["userAgent"] as String?
-//        if (userAgent != null) {
-//            webView.settings.userAgentString = webView.settings.userAgentString + userAgent
-//        }
-//
-//        val urlData = params["initialUrl"] as Map<*, *>?
-//        if (urlData != null) loadUrl(urlData)
-//        val htmlData = params["initialHtml"] as Map<*, *>?
-//        if (htmlData != null) loadHtml(htmlData)
     }
 
 
@@ -86,18 +73,19 @@ class FlWebViewPlatformView(
     ) {
         when (call.method) {
             "loadUrl" -> {
-                loadUrl(call.arguments as Map<*, *>)
+                val args = call.arguments as Map<*, *>
+                webView.loadUrl(args["url"] as String, args["headers"] as HashMap<String, String>)
                 result.success(null)
             }
 
-            "setWebSettings" -> {
-                setWebSettings(call.arguments as Map<*, *>)
+            "loadData" -> {
+                loadData(call.arguments as Map<*, *>)
                 result.success(null)
             }
 
-            "isScroll" -> {
-                webView.isScroll = call.arguments as Boolean
-                result.success(true)
+            "applyWebSettings" -> {
+                applyWebSettings(call.arguments as Map<*, *>)
+                result.success(null)
             }
 
             "canGoBack" -> result.success(webView.canGoBack())
@@ -140,24 +128,67 @@ class FlWebViewPlatformView(
             "getTitle" -> result.success(webView.title)
             "scrollTo" -> scrollTo(call, result)
             "scrollBy" -> scrollBy(call, result)
-            "getScrollX" -> result.success(webView.scrollX)
-            "getScrollY" -> result.success(webView.scrollY)
+            "getScrollXY" -> result.success(mapOf("x" to webView.scrollX, "y" to webView.scrollY))
+            "getWebViewSize" -> result.success(
+                mapOf(
+                    "width" to webView.width.toDouble(),
+                    "height" to webView.height.toDouble(),
+                    "contentHeight" to webView.contentHeight.toDouble(),
+                    "contentWidth" to webView.width.toDouble(),
+                )
+            )
+
+            "getUserAgent" -> result.success(webView.settings.userAgentString)
+            "enabledScroll" -> {
+                webView.enabledScroll = call.arguments as Boolean
+                result.success(true)
+            }
+
             else -> result.notImplemented()
         }
     }
 
-    private fun loadUrl(args: Map<*, *>) {
-        val url = args["url"] as String
-        var headers = args["headers"] as Map<String, String>?
-        if (headers == null) headers = emptyMap()
-        webView.loadUrl(url, headers)
+    private fun applyWebSettings(settings: Map<*, *>) {
+        settings.forEach { entry ->
+            val key = entry.key
+            val value = entry.value
+            when (key) {
+                "enabledNavigationDelegate" -> flWebViewClient.enabledNavigationDelegate =
+                    value as Boolean
+
+                "enabledProgressChanged" -> flWebChromeClient.enabledProgressChanged =
+                    value as Boolean
+
+                "enableSizeChanged" -> webView.enableSizeChanged = value as Boolean
+                "enabledScrollChanged" -> webView.enabledScrollChanged = value as Boolean
+                "javascriptMode" -> {
+                    val mode = settings[key] as Int?
+                    mode?.let { webView.settings.javaScriptEnabled = it == 1 }
+                }
+
+                "allowsAutoMediaPlayback" -> webView.settings.mediaPlaybackRequiresUserGesture =
+                    !(value as Boolean)
+
+                "enabledZoom" -> webView.settings.setSupportZoom(value as Boolean)
+                "userAgent" -> {
+                    (value as String?).let {
+                        webView.settings.userAgentString = it
+                    }
+                }
+
+                "enabledDebugging" -> WebView.setWebContentsDebuggingEnabled(value as Boolean)
+            }
+        }
     }
 
-    private fun loadHtml(args: Map<*, *>) {
-        val html = args["html"] as String
-        val mimeType = args["mimeType"] as String
-        val encoding = args["encoding"] as String
-        webView.loadData(html, mimeType, encoding)
+
+    private fun loadData(args: Map<*, *>) {
+        val data = args["data"] as String
+        val mimeType = args["mimeType"] as String?
+        val encoding = args["encoding"] as String?
+        val baseURL = args["baseURL"] as String?
+        val historyUrl = args["historyUrl"] as String?
+        webView.loadDataWithBaseURL(baseURL, data, mimeType, encoding, historyUrl)
     }
 
 
@@ -185,108 +216,16 @@ class FlWebViewPlatformView(
     }
 
 
-    private fun setWebSettings(settings: Map<*, *>) {
-        settings.forEach { entry ->
-            val key = entry.key
-            val value = entry.value
-            when (key) {
-                "javascriptMode" -> {
-                    val mode = settings[key] as Int?
-                    mode?.let { webView.settings.javaScriptEnabled = it == 1 }
-                }
-
-                "hasNavigationDelegate" -> {
-                    if (value as Boolean) {
-                        getFlWebViewClient()
-                        flWebViewClient?.hasNavigationDelegate = value
-                    }
-                }
-
-                "debuggingEnabled" -> WebView.setWebContentsDebuggingEnabled(value as Boolean)
-                "hasProgressTracking" -> {
-                    if (value as Boolean) {
-                        getFlWebChromeClient()
-                        flWebChromeClient?.hasProgressTracking = true
-                    }
-                }
-
-                "hasContentSizeTracking" -> {
-                    webView.hasContentSizeTracking = value as Boolean
-                    if (value) {
-                        getFlWebChromeClient()
-                        flWebChromeClient?.hasContentSizeTracking = true
-                        flWebViewClient?.hasContentSizeTracking = true
-                    }
-                }
-
-                "useProgressGetContentSize" -> {
-                    webView.useProgressGetContentSize = value as Boolean
-                    getFlWebChromeClient()
-                    flWebChromeClient?.useProgressGetContentSize = value
-                    flWebViewClient?.useFinishedGetContentSize = value
-                }
-
-                "hasScrollChangedTracking" -> {
-                    webView.hasScrollChangedTracking = value as Boolean
-                }
-
-                "gestureNavigationEnabled" -> {
-                }
-
-                "autoMediaPlaybackPolicy" -> {
-                    val requireUserGesture = value != 1
-                    webView.settings.mediaPlaybackRequiresUserGesture = requireUserGesture
-                }
-
-                "userAgent" -> {
-                    val userAgent = value as String?
-                    if (userAgent != null) {
-                        webView.settings.userAgentString =
-                            webView.settings.userAgentString + userAgent
-                    }
-                }
-
-                "allowsInlineMediaPlayback" -> {
-                }
-
-                else -> throw IllegalArgumentException("Unknown WebView setting: $key")
-            }
-        }
-    }
-
-
-    private fun getFlWebChromeClient() {
-        getFlWebViewClient()
-        if (flWebChromeClient == null) {
-            flWebChromeClient = FlWebChromeClient(
-                methodChannel, handler, webView, flWebViewClient!!
-            )
-        }
-        flWebChromeClient?.let {
-            webView.webChromeClient = it
-        }
-    }
-
-    private fun getFlWebViewClient() {
-        if (flWebViewClient == null) {
-            flWebViewClient = FlWebViewClient(methodChannel, handler)
-        }
-        flWebViewClient?.let {
-            webView.webViewClient = it
-        }
-    }
-
-
     @SuppressLint("AddJavascriptInterface")
     private fun registerJavaScriptChannelName(channelName: String) {
         webView.addJavascriptInterface(
-            JavaScriptChannel(methodChannel, channelName, handler), channelName
+            JavaScriptChannel(channel, channelName, handler), channelName
         )
     }
 
 
     override fun dispose() {
-        methodChannel.setMethodCallHandler(null)
+        channel.setMethodCallHandler(null)
         webView.destroy()
     }
 
@@ -316,32 +255,18 @@ class FlWebViewPlatformView(
     @SuppressLint("ViewConstructor")
     internal class FlWebView(
         context: Context,
-        private val methodChannel: MethodChannel,
-        private val currentHandler: Handler,
+        private val channel: MethodChannel,
+        private val handler: Handler,
     ) : WebView(context) {
-        var isScroll = true
-        var hasScrollChangedTracking = false
-        var hasContentSizeTracking = false
-        var useProgressGetContentSize = false
+        var enabledScroll = true
+        var enabledScrollChanged = false
+        var enableSizeChanged = false
 
-        override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
-            super.onSizeChanged(width, height, oldWidth, oldHeight)
-            if (hasContentSizeTracking && !useProgressGetContentSize) {
-                invokeMethod(
-                    "onSizeChanged", mapOf(
-                        "width" to width.toDouble(),
-                        "height" to height.toDouble(),
-                        "contentHeight" to contentHeight.toDouble(),
-                        "contentWidth" to width.toDouble(),
-                    )
-                )
-            }
-        }
 
         override fun onScrollChanged(
             left: Int, top: Int, oldl: Int, oldt: Int
         ) {
-            if (hasScrollChangedTracking) {
+            if (enabledScrollChanged) {
                 val scale = resources.displayMetrics.density
                 val position = when {
                     scrollY == 0 -> 0
@@ -363,11 +288,11 @@ class FlWebViewPlatformView(
 
 
         private fun invokeMethod(method: String, args: Any?) {
-            if (currentHandler.looper == Looper.myLooper()) {
-                methodChannel.invokeMethod(method, args)
+            if (handler.looper == Looper.myLooper()) {
+                channel.invokeMethod(method, args)
             } else {
-                currentHandler.post {
-                    methodChannel.invokeMethod(method, args)
+                handler.post {
+                    channel.invokeMethod(method, args)
                 }
             }
         }
@@ -384,7 +309,7 @@ class FlWebViewPlatformView(
             maxOverScrollY: Int,
             isTouchEvent: Boolean
         ): Boolean {
-            if (isScroll) {
+            if (enabledScroll) {
                 return super.overScrollBy(
                     deltaX,
                     deltaY,
@@ -398,6 +323,33 @@ class FlWebViewPlatformView(
                 )
             }
             return false
+        }
+
+        var lastContentHeight: Int = 0
+        override fun onDraw(canvas: Canvas?) {
+            super.onDraw(canvas)
+            if (enableSizeChanged) {
+                if (lastContentHeight == contentHeight || contentHeight < lastContentHeight) return
+                lastContentHeight = contentHeight
+                invokeMethod(
+                    "onSizeChanged", mapOf(
+                        "width" to width.toDouble(),
+                        "height" to height.toDouble(),
+                        "contentHeight" to contentHeight.toDouble(),
+                        "contentWidth" to width.toDouble(),
+                    )
+                )
+            }
+        }
+
+
+        override fun onDetachedFromWindow() {
+            super.onDetachedFromWindow()
+            invokeMethod(
+                "onClosed", mapOf(
+                    "url" to url
+                )
+            )
         }
     }
 }

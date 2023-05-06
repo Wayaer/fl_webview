@@ -35,6 +35,7 @@ class FlWebViewPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 val hasCookies = cookieManager.hasCookies()
                 cookieManager.removeAllCookies { result.success(hasCookies) }
             }
+
             else -> result.notImplemented()
         }
     }
@@ -44,13 +45,11 @@ class FlWebViewPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     ) : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
         override fun create(context: Context?, id: Int, args: Any?): PlatformView {
             val params = args as Map<*, *>
-            val methodChannel = MethodChannel(
-                messenger, "fl.webview/$id"
-            )
+            val channel = MethodChannel(messenger, "fl.webview/$id")
             if (context == null) {
-                return FlWebViewPlatformView(applicationContext, methodChannel, params)
+                return FlWebViewPlatformView(applicationContext, channel, params)
             }
-            return FlWebViewPlatformView(context, methodChannel, params)
+            return FlWebViewPlatformView(context, channel, params)
         }
 
     }

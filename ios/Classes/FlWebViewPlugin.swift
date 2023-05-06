@@ -7,7 +7,7 @@ public class FlWebViewPlugin: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
         registrar.register(FlWebViewFactory(registrar.messenger()), withId: "fl.webview")
         let cookieChannel = FlutterMethodChannel(name: "fl.webview.channel", binaryMessenger:
-        registrar.messenger())
+            registrar.messenger())
         let instance = FlWebViewPlugin(cookieChannel)
         registrar.addMethodCallDelegate(instance, channel: cookieChannel)
     }
@@ -38,9 +38,9 @@ public class FlWebViewPlugin: NSObject, FlutterPlugin {
             let hasCookies = (cookies?.count ?? 0) > 0
             if let cookies = cookies {
                 dataStore.removeData(
-                        ofTypes: websiteDataTypes,
-                        for: cookies) {
-                    result(NSNumber(value: hasCookies))
+                    ofTypes: websiteDataTypes,
+                    for: cookies) {
+                        result(NSNumber(value: hasCookies))
                 }
             }
         }
@@ -66,6 +66,18 @@ class FlWebViewFactory: NSObject, FlutterPlatformViewFactory {
 }
 
 class FlWebView: WKWebView {
+    var channel: FlutterMethodChannel
+
+    init(_ channel: FlutterMethodChannel, _ frame: CGRect, _ configuration: WKWebViewConfiguration) {
+        self.channel = channel
+        super.init(frame: frame, configuration: configuration)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     func setFrame(frame: CGRect) {
         scrollView.contentInset = .zero
         if #available(iOS 11.0, *) {
@@ -75,16 +87,20 @@ class FlWebView: WKWebView {
             let insetToAdjust = scrollView.adjustedContentInset
             scrollView.translatesAutoresizingMaskIntoConstraints = false
             scrollView.contentInset = UIEdgeInsets(
-                    top: -insetToAdjust.top,
-                    left: -insetToAdjust.left,
-                    bottom: -insetToAdjust.bottom,
-                    right: -insetToAdjust.right)
+                top: -insetToAdjust.top,
+                left: -insetToAdjust.left,
+                bottom: -insetToAdjust.bottom,
+                right: -insetToAdjust.right)
         }
     }
 
-    func setUserAgent(userAgent: String) {
-        evaluateJavaScript("navigator.userAgent") { info, error in
+    func setUserAgent(_ userAgent: String) {
+        evaluateJavaScript("navigator.userAgent") { info, _ in
             self.customUserAgent = (info as? String ?? "") + userAgent
         }
+    }
+
+    deinit {
+        channel.invokeMethod("onClose", arguments: url?.absoluteString)
     }
 }

@@ -12,12 +12,10 @@ import io.flutter.plugin.common.MethodChannel
 import java.util.*
 
 class FlWebViewClient(
-    private val methodChannel: MethodChannel, private val handler: Handler
+    private val channel: MethodChannel, private val handler: Handler
 ) : WebViewClient() {
 
-    var hasNavigationDelegate = false
-    var hasContentSizeTracking = false
-    var useFinishedGetContentSize = false
+    var enabledNavigationDelegate = false
 
     private fun errorCodeToString(errorCode: Int): String {
         when (errorCode) {
@@ -44,13 +42,23 @@ class FlWebViewClient(
         throw IllegalArgumentException(message)
     }
 
-    override fun shouldOverrideUrlLoading(
-        view: WebView?, request: WebResourceRequest?
-    ): Boolean {
-        if (hasNavigationDelegate && view != null && request != null) {
-            notifyOnNavigationRequest(
-                request.url.toString(), request.requestHeaders, view, request.isForMainFrame
-            )
+    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+        if (enabledNavigationDelegate && view != null && request != null) {
+            val url = request.url.toString()
+            val headers = request.requestHeaders
+            val isForMainFrame = request.isForMainFrame
+            val args = HashMap<String, Any>()
+            args["url"] = url
+            args["isForMainFrame"] = isForMainFrame
+            if (isForMainFrame) {
+                handler.post {
+                    channel.invokeMethod(
+                        "onNavigationRequest", args, OnNavigationRequestResult(url, headers, view)
+                    )
+                }
+            } else {
+                invokeMethod("onNavigationRequest", args)
+            }
             return request.isForMainFrame
         }
         return false
@@ -59,33 +67,13 @@ class FlWebViewClient(
 
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
         super.onPageStarted(view, url, favicon)
-        invokeMethod(
-            "onPageStarted", mapOf(
-                "url" to url
-            )
-        )
+        invokeMethod("onPageStarted", url)
     }
 
 
     override fun onPageFinished(view: WebView?, url: String?) {
         super.onPageFinished(view, url)
-        invokeMethod(
-            "onPageFinished", mapOf(
-                "url" to url
-            )
-        )
-        if (hasContentSizeTracking) {
-            view?.let {
-                invokeMethod(
-                    "onSizeChanged", mapOf(
-                        "width" to it.width.toDouble(),
-                        "height" to it.height.toDouble(),
-                        "contentHeight" to it.contentHeight.toDouble(),
-                        "contentWidth" to it.width.toDouble(),
-                    )
-                )
-            }
-        }
+        invokeMethod("onPageFinished", url)
     }
 
 
@@ -116,30 +104,18 @@ class FlWebViewClient(
         )
     }
 
-    private fun invokeMethod(method: String, args: Any?) {
-        if (handler.looper == Looper.myLooper()) {
-            methodChannel.invokeMethod(method, args)
-        } else {
-            handler.post {
-                methodChannel.invokeMethod(method, args)
-            }
-        }
+    override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
+        super.doUpdateVisitedHistory(view, url, isReload)
+        invokeMethod("onUrlChanged", url)
     }
 
-    private fun notifyOnNavigationRequest(
-        url: String, headers: Map<String, String>?, webView: WebView, isMainFrame: Boolean
-    ) {
-        val args = HashMap<String, Any>()
-        args["url"] = url
-        args["isForMainFrame"] = isMainFrame
-        if (isMainFrame) {
-            handler.post {
-                methodChannel.invokeMethod(
-                    "onNavigationRequest", args, OnNavigationRequestResult(url, headers, webView)
-                )
-            }
+    private fun invokeMethod(method: String, args: Any?) {
+        if (handler.looper == Looper.myLooper()) {
+            channel.invokeMethod(method, args)
         } else {
-            invokeMethod("onNavigationRequest", args)
+            handler.post {
+                channel.invokeMethod(method, args)
+            }
         }
     }
 

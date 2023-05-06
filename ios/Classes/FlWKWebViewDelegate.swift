@@ -2,19 +2,17 @@ import Flutter
 import WebKit
 
 class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
-    let methodChannel: FlutterMethodChannel
+    let channel: FlutterMethodChannel
     public var enabledNavigationDelegate = false
 
-    init(_ methodChannel: FlutterMethodChannel) {
-        self.methodChannel = methodChannel
+    init(_ channel: FlutterMethodChannel) {
+        self.channel = channel
         super.init()
     }
 
     /// 处理网页开始加载
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-        methodChannel.invokeMethod("onPageStarted", arguments: [
-            "url": webView.url?.absoluteString ?? "",
-        ])
+        channel.invokeMethod("onPageStarted", arguments: webView.url?.absoluteString)
     }
 
     /// 决定网页能否被允许跳转
@@ -23,8 +21,7 @@ class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
             decisionHandler(.allow)
             return
         }
-
-        methodChannel.invokeMethod(
+        channel.invokeMethod(
             "onNavigationRequest",
             arguments: [
                 "url": navigationAction.request.url?.absoluteString ?? "",
@@ -37,9 +34,7 @@ class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
 
     /// 理网页加载完成
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        methodChannel.invokeMethod("onPageFinished", arguments: [
-            "url": webView.url?.absoluteString ?? "",
-        ])
+        channel.invokeMethod("onPageFinished", arguments: webView.url?.absoluteString)
     }
 
     func errorCode(_ code: Int?) -> Any? {
@@ -60,7 +55,7 @@ class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
     }
 
     func onWebResourceError(_ error: Error?) {
-        methodChannel.invokeMethod(
+        channel.invokeMethod(
             "onWebResourceError",
             arguments: [
                 "errorCode": NSNumber(value: (error as NSError?)?.code ?? 0),
@@ -89,30 +84,31 @@ class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
 
 class FlWKProgressionDelegate: NSObject {
     var channel: FlutterMethodChannel
-    let estimatedProgressKeyPath = "estimatedProgress"
+    let progressKeyPath = "estimatedProgress"
+    var webView: WKWebView
 
-    init(_ webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
-        channel = methodChannel
+    init(_ webView: WKWebView, _ channel: FlutterMethodChannel) {
+        self.channel = channel
+        self.webView = webView
         super.init()
         webView.addObserver(
             self,
-            forKeyPath: estimatedProgressKeyPath,
+            forKeyPath: progressKeyPath,
             options: .new,
             context: nil)
     }
 
-    func stopObserving(_ webView: WKWebView?) {
-        webView?.removeObserver(self, forKeyPath: estimatedProgressKeyPath)
+    func stopObserving() {
+        webView.removeObserver(self, forKeyPath: progressKeyPath)
     }
 
     override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == estimatedProgressKeyPath {
-            let newValue = change?[NSKeyValueChangeKey.newKey] ?? 0
-            let newValueAsInt = Int((newValue as AnyObject).floatValue * 100)
-            channel.invokeMethod("onProgress", arguments: [
-                "progress": NSNumber(value: newValueAsInt),
-            ])
+        let value = change?[NSKeyValueChangeKey.newKey]
+        if keyPath != progressKeyPath || value == nil {
+            return
         }
+        let newValue = Int((value as AnyObject).floatValue * 100)
+        channel.invokeMethod("onProgress", arguments: newValue)
     }
 }
 
@@ -123,27 +119,23 @@ class FlWKContentSizeDelegate: NSObject {
 
     var height: CGFloat = 0
 
-    init(_ _webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
-        channel = methodChannel
-        webView = _webView
+    init(_ webView: WKWebView, _ channel: FlutterMethodChannel) {
+        self.channel = channel
+        self.webView = webView
         super.init()
-        _webView.scrollView.addObserver(
+        webView.scrollView.addObserver(
             self,
             forKeyPath: contentSizeKeyPath,
             options: .new,
             context: nil)
     }
 
-    func stopObserving(_ webView: WKWebView?) {
-        webView?.scrollView.removeObserver(self, forKeyPath: contentSizeKeyPath)
+    func stopObserving() {
+        webView.scrollView.removeObserver(self, forKeyPath: contentSizeKeyPath)
     }
 
     override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath != contentSizeKeyPath {
-            return
-        }
-        let size = change?[NSKeyValueChangeKey.newKey] as? CGSize
-        if size == nil {
+        if keyPath != contentSizeKeyPath || change?[NSKeyValueChangeKey.newKey] == nil {
             return
         }
         let contentSize = webView.scrollView.contentSize
@@ -160,13 +152,41 @@ class FlWKContentSizeDelegate: NSObject {
     }
 }
 
+class FlWKUrlChangedDelegate: NSObject {
+    var channel: FlutterMethodChannel
+    let urlPath = "URL"
+    var webView: WKWebView
+
+    init(_ webView: WKWebView, _ channel: FlutterMethodChannel) {
+        self.channel = channel
+        self.webView = webView
+        super.init()
+        webView.addObserver(
+            self,
+            forKeyPath: urlPath,
+            options: .new,
+            context: nil)
+    }
+
+    func stopObserving() {
+        webView.removeObserver(self, forKeyPath: urlPath)
+    }
+
+    override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
+        let url = change?[NSKeyValueChangeKey.newKey]
+        if keyPath == urlPath, url is URL {
+            channel.invokeMethod("onUrlChanged", arguments: (url as! URL).absoluteString)
+        }
+    }
+}
+
 class FlWKScrollChangedDelegate: NSObject, UIScrollViewDelegate {
     var channel: FlutterMethodChannel
     var webView: WKWebView
 
-    init(_ _webView: WKWebView, _ methodChannel: FlutterMethodChannel) {
-        channel = methodChannel
-        webView = _webView
+    init(_ webView: WKWebView, _ channel: FlutterMethodChannel) {
+        self.channel = channel
+        self.webView = webView
         super.init()
         webView.scrollView.bounces = false
     }
@@ -191,6 +211,24 @@ class FlWKScrollChangedDelegate: NSObject, UIScrollViewDelegate {
             "width": frame.width,
             "height": frame.height,
             "position": position,
+        ])
+    }
+}
+
+class FlWKJavaScriptChannel: NSObject, WKScriptMessageHandler {
+    let channel: FlutterMethodChannel
+    let javaScriptChannelName: String
+
+    init(_ channel: FlutterMethodChannel, _ javaScriptChannelName: String) {
+        self.channel = channel
+        self.javaScriptChannelName = javaScriptChannelName
+        super.init()
+    }
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        channel.invokeMethod("onJavascriptChannelMessage", arguments: [
+            "channel": javaScriptChannelName,
+            "message": "\(message.body)",
         ])
     }
 }

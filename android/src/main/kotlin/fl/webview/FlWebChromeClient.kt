@@ -28,9 +28,11 @@ class FlWebChromeClient(
             override fun shouldOverrideUrlLoading(
                 view: WebView, request: WebResourceRequest
             ): Boolean {
-                return flWebViewClient.navigationRequestResult(
-                    enabledNavigationDelegate, webView, request
+                var value = flWebViewClient.navigationRequestResult(
+                    enabledNavigationDelegate, view, request
                 )
+                if (value == null) value = super.shouldOverrideUrlLoading(view, request)
+                return value
             }
         }
         val transport = resultMsg.obj as WebView.WebViewTransport

@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -40,12 +41,14 @@ class FlWebViewClient(
     }
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-        return navigationRequestResult(enabledNavigationDelegate, view, request)
+        var value = navigationRequestResult(enabledNavigationDelegate, view, request)
+        if (value == null) value = super.shouldOverrideUrlLoading(view, request)
+        return value
     }
 
     fun navigationRequestResult(
         enabledNavigationDelegate: Boolean, view: WebView?, request: WebResourceRequest?
-    ): Boolean {
+    ): Boolean? {
         if (view != null && request != null) {
             val url = request.url.toString()
             var headers = request.requestHeaders
@@ -57,7 +60,8 @@ class FlWebViewClient(
                 args["isForMainFrame"] = isForMainFrame
                 if (isForMainFrame) {
                     handler.post {
-                        channel.invokeMethod("onNavigationRequest",
+                        channel.invokeMethod(
+                            "onNavigationRequest",
                             args,
                             object : MethodChannel.Result {
                                 override fun success(shouldLoad: Any?) {
@@ -80,12 +84,10 @@ class FlWebViewClient(
                 } else {
                     invokeMethod("onNavigationRequest", args)
                 }
-            } else {
-                view.loadUrl(url, headers)
+                return request.isForMainFrame
             }
-            return request.isForMainFrame
         }
-        return true
+        return null
     }
 
 

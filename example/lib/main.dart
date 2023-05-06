@@ -7,8 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 import 'package:flutter_curiosity/flutter_curiosity.dart';
 
-// const String url = 'http://xcfb.screx.com.cn:8081/group1/M00/09/96/rBAABWG0fh2ACwZ9AAH1N9GJHbs13.html';
-const String url = 'https://zhuanlan.zhihu.com/p/212753347';
+// const String url = 'https://juejin.cn/post/7154271406132297764';
+const String url = 'https://www.baidu.com/';
 
 void main() {
   runApp(const ExtendedWidgetsApp(home: App(), title: 'FlWebview'));
@@ -67,33 +67,41 @@ class BaseFlWebView extends FlWebView {
     FlWebViewDelegate? delegate,
     WebViewCreatedCallback? onWebViewCreated,
   }) : super(
-            delegate: FlWebViewDelegate(onPageStarted: (String url) {
-              log('onPageStarted : $url');
-              delegate?.onPageStarted?.call(url);
-            }, onPageFinished: (String url) {
-              log('onPageFinished : $url');
-              delegate?.onPageFinished?.call(url);
-            }, onProgress: (int progress) {
-              log('onProgress ：$progress');
-              delegate?.onProgress?.call(progress);
-            }, onSizeChanged: (WebViewSize webViewSize) {
-              log('onSizeChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize}');
-              delegate?.onSizeChanged?.call(webViewSize);
-            }, onScrollChanged: (WebViewSize webViewSize, Offset offset,
-                ScrollPositioned positioned) {
-              log('onScrollChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize} --- $offset --- $positioned');
-              delegate?.onScrollChanged?.call(webViewSize, offset, positioned);
-            }, onNavigationRequest: (NavigationRequest request) {
-              log('onNavigationRequest : ${request.url} --- ${request.isForMainFrame}');
-              return delegate?.onNavigationRequest?.call(request) ??
-                  NavigationDecision.navigate;
-            }, onUrlChanged: (String url) {
-              log('onUrlChanged : $url');
-              delegate?.onUrlChanged?.call(url);
-            }, onClosed: (String url) {
-              log('onClosed : $url');
-              delegate?.onClosed?.call(url);
-            }),
+            delegate: FlWebViewDelegate(
+              onPageStarted: (String url) {
+                log('onPageStarted : $url');
+                delegate?.onPageStarted?.call(url);
+              },
+              onPageFinished: (String url) {
+                log('onPageFinished : $url');
+                delegate?.onPageFinished?.call(url);
+              },
+              onProgress: (int progress) {
+                log('onProgress ：$progress');
+                delegate?.onProgress?.call(progress);
+              },
+              onSizeChanged: (WebViewSize webViewSize) {
+                log('onSizeChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize}');
+                delegate?.onSizeChanged?.call(webViewSize);
+              },
+              //  onScrollChanged: (WebViewSize webViewSize, Offset offset,
+              //         ScrollPositioned positioned) {
+              //   log('onScrollChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize} --- $offset --- $positioned');
+              //   delegate?.onScrollChanged?.call(webViewSize, offset, positioned);
+              // },
+              onNavigationRequest: (NavigationRequest request) {
+                log('onNavigationRequest : ${request.url} --- ${request.isForMainFrame}');
+                return delegate?.onNavigationRequest?.call(request) ?? true;
+              },
+              onUrlChanged: (String url) {
+                log('onUrlChanged : $url');
+                delegate?.onUrlChanged?.call(url);
+              },
+              onClosed: (String url) {
+                log('onClosed : $url');
+                delegate?.onClosed?.call(url);
+              },
+            ),
             onWebViewCreated: (FlWebViewController controller) async {
               final userAgent = await controller.getUserAgent();
               log('userAgent:  $userAgent');

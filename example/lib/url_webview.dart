@@ -20,12 +20,12 @@ class AdaptHeightFlWebView extends StatelessWidget {
               child: const Text('Header')),
           FlAdaptHeightWevView(
               maxHeight: 2000,
-              builder: (onPageFinished, onScrollChanged, onWebViewCreated) =>
+              builder: (onSizeChanged, onScrollChanged, onWebViewCreated) =>
                   BaseFlWebView(
                       load: LoadUrlRequest(url),
                       onWebViewCreated: onWebViewCreated,
                       delegate: FlWebViewDelegate(
-                          onPageFinished: onPageFinished,
+                          onSizeChanged: onSizeChanged,
                           onScrollChanged: onScrollChanged))),
           Container(
               alignment: Alignment.center,
@@ -42,9 +42,21 @@ class FixedHeightFlWebView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    FlWebViewController? controller;
     return ExtendedScaffold(
+        onWillPop: () async {
+          if (await controller?.canGoBack() ?? false) {
+            controller?.goBack();
+            return false;
+          }
+          return true;
+        },
         appBar: AppBar(title: const Text('FlWebView')),
         mainAxisAlignment: MainAxisAlignment.center,
-        body: BaseFlWebView(load: LoadUrlRequest(url)));
+        body: BaseFlWebView(
+            onWebViewCreated: (_) {
+              controller = _;
+            },
+            load: LoadUrlRequest(url)));
   }
 }

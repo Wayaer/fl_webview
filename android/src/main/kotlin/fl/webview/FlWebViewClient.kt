@@ -35,33 +35,57 @@ class FlWebViewClient(
             ERROR_UNSAFE_RESOURCE -> return "unsafeResource"
             ERROR_UNSUPPORTED_AUTH_SCHEME -> return "unsupportedAuthScheme"
             ERROR_UNSUPPORTED_SCHEME -> return "unsupportedScheme"
+            else -> return "unknown"
         }
-        val message = String.format(
-            Locale.getDefault(), "Could not find a string for errorCode: %d", errorCode
-        )
-        throw IllegalArgumentException(message)
     }
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-        if (enabledNavigationDelegate && view != null && request != null) {
+        return navigationRequestResult(enabledNavigationDelegate, view, request)
+    }
+
+    fun navigationRequestResult(
+        enabledNavigationDelegate: Boolean, view: WebView?, request: WebResourceRequest?
+    ): Boolean {
+        if (view != null && request != null) {
             val url = request.url.toString()
-            val headers = request.requestHeaders
-            val isForMainFrame = request.isForMainFrame
-            val args = HashMap<String, Any>()
-            args["url"] = url
-            args["isForMainFrame"] = isForMainFrame
-            if (isForMainFrame) {
-                handler.post {
-                    channel.invokeMethod(
-                        "onNavigationRequest", args, OnNavigationRequestResult(url, headers, view)
-                    )
+            var headers = request.requestHeaders
+            if (headers == null) headers = emptyMap()
+            if (enabledNavigationDelegate) {
+                val isForMainFrame = request.isForMainFrame
+                val args = HashMap<String, Any>()
+                args["url"] = url
+                args["isForMainFrame"] = isForMainFrame
+                if (isForMainFrame) {
+                    handler.post {
+                        channel.invokeMethod("onNavigationRequest",
+                            args,
+                            object : MethodChannel.Result {
+                                override fun success(shouldLoad: Any?) {
+                                    if (shouldLoad as Boolean) {
+                                        view.loadUrl(url, headers)
+                                    }
+                                }
+
+                                override fun error(errorCode: String, s1: String?, o: Any?) {
+                                    throw IllegalStateException("navigationRequest calls must succeed")
+                                }
+
+                                override fun notImplemented() {
+                                    throw IllegalStateException(
+                                        "navigationRequest must be implemented by the webview method channel"
+                                    )
+                                }
+                            })
+                    }
+                } else {
+                    invokeMethod("onNavigationRequest", args)
                 }
             } else {
-                invokeMethod("onNavigationRequest", args)
+                view.loadUrl(url, headers)
             }
             return request.isForMainFrame
         }
-        return false
+        return true
     }
 
 
@@ -109,6 +133,7 @@ class FlWebViewClient(
         invokeMethod("onUrlChanged", url)
     }
 
+
     private fun invokeMethod(method: String, args: Any?) {
         if (handler.looper == Looper.myLooper()) {
             channel.invokeMethod(method, args)
@@ -116,34 +141,6 @@ class FlWebViewClient(
             handler.post {
                 channel.invokeMethod(method, args)
             }
-        }
-    }
-
-
-    private class OnNavigationRequestResult(
-        private val url: String,
-        private val headers: Map<String, String>?,
-        private val webView: WebView
-    ) : MethodChannel.Result {
-        override fun success(shouldLoad: Any?) {
-            val typedShouldLoad = shouldLoad as Boolean?
-            if (typedShouldLoad == true) {
-                if (headers == null) {
-                    webView.loadUrl(url)
-                } else {
-                    webView.loadUrl(url, headers)
-                }
-            }
-        }
-
-        override fun error(errorCode: String, s1: String?, o: Any?) {
-            throw IllegalStateException("navigationRequest calls must succeed")
-        }
-
-        override fun notImplemented() {
-            throw IllegalStateException(
-                "navigationRequest must be implemented by the webview method channel"
-            )
         }
     }
 

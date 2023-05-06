@@ -99,8 +99,4 @@ class FlWebView: WKWebView {
             self.customUserAgent = (info as? String ?? "") + userAgent
         }
     }
-
-    deinit {
-        channel.invokeMethod("onClose", arguments: url?.absoluteString)
-    }
 }

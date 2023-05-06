@@ -6,7 +6,6 @@ import android.graphics.Canvas
 import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebSettings
@@ -153,8 +152,10 @@ class FlWebViewPlatformView(
             val key = entry.key
             val value = entry.value
             when (key) {
-                "enabledNavigationDelegate" -> flWebViewClient.enabledNavigationDelegate =
-                    value as Boolean
+                "enabledNavigationDelegate" -> {
+                    flWebViewClient.enabledNavigationDelegate = value as Boolean
+                    flWebChromeClient.enabledNavigationDelegate = value
+                }
 
                 "enabledProgressChanged" -> flWebChromeClient.enabledProgressChanged =
                     value as Boolean
@@ -325,7 +326,7 @@ class FlWebViewPlatformView(
             return false
         }
 
-        var lastContentHeight: Int = 0
+        private var lastContentHeight: Int = 0
         override fun onDraw(canvas: Canvas?) {
             super.onDraw(canvas)
             if (enableSizeChanged) {
@@ -340,16 +341,6 @@ class FlWebViewPlatformView(
                     )
                 )
             }
-        }
-
-
-        override fun onDetachedFromWindow() {
-            super.onDetachedFromWindow()
-            invokeMethod(
-                "onClosed", mapOf(
-                    "url" to url
-                )
-            )
         }
     }
 }

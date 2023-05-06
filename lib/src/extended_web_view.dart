@@ -1,14 +1,14 @@
 import 'package:fl_webview/fl_webview.dart';
-import 'package:fl_webview/src/extension.dart';
 import 'package:flutter/material.dart';
 
-typedef FlAdaptHeightWevViewBuilder = Widget Function(
-    FlWebViewDelegateWithUrl onPageFinished,
-    FlWebViewDelegateWithScrollChanged onScrollChanged,
-    WebViewCreatedCallback? onWebViewCreated);
+/// 返回的Widget树中需要包含[FlWebView]
+/// The Widget tree returned needs to include [FlWebView]
+typedef ExtendedFlWebViewBuilder = Widget Function(
+    FlWebViewDelegateWithSizeCallback onSizeChanged,
+    FlWebViewDelegateWithScrollChangedCallback onScrollChanged,
+    WebViewCreatedCallback onWebViewCreated);
 
 /// webView content 有多高， widget 就有多高
-/// 在ios 如果 webView 太高 图片太多 滑动会卡顿
 /// 仅适用 内容比较少的时候
 /// The widget is as tall as the WebView content is
 /// on ios, if the WebView is too high and there are too many images, swiping will stall
@@ -21,7 +21,7 @@ class FlAdaptHeightWevView extends StatefulWidget {
     this.gapUpdateHeight = 40,
     this.maxHeight,
   }) : super(key: key);
-  final FlAdaptHeightWevViewBuilder builder;
+  final ExtendedFlWebViewBuilder builder;
 
   /// 初始高度
   /// The initial height
@@ -31,7 +31,7 @@ class FlAdaptHeightWevView extends StatefulWidget {
   /// 默认为 40  根据实际需求设置 间隔高度更新
   final double gapUpdateHeight;
 
-  /// 最大高度
+  /// 设置最大高度，
   final double? maxHeight;
 
   @override
@@ -57,7 +57,7 @@ class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
   Widget build(BuildContext context) {
     return SizedBox.fromSize(
         size: Size(double.infinity, currentHeight),
-        child: widget.builder(onPageFinished, onScrollChanged, (controller) {
+        child: widget.builder(onSizeChanged, onScrollChanged, (controller) {
           this.controller = controller;
           controller.enabledScroll(false);
         }));
@@ -71,23 +71,7 @@ class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
     }
   }
 
-  void onPageFinished(_) async {
-    if (controller == null) return;
-    final webViewSize = await controller?.getWebViewSize();
-    log('${webViewSize?.frameSize}====${webViewSize?.contentSize}');
-    if (webViewSize == null) return;
-    if (widget.maxHeight != null &&
-        webViewSize.contentSize.height > widget.maxHeight!) {
-      currentHeight = widget.maxHeight!;
-    } else if (webViewSize.contentSize.height > currentHeight) {
-      currentHeight = webViewSize.contentSize.height;
-    }
-    log('当前设置的最高高度 $currentHeight');
-    setState(() {});
-  }
-
   void onSizeChanged(WebViewSize webViewSize) {
-    return;
     var contentSizeHeight = webViewSize.contentSize.height;
     if (contentSizeHeight == 0 || currentHeight == contentSizeHeight) {
       return;
@@ -113,13 +97,6 @@ class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
     }
   }
 }
-
-/// 返回的Widget树中需要包含[FlWebView]
-/// The Widget tree returned needs to include [FlWebView]
-typedef ExtendedFlWebViewBuilder = Widget Function(
-    FlWebViewDelegateWithSize onSizeChanged,
-    WebViewCreatedCallback onWebViewCreated,
-    FlWebViewDelegateWithScrollChanged onScrollChanged);
 
 /// 返回的Widget树中需要包含[ScrollView]
 /// The Widget tree returned needs to include [ScrollView]
@@ -233,7 +210,7 @@ class _ExtendedFlWebViewWithScrollViewState
     Widget webView = SizedBox.fromSize(
         size: Size(double.infinity, currentHeight),
         child: widget.webViewBuilder(
-            onSizeChanged, onWebViewCreated, onScrollChanged));
+            onSizeChanged, onScrollChanged, onWebViewCreated));
     return widget.scrollViewBuilder(controller, isScrollView, webView);
   }
 

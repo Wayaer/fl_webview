@@ -20,18 +20,13 @@ class AdaptHtmlTextFlWebView extends StatelessWidget {
               height: 100,
               child: const Text('Header')),
           FlAdaptHeightWevView(
-              maxHeight: 3000,
-              builder: (onPageFinished, onScrollChanged, onWebViewCreated) =>
+              maxHeight: 1000,
+              builder: (onSizeChanged, onScrollChanged, onWebViewCreated) =>
                   BaseFlWebView(
                       load: LoadDataRequest(loadData),
                       onWebViewCreated: onWebViewCreated,
                       delegate: FlWebViewDelegate(
-                          onPageFinished: onPageFinished,
-                          // onSizeChanged: onSizeChanged,
-                          // onProgress:
-                          //     (int progress, Size frameSize, Size contentSize) {
-                          //   onSizeChanged(frameSize, contentSize);
-                          // },
+                          onSizeChanged: onSizeChanged,
                           onScrollChanged: onScrollChanged))),
           Container(
               alignment: Alignment.center,

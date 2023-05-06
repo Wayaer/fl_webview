@@ -139,8 +139,7 @@ class FlWebViewController {
             NavigationRequest(
                 url: call.arguments['url']! as String,
                 isForMainFrame: call.arguments['isForMainFrame']! as bool));
-        if (value != null) return value.index == 1;
-        break;
+        return value ?? true;
       case 'onPageStarted':
         _delegate?.onPageStarted?.call((call.arguments as String?) ?? "");
         break;

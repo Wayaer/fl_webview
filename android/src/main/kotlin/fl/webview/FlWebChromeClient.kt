@@ -3,7 +3,6 @@ package fl.webview
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.util.Log
 import android.webkit.GeolocationPermissions
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -19,31 +18,28 @@ class FlWebChromeClient(
 ) : WebChromeClient() {
 
     var enabledProgressChanged = false
-
+    var enabledNavigationDelegate = false
 
     override fun onCreateWindow(
         view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
     ): Boolean {
-        val webViewClient: WebViewClient = object : WebViewClient() {
+        val newWebView = WebView(view.context)
+        newWebView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(
                 view: WebView, request: WebResourceRequest
             ): Boolean {
-                val url = request.url.toString()
-                if (!flWebViewClient.shouldOverrideUrlLoading(webView, request)) {
-                    webView.loadUrl(url)
-                }
-                return true
+                return flWebViewClient.navigationRequestResult(
+                    enabledNavigationDelegate, webView, request
+                )
             }
         }
-        val newWebView = WebView(view.context)
-        newWebView.webViewClient = webViewClient
         val transport = resultMsg.obj as WebView.WebViewTransport
         transport.webView = newWebView
         resultMsg.sendToTarget()
         return true
     }
 
-    var lastProgress: Int = 0
+    private var lastProgress: Int = 0
 
     override fun onProgressChanged(view: WebView?, progress: Int) {
         super.onProgressChanged(view, progress)
@@ -53,6 +49,7 @@ class FlWebChromeClient(
             invokeMethod("onProgress", progress)
         }
     }
+
 
     private fun invokeMethod(method: String, args: Any?) {
         if (handler.looper == Looper.myLooper()) {

@@ -35,9 +35,9 @@ class ExtendedFlWebViewWithScrollViewPage extends StatelessWidget {
                         itemCount: 30)
                   ]);
             },
-            webViewBuilder: (FlWebViewDelegateWithSize onSizeChanged,
-                WebViewCreatedCallback onWebViewCreated,
-                FlWebViewDelegateWithScrollChanged onScrollChanged) {
+            webViewBuilder: (FlWebViewDelegateWithSizeCallback onSizeChanged,
+                FlWebViewDelegateWithScrollChangedCallback onScrollChanged,
+                WebViewCreatedCallback onWebViewCreated) {
               return BaseFlWebView(
                   load: LoadUrlRequest(url),
                   delegate: FlWebViewDelegate(

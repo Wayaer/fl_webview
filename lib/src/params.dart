@@ -37,15 +37,6 @@ class NavigationRequest {
       '$runtimeType(url: $url, isForMainFrame: $isForMainFrame)';
 }
 
-/// A decision on how to handle a navigation request.
-enum NavigationDecision {
-  /// Prevent the navigation from taking place.
-  prevent,
-
-  /// Allow the navigation to take place.
-  navigate,
-}
-
 /// Possible error type categorizations used by [WebResourceError].
 enum WebResourceErrorType {
   /// User authentication failed on server.
@@ -162,13 +153,13 @@ class WebResourceError {
 
 class WebSettings {
   WebSettings({
-    this.javascriptMode = JavascriptMode.disabled,
+    this.javascriptMode = JavascriptMode.unrestricted,
     this.enabledDebugging = false,
     this.gestureNavigationEnabled = false,
     this.allowsInlineMediaPlayback = true,
     this.allowsAutoMediaPlayback = true,
     this.enabledZoom = true,
-    this.deleteWindowSharedWorker = false,
+    this.deleteWindowSharedWorker = true,
     this.userAgent,
   });
 
@@ -254,20 +245,18 @@ class WebViewSize {
   final Size contentSize;
 }
 
-typedef FlWebViewDelegateWithUrl = void Function(String url);
+typedef FlWebViewDelegateWithUrlCallback = void Function(String url);
 
-typedef FlWebViewDelegateWithUrlAndSize = void Function(
-    String url, WebViewSize webViewSize);
+typedef FlWebViewDelegateWithProgressCallback = void Function(int progress);
 
-typedef FlWebViewDelegateWithProgress = void Function(int progress);
+typedef FlWebViewDelegateWithSizeCallback = void Function(
+    WebViewSize webViewSize);
 
-typedef FlWebViewDelegateWithSize = void Function(WebViewSize webViewSize);
-
-typedef FlWebViewDelegateWithScrollChanged = void Function(
+typedef FlWebViewDelegateWithScrollChangedCallback = void Function(
     WebViewSize webViewSize, Offset offset, ScrollPositioned positioned);
 
-typedef FlWebViewDelegateWithNavigationRequest = FutureOr<NavigationDecision>
-    Function(NavigationRequest request);
+typedef FlWebViewDelegateWithNavigationRequest = FutureOr<bool> Function(
+    NavigationRequest request);
 
 class FlWebViewDelegate {
   FlWebViewDelegate({
@@ -282,21 +271,21 @@ class FlWebViewDelegate {
     this.onUrlChanged,
   });
 
-  final FlWebViewDelegateWithUrl? onPageStarted;
+  final FlWebViewDelegateWithUrlCallback? onPageStarted;
 
-  final FlWebViewDelegateWithUrl? onPageFinished;
+  final FlWebViewDelegateWithUrlCallback? onPageFinished;
 
-  final FlWebViewDelegateWithProgress? onProgress;
+  final FlWebViewDelegateWithProgressCallback? onProgress;
 
-  final FlWebViewDelegateWithSize? onSizeChanged;
+  final FlWebViewDelegateWithSizeCallback? onSizeChanged;
 
-  final FlWebViewDelegateWithScrollChanged? onScrollChanged;
+  final FlWebViewDelegateWithScrollChangedCallback? onScrollChanged;
 
   final FlWebViewDelegateWithNavigationRequest? onNavigationRequest;
 
-  final FlWebViewDelegateWithUrl? onClosed;
+  final FlWebViewDelegateWithUrlCallback? onClosed;
 
-  final FlWebViewDelegateWithUrl? onUrlChanged;
+  final FlWebViewDelegateWithUrlCallback? onUrlChanged;
 
   final void Function(WebResourceError error)? onWebResourceError;
 }

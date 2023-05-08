@@ -74,12 +74,12 @@ class FlWebViewPlatformView(
             "loadUrl" -> {
                 val args = call.arguments as Map<*, *>
                 webView.loadUrl(args["url"] as String, args["headers"] as HashMap<String, String>)
-                result.success(null)
+                result.success(true)
             }
 
             "loadData" -> {
                 loadData(call.arguments as Map<*, *>)
-                result.success(null)
+                result.success(true)
             }
 
             "applyWebSettings" -> {

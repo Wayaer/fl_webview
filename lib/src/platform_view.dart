@@ -1,5 +1,4 @@
 import 'package:fl_webview/fl_webview.dart';
-import 'package:fl_webview/src/extension.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -142,11 +141,13 @@ class FlWebViewController {
     }
   }
 
-  Future<void> loadUrl(LoadUrlRequest urlRequest) =>
-      _channel.invokeMethod<void>('loadUrl', urlRequest.toMap());
+  Future<bool> loadUrl(LoadUrlRequest urlRequest) async =>
+      (await _channel.invokeMethod<bool>('loadUrl', urlRequest.toMap())) ??
+      false;
 
-  Future<void> loadData(LoadDataRequest dataRequest) =>
-      _channel.invokeMethod<void>('loadData', dataRequest.toMap());
+  Future<bool> loadData(LoadDataRequest dataRequest) async =>
+      (await _channel.invokeMethod<bool>('loadData', dataRequest.toMap())) ??
+      false;
 
   Future<String?> currentUrl() => _channel.invokeMethod<String>('currentUrl');
 
@@ -213,15 +214,14 @@ class FlWebViewController {
     return map == null ? null : WebViewSize.formMap(map);
   }
 
-  Future<void> createForMac(WebSettings webSettings, Size size) async {
-    if (!_isMacOS) return;
+  Future<bool> createForMac(WebSettings webSettings, Size size) async {
+    if (!_isMacOS) return false;
     final map = webSettings.toMap()
       ..addAll({
         'width': size.width,
         'height': size.height,
       });
-    log(map);
-    await _channel.invokeMethod<void>('create', map);
+    return (await _channel.invokeMethod<bool>('create', map)) ?? false;
   }
 
   void dispose() {

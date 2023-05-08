@@ -87,10 +87,6 @@ class FlWebViewFactory: NSObject, FlutterPlatformViewFactory {
         print("FlWebViewFactory = \(viewId)")
         return FlWebViewPlatformView(channel)
     }
-
-    deinit {
-        print("FlutterWebViewMacosFactory - dealloc")
-    }
 }
 
 class FlWebView: WKWebView {

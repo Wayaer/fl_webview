@@ -29,7 +29,7 @@ class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
                 })
 
         } else {
-            decisionHandler(.allow)
+            decisionHandler(.cancel)
         }
     }
 
@@ -182,7 +182,7 @@ class FlWKUrlChangedDelegate: NSObject {
     }
 }
 
-//class FlWKScrollChangedDelegate: NSObject, UIScrollViewDelegate {
+// class FlWKScrollChangedDelegate: NSObject, UIScrollViewDelegate {
 //    var channel: FlutterMethodChannel
 //    var webView: WKWebView
 //
@@ -193,7 +193,6 @@ class FlWKUrlChangedDelegate: NSObject {
 ////        webView.scrollView.bounces = false
 //    }
 //
-    
 
 //    func scrollViewDidScroll(_ scrollView: UIScrollView) {
 //        let contentSize = scrollView.contentSize
@@ -217,7 +216,7 @@ class FlWKUrlChangedDelegate: NSObject {
 //            "position": position,
 //        ])
 //    }
-//}
+// }
 
 class FlWKJavaScriptChannel: NSObject, WKScriptMessageHandler {
     let channel: FlutterMethodChannel

@@ -27,31 +27,18 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
     func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "create":
-            create(call, result)
+            create(call)
+            result(webView != nil)
         case "applyWebSettings":
             applyWebSettings(call.arguments as! [String: Any?])
             result(nil)
         case "loadUrl":
-            Thread.sleep(forTimeInterval: 1)
-            if !loadUrl(call.arguments as! [String: Any?]) {
-                result(
-                    FlutterError(
-                        code: "loadUrl_failed",
-                        message: "Failed parsing the URL",
-                        details: "Request was: '\(call.arguments ?? "")'"))
-            } else {
-                result(nil)
+            DispatchQueue.main.async {
+                result(self.loadUrl(call.arguments as! [String: Any?]))
             }
         case "loadData":
-            Thread.sleep(forTimeInterval: 1)
-            if !loadData(call.arguments as! [String: Any?]) {
-                result(
-                    FlutterError(
-                        code: "loadData_failed",
-                        message: "Failed parsing the data",
-                        details: "Request was: '\(call.arguments ?? "")'"))
-            } else {
-                result(nil)
+            DispatchQueue.main.async {
+                result(self.loadData(call.arguments as! [String: Any?]))
             }
         case "canGoBack":
             result(webView?.canGoBack)
@@ -125,7 +112,7 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
         urlChangedDelegate = nil
     }
 
-    func create(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+    func create(_ call: FlutterMethodCall) {
         let args = call.arguments as! [String: Any?]
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = WKUserContentController()
@@ -141,7 +128,6 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
         navigationDelegate = FlWKNavigationDelegate(channel!)
         webView!.uiDelegate = self
         webView!.navigationDelegate = navigationDelegate
-
         urlChangedDelegate = FlWKUrlChangedDelegate(webView!, channel!)
 
         applyWebSettings(args)
@@ -152,7 +138,7 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
         webView!.autoresizesSubviews = true
         webView!.autoresizingMask = [.height, .width]
 
-//        super.layer?.backgroundColor = NSColor.red.cgColor
+        super.layer?.backgroundColor = NSColor.red.cgColor
         super.frame = frame
         super.addSubview(webView!)
     }
@@ -302,13 +288,8 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
 
     public func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         if !(navigationAction.targetFrame?.isMainFrame ?? false) {
-            webView.load(navigationAction.request)
+//            webView.load(navigationAction.request)
         }
         return nil
-    }
-
-    deinit {
-        print("==========deinit")
-        dispose()
     }
 }

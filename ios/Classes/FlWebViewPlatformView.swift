@@ -41,25 +41,9 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             applyWebSettings(call.arguments as! [String: Any?])
             result(nil)
         case "loadUrl":
-            if !loadUrl(call.arguments as! [String: Any?]) {
-                result(
-                    FlutterError(
-                        code: "loadUrl_failed",
-                        message: "Failed parsing the URL",
-                        details: "Request was: '\(call.arguments ?? "")'"))
-            } else {
-                result(nil)
-            }
+            result(loadUrl(call.arguments as! [String: Any?]))
         case "loadData":
-            if !loadData(call.arguments as! [String: Any?]) {
-                result(
-                    FlutterError(
-                        code: "loadData_failed",
-                        message: "Failed parsing the data",
-                        details: "Request was: '\(call.arguments ?? "")'"))
-            } else {
-                result(nil)
-            }
+            result(loadData(call.arguments as! [String: Any?]))
         case "canGoBack":
             result(webView.canGoBack)
         case "canGoForward":

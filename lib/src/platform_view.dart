@@ -1,4 +1,5 @@
 import 'package:fl_webview/fl_webview.dart';
+import 'package:fl_webview/src/extension.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -6,46 +7,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 typedef WebViewCreatedCallback = void Function(FlWebViewController controller);
-
-class _WebViewPlatformWithMacOS extends StatefulWidget {
-  const _WebViewPlatformWithMacOS(
-      {Key? key,
-      required this.onWebViewPlatformCreated,
-      required this.webSettings})
-      : super(key: key);
-  final WebViewCreatedCallback onWebViewPlatformCreated;
-  final WebSettings webSettings;
-
-  @override
-  State<_WebViewPlatformWithMacOS> createState() =>
-      _WebViewPlatformWithMacOSState();
-}
-
-class _WebViewPlatformWithMacOSState extends State<_WebViewPlatformWithMacOS> {
-  int? id;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      id = await FlWebViewManager().createMacWebView(widget.webSettings);
-      if (id == null) return;
-      widget.onWebViewPlatformCreated(FlWebViewController._(id!));
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) =>
-      const Center(child: Text('Please see the new window'));
-
-  @override
-  void dispose() {
-    if (id != null) {
-      FlWebViewManager().disposeMacWebView(id!);
-    }
-    super.dispose();
-  }
-}
 
 class WebViewPlatform extends StatelessWidget {
   const WebViewPlatform(
@@ -74,9 +35,7 @@ class WebViewPlatform extends StatelessWidget {
       case TargetPlatform.linux:
         break;
       case TargetPlatform.macOS:
-        return _WebViewPlatformWithMacOS(
-            webSettings: webSettings,
-            onWebViewPlatformCreated: onWebViewPlatformCreated);
+        return iosView;
       case TargetPlatform.windows:
         break;
     }
@@ -254,8 +213,20 @@ class FlWebViewController {
     return map == null ? null : WebViewSize.formMap(map);
   }
 
+  Future<void> createForMac(WebSettings webSettings, Size size) async {
+    if (!_isMacOS) return;
+    final map = webSettings.toMap()
+      ..addAll({
+        'width': size.width,
+        'height': size.height,
+      });
+    log(map);
+    await _channel.invokeMethod<void>('create', map);
+  }
+
   void dispose() {
     _channel.setMethodCallHandler(null);
+    if (_isMacOS) _channel.invokeMethod<void>('dispose');
   }
 }
 
@@ -271,17 +242,4 @@ class FlWebViewManager {
   final MethodChannel _flChannel = const MethodChannel('fl.webview.channel');
 
   Future<bool?> clearCookies() => _flChannel.invokeMethod<bool>('clearCookies');
-
-  Future<int?> createMacWebView(WebSettings webSettings) async {
-    if (!_isMacOS) return null;
-    final value = await _flChannel.invokeMethod<int>(
-        'createWebView', webSettings.toMap());
-    return value;
-  }
-
-  Future<bool> disposeMacWebView(int id) async {
-    if (!_isMacOS) return false;
-    final value = await _flChannel.invokeMethod<bool>('disposeWebView', id);
-    return value ?? false;
-  }
 }

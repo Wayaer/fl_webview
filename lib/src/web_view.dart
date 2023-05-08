@@ -124,6 +124,7 @@ class _WebViewState extends State<FlWebView> {
         webSettings: webSettings,
         onWebViewPlatformCreated: (_) async {
           flWebViewController = _;
+          await _.createForMac(webSettings, context.size ?? const Size(0, 0));
           initDelegate();
           await load();
           widget.onWebViewCreated?.call(_);
@@ -142,7 +143,6 @@ class _WebViewState extends State<FlWebView> {
     return ValueListenableBuilder(
         valueListenable: currentProgress!,
         builder: (_, int value, __) {
-          log(value);
           if (value < 10 || value == 100) {
             return const SizedBox();
           }

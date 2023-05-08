@@ -11,6 +11,10 @@ import 'package:flutter_curiosity/flutter_curiosity.dart';
 const String url = 'https://www.baidu.com/';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  Curiosity().desktop.focusDesktop().then((value) {
+    Curiosity().desktop.setDesktopSizeTo6P1();
+  });
   runApp(const ExtendedWidgetsApp(home: App(), title: 'FlWebview'));
 }
 
@@ -23,29 +27,33 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   @override
+  void initState() {
+    super.initState();
+    addPostFrameCallback((_) {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ExtendedScaffold(
         appBar: AppBar(title: const Text('FlWebView Example')),
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (isMobile) ...[
-            ElevatedText(
-                text: 'Fixed height with WebView',
-                onPressed: () => push(const FixedHeightFlWebView())),
-            ElevatedText(
-                text: 'Adapt height with WebView',
-                onPressed: () => push(const AdaptHeightFlWebView())),
-            const SizedBox(height: 10),
-            ElevatedText(
-                text: 'WebView With ScrollView',
-                onPressed: () =>
-                    push(const ExtendedFlWebViewWithScrollViewPage())),
-            const SizedBox(height: 10),
-            ElevatedText(text: 'Html Text with WebView', onPressed: getHtml),
-            ElevatedText(
-                text: 'Html Text Adapt height with WebView',
-                onPressed: () => getHtml(true)),
-          ],
+          ElevatedText(
+              text: 'Fixed height with WebView',
+              onPressed: () => push(const FixedHeightFlWebView())),
+          ElevatedText(
+              text: 'Adapt height with WebView',
+              onPressed: () => push(const AdaptHeightFlWebView())),
+          const SizedBox(height: 10),
+          ElevatedText(
+              text: 'WebView With ScrollView',
+              onPressed: () =>
+                  push(const ExtendedFlWebViewWithScrollViewPage())),
+          const SizedBox(height: 10),
+          ElevatedText(text: 'Html Text with WebView', onPressed: getHtml),
+          ElevatedText(
+              text: 'Html Text Adapt height with WebView',
+              onPressed: () => getHtml(true)),
         ]);
   }
 

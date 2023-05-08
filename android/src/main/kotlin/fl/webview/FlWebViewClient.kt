@@ -4,13 +4,11 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import io.flutter.plugin.common.MethodChannel
-import java.util.*
 
 class FlWebViewClient(
     private val channel: MethodChannel, private val handler: Handler
@@ -41,53 +39,48 @@ class FlWebViewClient(
     }
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-        var value = navigationRequestResult(enabledNavigationDelegate, view, request)
-        if (value == null) value = super.shouldOverrideUrlLoading(view, request)
-        return value
+        return navigationRequestResult(enabledNavigationDelegate, view, request)
     }
 
     fun navigationRequestResult(
         enabledNavigationDelegate: Boolean, view: WebView?, request: WebResourceRequest?
-    ): Boolean? {
-        if (view != null && request != null) {
+    ): Boolean {
+        if (view != null && request != null && enabledNavigationDelegate) {
             val url = request.url.toString()
             var headers = request.requestHeaders
             if (headers == null) headers = emptyMap()
-            if (enabledNavigationDelegate) {
-                val isForMainFrame = request.isForMainFrame
-                val args = HashMap<String, Any>()
-                args["url"] = url
-                args["isForMainFrame"] = isForMainFrame
-                if (isForMainFrame) {
-                    handler.post {
-                        channel.invokeMethod(
-                            "onNavigationRequest",
-                            args,
-                            object : MethodChannel.Result {
-                                override fun success(shouldLoad: Any?) {
-                                    if (shouldLoad as Boolean) {
-                                        view.loadUrl(url, headers)
-                                    }
+            val isForMainFrame = request.isForMainFrame
+            val args = mapOf(
+                "url" to url, "isForMainFrame" to isForMainFrame
+            )
+            if (isForMainFrame) {
+                handler.post {
+                    channel.invokeMethod("onNavigationRequest",
+                        args,
+                        object : MethodChannel.Result {
+                            override fun success(shouldLoad: Any?) {
+                                if (shouldLoad as Boolean) {
+                                    view.loadUrl(url, headers)
                                 }
+                            }
 
-                                override fun error(errorCode: String, s1: String?, o: Any?) {
-                                    throw IllegalStateException("navigationRequest calls must succeed")
-                                }
+                            override fun error(errorCode: String, s1: String?, o: Any?) {
+                                throw IllegalStateException("navigationRequest calls must succeed")
+                            }
 
-                                override fun notImplemented() {
-                                    throw IllegalStateException(
-                                        "navigationRequest must be implemented by the webview method channel"
-                                    )
-                                }
-                            })
-                    }
-                } else {
-                    invokeMethod("onNavigationRequest", args)
+                            override fun notImplemented() {
+                                throw IllegalStateException(
+                                    "navigationRequest must be implemented by the webview method channel"
+                                )
+                            }
+                        })
                 }
-                return request.isForMainFrame
+            } else {
+                invokeMethod("onNavigationRequest", args)
             }
+            return isForMainFrame
         }
-        return null
+        return false
     }
 
 

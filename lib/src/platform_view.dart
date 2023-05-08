@@ -125,7 +125,7 @@ class FlWebViewController {
 
   FlWebViewDelegate? _delegate;
 
-  set delegate(FlWebViewDelegate delegate) => _delegate = delegate;
+  set delegate(FlWebViewDelegate? delegate) => _delegate = delegate;
 
   Future<dynamic> _onMethodCall(MethodCall call) async {
     switch (call.method) {

@@ -258,6 +258,9 @@ typedef FlWebViewDelegateWithScrollChangedCallback = void Function(
 typedef FlWebViewDelegateWithNavigationRequest = FutureOr<bool> Function(
     NavigationRequest request);
 
+typedef FlWebViewDelegateWithWebResourceError = void Function(
+    WebResourceError error);
+
 class FlWebViewDelegate {
   FlWebViewDelegate({
     this.onPageStarted,
@@ -287,5 +290,27 @@ class FlWebViewDelegate {
 
   final FlWebViewDelegateWithUrlCallback? onUrlChanged;
 
-  final void Function(WebResourceError error)? onWebResourceError;
+  final FlWebViewDelegateWithWebResourceError? onWebResourceError;
+
+  FlWebViewDelegate copyWith({
+    FlWebViewDelegateWithUrlCallback? onPageStarted,
+    FlWebViewDelegateWithUrlCallback? onPageFinished,
+    FlWebViewDelegateWithProgressCallback? onProgress,
+    FlWebViewDelegateWithSizeCallback? onSizeChanged,
+    FlWebViewDelegateWithScrollChangedCallback? onScrollChanged,
+    FlWebViewDelegateWithNavigationRequest? onNavigationRequest,
+    FlWebViewDelegateWithUrlCallback? onClosed,
+    FlWebViewDelegateWithUrlCallback? onUrlChanged,
+    FlWebViewDelegateWithWebResourceError? onWebResourceError,
+  }) =>
+      FlWebViewDelegate(
+          onPageStarted: onPageStarted ?? this.onPageStarted,
+          onPageFinished: onPageFinished ?? this.onPageFinished,
+          onProgress: onProgress ?? this.onProgress,
+          onSizeChanged: onSizeChanged ?? this.onSizeChanged,
+          onNavigationRequest: onNavigationRequest ?? this.onNavigationRequest,
+          onScrollChanged: onScrollChanged ?? this.onScrollChanged,
+          onWebResourceError: onWebResourceError ?? this.onWebResourceError,
+          onClosed: onClosed ?? this.onClosed,
+          onUrlChanged: onUrlChanged ?? this.onUrlChanged);
 }

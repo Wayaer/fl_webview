@@ -31,7 +31,7 @@ class FlWebViewPlatformView(
         displayListenerProxy.onPreWebViewInitialization(displayManager)
         flWebViewClient = FlWebViewClient(channel, handler)
         webView = FlWebView(context, channel, handler)
-        flWebChromeClient = FlWebChromeClient(channel, handler, webView, flWebViewClient)
+        flWebChromeClient = FlWebChromeClient(channel, handler, flWebViewClient)
         applyWebSettings(params)
         webView.apply {
             webViewClient = flWebViewClient

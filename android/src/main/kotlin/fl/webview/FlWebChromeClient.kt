@@ -13,7 +13,6 @@ import io.flutter.plugin.common.MethodChannel
 class FlWebChromeClient(
     private val channel: MethodChannel,
     private val handler: Handler,
-    private val webView: WebView,
     private val flWebViewClient: FlWebViewClient
 ) : WebChromeClient() {
 
@@ -28,11 +27,9 @@ class FlWebChromeClient(
             override fun shouldOverrideUrlLoading(
                 view: WebView, request: WebResourceRequest
             ): Boolean {
-                var value = flWebViewClient.navigationRequestResult(
+                return flWebViewClient.navigationRequestResult(
                     enabledNavigationDelegate, view, request
                 )
-                if (value == null) value = super.shouldOverrideUrlLoading(view, request)
-                return value
             }
         }
         val transport = resultMsg.obj as WebView.WebViewTransport

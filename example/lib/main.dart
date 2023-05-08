@@ -67,6 +67,8 @@ class BaseFlWebView extends FlWebView {
     FlWebViewDelegate? delegate,
     WebViewCreatedCallback? onWebViewCreated,
   }) : super(
+            enableProgressBar: true,
+            progressBarColor: Colors.red,
             delegate: FlWebViewDelegate(
               onPageStarted: (String url) {
                 log('onPageStarted : $url');

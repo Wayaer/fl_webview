@@ -17,19 +17,20 @@ class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
 
     /// 决定网页能否被允许跳转
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        if !enabledNavigationDelegate {
+        if enabledNavigationDelegate {
+            channel.invokeMethod(
+                "onNavigationRequest",
+                arguments: [
+                    "url": navigationAction.request.url?.absoluteString ?? "",
+                    "isForMainFrame": NSNumber(value: navigationAction.targetFrame?.isMainFrame ?? false),
+                ],
+                result: { result in
+                    decisionHandler(result as! Bool ? .allow : .cancel)
+                })
+
+        } else {
             decisionHandler(.allow)
-            return
         }
-        channel.invokeMethod(
-            "onNavigationRequest",
-            arguments: [
-                "url": navigationAction.request.url?.absoluteString ?? "",
-                "isForMainFrame": NSNumber(value: navigationAction.targetFrame?.isMainFrame ?? false),
-            ],
-            result: { result in
-                decisionHandler(result is Bool && (result as! Bool) == false ? .cancel : .allow)
-            })
     }
 
     /// 理网页加载完成

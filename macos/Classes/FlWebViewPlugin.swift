@@ -84,6 +84,7 @@ class FlWebViewFactory: NSObject, FlutterPlatformViewFactory {
 
     func create(withViewIdentifier viewId: Int64, arguments args: Any?) -> NSView {
         let channel = FlutterMethodChannel(name: "fl.webview/\(viewId)", binaryMessenger: messenger)
+        print("FlWebViewFactory = \(viewId)")
         return FlWebViewPlatformView(channel)
     }
 
@@ -101,7 +102,7 @@ class FlWebView: WKWebView {
         super.init(coder: decoder)!
     }
 
-    func setFrame(frame: CGRect) {
+//    func setFrame(frame: CGRect) {
 //        scrollView.contentInset = .zero
 //        if #available(iOS 11.0, *) {
 //            if scrollView.adjustedContentInset == .zero {
@@ -115,7 +116,7 @@ class FlWebView: WKWebView {
 //                bottom: -insetToAdjust.bottom,
 //                right: -insetToAdjust.right)
 //        }
-    }
+//    }
 
     func setUserAgent(_ userAgent: String) {
         evaluateJavaScript("navigator.userAgent") { info, _ in

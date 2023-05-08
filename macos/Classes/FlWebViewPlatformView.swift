@@ -33,7 +33,6 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
             result(nil)
         case "loadUrl":
             Thread.sleep(forTimeInterval: 1)
-
             if !loadUrl(call.arguments as! [String: Any?]) {
                 result(
                     FlutterError(
@@ -45,7 +44,6 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
             }
         case "loadData":
             Thread.sleep(forTimeInterval: 1)
-
             if !loadData(call.arguments as! [String: Any?]) {
                 result(
                     FlutterError(
@@ -85,30 +83,29 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
         case "scrollBy":
             onScrollBy(call, result)
         case "getScrollXY":
-//            let offsetX = webView.scrollView.contentOffset.x
-//            let offsetY = webView.scrollView.contentOffset.y
+//            let offsetX = webView?.enclosingScrollView.contentOffset.x
+//            let offsetY = webView?.enclosingScrollView.contentOffset.y
 //            result([
 //                "x": offsetX,
 //                "y": offsetY,
 //            ])
             break
         case "getWebViewSize":
-//            let contentSize = webView.scrollView.contentSize
-//            let frame = webView.scrollView.frame
-//            result([
-//                "contentWidth": contentSize.width,
-//                "contentHeight": contentSize.height,
-//                "width": frame.width,
-//                "height": frame.height,
-//            ])
-            break
+            let contentSize = webView?.enclosingScrollView?.contentSize
+            let frame = webView?.enclosingScrollView?.frame
+            result([
+                "contentWidth": contentSize?.width,
+                "contentHeight": contentSize?.height,
+                "width": frame?.width,
+                "height": frame?.height,
+            ])
         case "getUserAgent":
             result(webView?.customUserAgent)
         case "enabledScroll":
 //            webView.scrollView.isScrollEnabled = call.arguments as! Bool
-//            result(true)
-            break
+            result(true)
         case "dispose":
+            print("====== dispose")
             dispose()
         default:
             result(FlutterMethodNotImplemented)
@@ -136,22 +133,26 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
             let dropSharedWorkersScript = WKUserScript(source: "delete window.SharedWorker;", injectionTime: WKUserScriptInjectionTime.atDocumentStart, forMainFrameOnly: false)
             configuration.userContentController.addUserScript(dropSharedWorkersScript)
         }
-        webView = FlWebView(CGRect(x: 0, y: 0, width: NSNumber(value: args["width"] as! Double
+        let frame = CGRect(x: 0, y: 0, width: NSNumber(value: args["width"] as! Double
         ).intValue, height: NSNumber(value: args["height"] as! Double
-        ).intValue), configuration)
+        ).intValue)
+        webView = FlWebView(frame, configuration)
 
         navigationDelegate = FlWKNavigationDelegate(channel!)
         webView!.uiDelegate = self
         webView!.navigationDelegate = navigationDelegate
+
         urlChangedDelegate = FlWKUrlChangedDelegate(webView!, channel!)
+
         applyWebSettings(args)
+
         super.autoresizesSubviews = true
         super.autoresizingMask = [.height, .width]
 
         webView!.autoresizesSubviews = true
         webView!.autoresizingMask = [.height, .width]
 
-        super.layer?.backgroundColor = NSColor.red.cgColor
+//        super.layer?.backgroundColor = NSColor.red.cgColor
         super.frame = frame
         super.addSubview(webView!)
     }
@@ -262,19 +263,19 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
     }
 
     func onScrollTo(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
-//        let arguments = call.arguments as! [String: Any]
-//        let x = arguments["x"] as! Double
-//        let y = arguments["y"] as! Double
-//        webView.scrollView.contentOffset = CGPoint(x: CGFloat(x), y: CGFloat(y))
+        let arguments = call.arguments as! [String: Any]
+        let x = arguments["x"] as! Double
+        let y = arguments["y"] as! Double
+        webView?.scroll(CGPoint(x: CGFloat(x), y: CGFloat(y)))
         result(nil)
     }
 
     func onScrollBy(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
-//        let contentOffset = webView.scrollView.contentOffset
+//        let contentOffset = webView!.preparedContentRect
 //        let arguments = call.arguments as! [String: Any]
 //        let x = CGFloat(arguments["x"] as! Double) + contentOffset.x
 //        let y = CGFloat(arguments["y"] as! Double) + contentOffset.y
-//        webView.scrollView.contentOffset = CGPoint(x: CGFloat(x), y: CGFloat(y))
+//        webView?.scroll(CGPoint(x: CGFloat(x), y: CGFloat(y))
         result(nil)
     }
 

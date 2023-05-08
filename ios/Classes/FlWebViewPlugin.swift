@@ -61,7 +61,8 @@ class FlWebViewFactory: NSObject, FlutterPlatformViewFactory {
     }
 
     func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
-        FlWebViewPlatformView(frame, viewId, args as! [String: Any], messenger)
+        let channel = FlutterMethodChannel(name: "fl.webview/\(viewId)", binaryMessenger: messenger)
+        return FlWebViewPlatformView(frame, viewId, args as! [String: Any], channel)
     }
 }
 

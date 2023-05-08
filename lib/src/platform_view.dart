@@ -226,7 +226,7 @@ class FlWebViewController {
 
   void dispose() {
     _channel.setMethodCallHandler(null);
-    if (_isMacOS) _channel.invokeMethod<void>('dispose');
+    _channel.invokeMethod<void>('dispose');
   }
 }
 

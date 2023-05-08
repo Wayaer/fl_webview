@@ -4,8 +4,6 @@ import WebKit
 public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate {
     var webView: FlWebView
 
-    var channel: FlutterMethodChannel
-
     var navigationDelegate: FlWKNavigationDelegate?
     var progressionDelegate: FlWKProgressionDelegate?
     var contentSizeDelegate: FlWKContentSizeDelegate?
@@ -14,8 +12,7 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
 
     var javaScriptChannelNames: [String] = []
 
-    init(_ frame: CGRect, _ viewId: Int64, _ args: [String: Any?], _ messenger: FlutterBinaryMessenger) {
-        channel = FlutterMethodChannel(name: "fl.webview/\(viewId)", binaryMessenger: messenger)
+    init(_ frame: CGRect, _ viewId: Int64, _ args: [String: Any?], _ channel: FlutterMethodChannel) {
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = WKUserContentController()
         if args["deleteWindowSharedWorker"] as! Bool {
@@ -24,11 +21,11 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         }
         webView = FlWebView(channel, frame, configuration)
         super.init()
-        channel.setMethodCallHandler(handle)
-        navigationDelegate = FlWKNavigationDelegate(channel)
+        webView.channel.setMethodCallHandler(handle)
+        navigationDelegate = FlWKNavigationDelegate(webView.channel)
         webView.uiDelegate = self
         webView.navigationDelegate = navigationDelegate
-        urlChangedDelegate = FlWKUrlChangedDelegate(webView, channel)
+        urlChangedDelegate = FlWKUrlChangedDelegate(webView)
         applyWebSettings(args)
         if #available(iOS 11.0, *) {
             webView.scrollView.contentInsetAdjustmentBehavior = .never
@@ -113,9 +110,22 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         case "enabledScroll":
             webView.scrollView.isScrollEnabled = call.arguments as! Bool
             result(true)
+        case "dispose":
+            dispose()
         default:
             result(FlutterMethodNotImplemented)
         }
+    }
+
+    func dispose() {
+        webView.channel.setMethodCallHandler(nil)
+        webView.removeFromSuperview()
+        progressionDelegate?.stopObserving()
+        progressionDelegate = nil
+        contentSizeDelegate?.stopObserving()
+        contentSizeDelegate = nil
+        urlChangedDelegate = nil
+        navigationDelegate = nil
     }
 
     func applyWebSettings(_ settings: [String: Any?]) {
@@ -125,22 +135,21 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
                 navigationDelegate!.enabledNavigationDelegate = value as! Bool
             case "enabledProgressChanged":
                 if value as! Bool {
-                    progressionDelegate = FlWKProgressionDelegate(webView, channel)
+                    progressionDelegate = FlWKProgressionDelegate(webView)
                 } else {
                     progressionDelegate?.stopObserving()
                     progressionDelegate = nil
                 }
             case "enableSizeChanged":
                 if value as! Bool {
-                    contentSizeDelegate = FlWKContentSizeDelegate(webView, channel)
+                    contentSizeDelegate = FlWKContentSizeDelegate(webView)
                 } else {
                     contentSizeDelegate?.stopObserving()
                     progressionDelegate = nil
                 }
             case "enabledScrollChanged":
                 if value as! Bool {
-                    scrollChangedDelegate = FlWKScrollChangedDelegate(webView, channel)
-                    webView.scrollView.delegate = scrollChangedDelegate
+                    scrollChangedDelegate = FlWKScrollChangedDelegate(webView)
                 } else {
                     webView.scrollView.delegate = nil
                     scrollChangedDelegate = nil
@@ -200,7 +209,7 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     func registerJavaScriptChannels(_ channelNames: [String]) {
         for channelName in channelNames {
             let channel = FlWKJavaScriptChannel(
-                channel,
+                webView.channel,
                 channelName)
             webView.configuration.userContentController.add(channel, name: channelName)
             let wrapperScript = WKUserScript(
@@ -269,12 +278,5 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
 
     public func view() -> UIView {
         webView
-    }
-
-    deinit {
-        channel.invokeMethod("onClosed", arguments: webView.url?.absoluteString)
-        progressionDelegate?.stopObserving()
-        contentSizeDelegate?.stopObserving()
-        urlChangedDelegate?.stopObserving()
     }
 }

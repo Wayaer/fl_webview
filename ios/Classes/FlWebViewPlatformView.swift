@@ -5,7 +5,7 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     var webView: FlWebView
 
     var navigationDelegate: FlWKNavigationDelegate?
-    var progressionDelegate: FlWKProgressionDelegate?
+    var progressDelegate: FlWKProgressDelegate?
     var contentSizeDelegate: FlWKContentSizeDelegate?
     var scrollChangedDelegate: FlWKScrollChangedDelegate?
     var urlChangedDelegate: FlWKUrlChangedDelegate?
@@ -91,6 +91,9 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             ])
         case "getUserAgent":
             result(webView.customUserAgent)
+        case "setUserAgent":
+            webView.customUserAgent = call.arguments as? String
+            result(webView.customUserAgent)
         case "enabledScroll":
             webView.scrollView.isScrollEnabled = call.arguments as! Bool
             result(true)
@@ -104,8 +107,8 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     func dispose() {
         webView.channel.setMethodCallHandler(nil)
         webView.removeFromSuperview()
-        progressionDelegate?.stopObserving()
-        progressionDelegate = nil
+        progressDelegate?.stopObserving()
+        progressDelegate = nil
         contentSizeDelegate?.stopObserving()
         contentSizeDelegate = nil
         urlChangedDelegate = nil
@@ -119,17 +122,17 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
                 navigationDelegate!.enabledNavigationDelegate = value as! Bool
             case "enabledProgressChanged":
                 if value as! Bool {
-                    progressionDelegate = FlWKProgressionDelegate(webView)
+                    progressDelegate = FlWKProgressDelegate(webView)
                 } else {
-                    progressionDelegate?.stopObserving()
-                    progressionDelegate = nil
+                    progressDelegate?.stopObserving()
+                    progressDelegate = nil
                 }
             case "enableSizeChanged":
                 if value as! Bool {
                     contentSizeDelegate = FlWKContentSizeDelegate(webView)
                 } else {
                     contentSizeDelegate?.stopObserving()
-                    progressionDelegate = nil
+                    contentSizeDelegate = nil
                 }
             case "enabledScrollChanged":
                 if value as! Bool {
@@ -142,11 +145,6 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
                 webView.configuration.preferences.javaScriptEnabled = (value as! NSNumber).intValue == 1
             case "gestureNavigationEnabled":
                 webView.allowsBackForwardNavigationGestures = value as! Bool
-            case "userAgent":
-                let userAgent = value as? String
-                if userAgent != nil {
-                    webView.setUserAgent(userAgent!)
-                }
             case "allowsInlineMediaPlayback":
                 webView.configuration.allowsInlineMediaPlayback = value as! Bool
             case "allowsAutoMediaPlayback":

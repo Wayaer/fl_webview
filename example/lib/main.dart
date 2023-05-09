@@ -13,7 +13,7 @@ const String url = 'https://www.baidu.com/';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Curiosity().desktop.focusDesktop().then((value) {
-    Curiosity().desktop.setDesktopSizeTo6P1();
+    Curiosity().desktop.setDesktopSizeToIPad9P7();
   });
   runApp(const ExtendedWidgetsApp(home: App(), title: 'FlWebview'));
 }
@@ -106,10 +106,6 @@ class BaseFlWebView extends FlWebView {
               onUrlChanged: (String url) {
                 log('onUrlChanged : $url');
                 delegate?.onUrlChanged?.call(url);
-              },
-              onClosed: (String url) {
-                log('onClosed : $url');
-                delegate?.onClosed?.call(url);
               },
             ),
             onWebViewCreated: (FlWebViewController controller) async {

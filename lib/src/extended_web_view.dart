@@ -1,4 +1,5 @@
 import 'package:fl_webview/fl_webview.dart';
+import 'package:fl_webview/src/extension.dart';
 import 'package:flutter/material.dart';
 
 /// 返回的Widget树中需要包含[FlWebView]
@@ -60,6 +61,9 @@ class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
         child: widget.builder(onSizeChanged, onScrollChanged, (controller) {
           this.controller = controller;
           controller.enabledScroll(false);
+          1.seconds.delayed(() {
+            controller.getWebViewSize();
+          });
         }));
   }
 

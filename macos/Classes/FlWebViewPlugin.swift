@@ -84,19 +84,26 @@ class FlWebViewFactory: NSObject, FlutterPlatformViewFactory {
 
     func create(withViewIdentifier viewId: Int64, arguments args: Any?) -> NSView {
         let channel = FlutterMethodChannel(name: "fl.webview/\(viewId)", binaryMessenger: messenger)
-        print("FlWebViewFactory = \(viewId)")
         return FlWebViewPlatformView(channel)
     }
 }
 
 class FlWebView: WKWebView {
-    init(_ frame: CGRect, _ configuration: WKWebViewConfiguration) {
+    var channel: FlutterMethodChannel
+
+    init(_ channel: FlutterMethodChannel, _ frame: CGRect, _ configuration: WKWebViewConfiguration) {
+        self.channel = channel
         super.init(frame: frame, configuration: configuration)
     }
 
-    public required init(coder decoder: NSCoder) {
-        super.init(coder: decoder)!
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
+
+//    public required init(coder decoder: NSCoder) {
+//        super.init(coder: decoder)!
+//    }
 
 //    func setFrame(frame: CGRect) {
 //        scrollView.contentInset = .zero
@@ -113,10 +120,4 @@ class FlWebView: WKWebView {
 //                right: -insetToAdjust.right)
 //        }
 //    }
-
-    func setUserAgent(_ userAgent: String) {
-        evaluateJavaScript("navigator.userAgent") { info, _ in
-            self.customUserAgent = (info as? String ?? "") + userAgent
-        }
-    }
 }

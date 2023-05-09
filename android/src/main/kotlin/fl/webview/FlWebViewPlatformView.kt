@@ -67,9 +67,7 @@ class FlWebViewPlatformView(
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    override fun onMethodCall(
-        call: MethodCall, result: MethodChannel.Result
-    ) {
+    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "loadUrl" -> {
                 val args = call.arguments as Map<*, *>
@@ -78,7 +76,14 @@ class FlWebViewPlatformView(
             }
 
             "loadData" -> {
-                loadData(call.arguments as Map<*, *>)
+                val args = call.arguments as Map<*, *>
+                webView.loadDataWithBaseURL(
+                    args["baseURL"] as String?,
+                    args["data"] as String,
+                    args["mimeType"] as String?,
+                    args["encoding"] as String?,
+                    args["historyUrl"] as String?
+                )
                 result.success(true)
             }
 
@@ -138,6 +143,11 @@ class FlWebViewPlatformView(
             )
 
             "getUserAgent" -> result.success(webView.settings.userAgentString)
+            "setUserAgent" -> {
+                webView.settings.userAgentString = call.arguments as String
+                result.success(webView.settings.userAgentString)
+            }
+
             "enabledScroll" -> {
                 webView.enabledScroll = call.arguments as Boolean
                 result.success(true)
@@ -171,25 +181,9 @@ class FlWebViewPlatformView(
                     !(value as Boolean)
 
                 "enabledZoom" -> webView.settings.setSupportZoom(value as Boolean)
-                "userAgent" -> {
-                    (value as String?).let {
-                        webView.settings.userAgentString = it
-                    }
-                }
-
                 "enabledDebugging" -> WebView.setWebContentsDebuggingEnabled(value as Boolean)
             }
         }
-    }
-
-
-    private fun loadData(args: Map<*, *>) {
-        val data = args["data"] as String
-        val mimeType = args["mimeType"] as String?
-        val encoding = args["encoding"] as String?
-        val baseURL = args["baseURL"] as String?
-        val historyUrl = args["historyUrl"] as String?
-        webView.loadDataWithBaseURL(baseURL, data, mimeType, encoding, historyUrl)
     }
 
 

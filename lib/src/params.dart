@@ -160,7 +160,6 @@ class WebSettings {
     this.allowsAutoMediaPlayback = true,
     this.enabledZoom = true,
     this.deleteWindowSharedWorker = true,
-    this.userAgent,
   });
 
   /// navigationDelegate
@@ -179,8 +178,6 @@ class WebSettings {
   final bool allowsAutoMediaPlayback;
 
   final JavascriptMode javascriptMode;
-
-  final String? userAgent;
 
   final bool enabledZoom;
 
@@ -205,7 +202,6 @@ class WebSettings {
         'enabledScrollChanged': enabledScrollChanged,
         'javascriptMode': javascriptMode.index,
         'allowsAutoMediaPlayback': allowsAutoMediaPlayback,
-        'userAgent': userAgent,
         'enabledDebugging': enabledDebugging,
         'gestureNavigationEnabled': gestureNavigationEnabled,
         'allowsInlineMediaPlayback': allowsInlineMediaPlayback,
@@ -270,7 +266,6 @@ class FlWebViewDelegate {
     this.onNavigationRequest,
     this.onScrollChanged,
     this.onWebResourceError,
-    this.onClosed,
     this.onUrlChanged,
   });
 
@@ -286,8 +281,6 @@ class FlWebViewDelegate {
 
   final FlWebViewDelegateWithNavigationRequest? onNavigationRequest;
 
-  final FlWebViewDelegateWithUrlCallback? onClosed;
-
   final FlWebViewDelegateWithUrlCallback? onUrlChanged;
 
   final FlWebViewDelegateWithWebResourceError? onWebResourceError;
@@ -299,7 +292,6 @@ class FlWebViewDelegate {
     FlWebViewDelegateWithSizeCallback? onSizeChanged,
     FlWebViewDelegateWithScrollChangedCallback? onScrollChanged,
     FlWebViewDelegateWithNavigationRequest? onNavigationRequest,
-    FlWebViewDelegateWithUrlCallback? onClosed,
     FlWebViewDelegateWithUrlCallback? onUrlChanged,
     FlWebViewDelegateWithWebResourceError? onWebResourceError,
   }) =>
@@ -311,6 +303,5 @@ class FlWebViewDelegate {
           onNavigationRequest: onNavigationRequest ?? this.onNavigationRequest,
           onScrollChanged: onScrollChanged ?? this.onScrollChanged,
           onWebResourceError: onWebResourceError ?? this.onWebResourceError,
-          onClosed: onClosed ?? this.onClosed,
           onUrlChanged: onUrlChanged ?? this.onUrlChanged);
 }

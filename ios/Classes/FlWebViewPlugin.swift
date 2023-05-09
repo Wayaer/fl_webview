@@ -95,9 +95,15 @@ class FlWebView: WKWebView {
         }
     }
 
-    func setUserAgent(_ userAgent: String) {
-        evaluateJavaScript("navigator.userAgent") { info, _ in
-            self.customUserAgent = (info as? String ?? "") + userAgent
+    var userAgent: String? {
+        set {
+            customUserAgent = newValue
+//            evaluateJavaScript("navigator.userAgent") { info, _ in
+//                self.customUserAgent = (info as? String ?? "") + (newValue ?? "")
+//            }
+        }
+        get {
+            customUserAgent
         }
     }
 }

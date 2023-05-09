@@ -4,10 +4,10 @@ import WebKit
 public class FlWebViewPlatformView: NSView, WKUIDelegate {
     var webView: FlWebView?
 
-    var channel: FlutterMethodChannel?
+    var channel: FlutterMethodChannel
 
     var navigationDelegate: FlWKNavigationDelegate?
-    var progressionDelegate: FlWKProgressionDelegate?
+    var progressDelegate: FlWKProgressnDelegate?
     var contentSizeDelegate: FlWKContentSizeDelegate?
 //    var scrollChangedDelegate: FlWKScrollChangedDelegate?
     var urlChangedDelegate: FlWKUrlChangedDelegate?
@@ -15,13 +15,14 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
     var javaScriptChannelNames: [String] = []
 
     init(_ channel: FlutterMethodChannel) {
-        super.init(frame: CGRect())
         self.channel = channel
+        super.init(frame: CGRect())
         channel.setMethodCallHandler(handle)
     }
 
+    @available(*, unavailable)
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
+        fatalError("init(coder:) has not been implemented")
     }
 
     func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -77,22 +78,27 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
 //                "y": offsetY,
 //            ])
             break
-        case "getWebViewSize":
-            let contentSize = webView?.enclosingScrollView?.contentSize
-            let frame = webView?.enclosingScrollView?.frame
-            result([
-                "contentWidth": contentSize?.width,
-                "contentHeight": contentSize?.height,
-                "width": frame?.width,
-                "height": frame?.height,
-            ])
+        case "getWebViewSize": DispatchQueue.main.async {
+                let contentSize = self.webView?.enclosingScrollView?.contentSize
+                let frame = self.webView?.enclosingScrollView?.frame
+                print(contentSize)
+                print(frame)
+                result([
+                    "contentWidth": contentSize?.width,
+                    "contentHeight": contentSize?.height,
+                    "width": frame?.width,
+                    "height": frame?.height,
+                ])
+            }
         case "getUserAgent":
+            result(webView?.customUserAgent)
+        case "setUserAgent":
+            webView?.customUserAgent = call.arguments as? String
             result(webView?.customUserAgent)
         case "enabledScroll":
 //            webView.scrollView.isScrollEnabled = call.arguments as! Bool
             result(true)
         case "dispose":
-            print("====== dispose")
             dispose()
         default:
             result(FlutterMethodNotImplemented)
@@ -100,13 +106,12 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
     }
 
     func dispose() {
-        channel?.setMethodCallHandler(nil)
-        channel = nil
+        channel.setMethodCallHandler(nil)
         webView?.removeFromSuperview()
         webView = nil
         navigationDelegate = nil
-        progressionDelegate?.stopObserving()
-        progressionDelegate = nil
+        progressDelegate?.stopObserving()
+        progressDelegate = nil
         contentSizeDelegate?.stopObserving()
         contentSizeDelegate = nil
         urlChangedDelegate = nil
@@ -117,21 +122,18 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = WKUserContentController()
         if args["deleteWindowSharedWorker"] as! Bool {
-            let dropSharedWorkersScript = WKUserScript(source: "delete window.SharedWorker;", injectionTime: WKUserScriptInjectionTime.atDocumentStart, forMainFrameOnly: false)
+            let dropSharedWorkersScript = WKUserScript(source: "delete window.SharedWorker;", injectionTime: .atDocumentStart, forMainFrameOnly: false)
             configuration.userContentController.addUserScript(dropSharedWorkersScript)
         }
         let frame = CGRect(x: 0, y: 0, width: NSNumber(value: args["width"] as! Double
         ).intValue, height: NSNumber(value: args["height"] as! Double
         ).intValue)
-        webView = FlWebView(frame, configuration)
-
-        navigationDelegate = FlWKNavigationDelegate(channel!)
-        webView!.uiDelegate = self
-        webView!.navigationDelegate = navigationDelegate
-        urlChangedDelegate = FlWKUrlChangedDelegate(webView!, channel!)
-
+        webView = FlWebView(channel, frame, configuration)
+//        navigationDelegate = FlWKNavigationDelegate(channel)
+//        webView!.uiDelegate = self
+//        webView!.navigationDelegate = navigationDelegate
+        urlChangedDelegate = FlWKUrlChangedDelegate(webView!)
         applyWebSettings(args)
-
         super.autoresizesSubviews = true
         super.autoresizingMask = [.height, .width]
 
@@ -140,6 +142,7 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
 
         super.layer?.backgroundColor = NSColor.red.cgColor
         super.frame = frame
+        super.removeFromSuperview()
         super.addSubview(webView!)
     }
 
@@ -147,20 +150,21 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
         settings.forEach { (key: String, value: Any?) in
             switch key {
             case "enabledNavigationDelegate":
-                navigationDelegate!.enabledNavigationDelegate = value as! Bool
+//                navigationDelegate?.enabledNavigationDelegate = value as! Bool
+                break
             case "enabledProgressChanged":
                 if value as! Bool {
-                    progressionDelegate = FlWKProgressionDelegate(webView!, channel!)
+//                    progressDelegate = FlWKProgressnDelegate(webView!, channel!)
                 } else {
-                    progressionDelegate?.stopObserving()
-                    progressionDelegate = nil
+                    progressDelegate?.stopObserving()
+                    progressDelegate = nil
                 }
             case "enableSizeChanged":
                 if value as! Bool {
-                    contentSizeDelegate = FlWKContentSizeDelegate(webView!, channel!)
+//                    contentSizeDelegate = FlWKContentSizeDelegate(webView!, channel!)
                 } else {
                     contentSizeDelegate?.stopObserving()
-                    progressionDelegate = nil
+                    contentSizeDelegate = nil
                 }
             case "enabledScrollChanged":
 //                if value as! Bool {
@@ -175,12 +179,7 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
                 webView?.configuration.defaultWebpagePreferences.allowsContentJavaScript = (value as! NSNumber).intValue == 1
             case "gestureNavigationEnabled":
                 webView?.allowsBackForwardNavigationGestures = value as! Bool
-            case "userAgent":
-                let userAgent = value as? String
-                if userAgent != nil {
-                    webView?.setUserAgent(userAgent!)
-                }
-//            case "allowsInlineMediaPlayback":
+            //            case "allowsInlineMediaPlayback":
 //                webView?.configuration.allowsAirPlayForMediaPlayback = value as! Bool
             case "allowsAutoMediaPlayback":
                 webView?.configuration.mediaTypesRequiringUserActionForPlayback = value as! Bool ? .all : .audio
@@ -190,14 +189,14 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
     }
 
     func evaluateJavaScript(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
-        let jsString = call.arguments as! String
-        webView?.evaluateJavaScript(jsString) { value, error in
+        let js = call.arguments as! String
+        webView?.evaluateJavaScript(js) { value, error in
             if let error = error {
                 result(
                     FlutterError(
                         code: "evaluateJavaScript_failed",
                         message: "Failed evaluating JavaScript",
-                        details: "JavaScript string was: '\(jsString)'\n\(error)"))
+                        details: "JavaScript string was: '\(js)'\n\(error)"))
             } else {
                 result(value)
             }
@@ -226,7 +225,7 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
     func registerJavaScriptChannels(_ channelNames: [String]) {
         for channelName in channelNames {
             let channel = FlWKJavaScriptChannel(
-                channel!,
+                channel,
                 channelName)
             webView?.configuration.userContentController.add(channel, name: channelName)
             let wrapperScript = WKUserScript(
@@ -287,8 +286,9 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
     }
 
     public func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
-        if !(navigationAction.targetFrame?.isMainFrame ?? false) {
-//            webView.load(navigationAction.request)
+        if !(navigationAction.targetFrame?.isMainFrame ?? true) {
+            print("navigationAction=====")
+            webView.load(navigationAction.request)
         }
         return nil
     }

@@ -135,9 +135,6 @@ class FlWebViewController {
                     type.toString() ==
                     '$WebResourceErrorType.${call.arguments['errorType']}')));
         break;
-      case 'onClosed':
-        _delegate?.onClosed?.call((call.arguments as String?) ?? "");
-        break;
     }
   }
 
@@ -153,6 +150,9 @@ class FlWebViewController {
 
   Future<String?> getUserAgent() =>
       _channel.invokeMethod<String>('getUserAgent');
+
+  Future<String?> setUserAgent(String userAgent) =>
+      _channel.invokeMethod<String>('setUserAgent', userAgent);
 
   Future<bool?> canGoBack() => _channel.invokeMethod<bool>('canGoBack');
 

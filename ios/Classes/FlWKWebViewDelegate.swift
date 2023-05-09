@@ -83,7 +83,7 @@ class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
     }
 }
 
-class FlWKProgressionDelegate: NSObject {
+class FlWKProgressDelegate: NSObject {
     let progressKeyPath = "estimatedProgress"
     var webView: FlWebView
 

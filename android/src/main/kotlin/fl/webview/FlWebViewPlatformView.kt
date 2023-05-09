@@ -153,6 +153,11 @@ class FlWebViewPlatformView(
                 result.success(true)
             }
 
+            "dispose" -> {
+                webView.destroy();
+                channel.setMethodCallHandler(null)
+            }
+
             else -> result.notImplemented()
         }
     }

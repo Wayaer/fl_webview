@@ -132,8 +132,9 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
 //        navigationDelegate = FlWKNavigationDelegate(channel)
 //        webView!.uiDelegate = self
 //        webView!.navigationDelegate = navigationDelegate
-        urlChangedDelegate = FlWKUrlChangedDelegate(webView!)
-        applyWebSettings(args)
+//        urlChangedDelegate = FlWKUrlChangedDelegate(webView!)
+//        applyWebSettings(args)
+        webView?.configuration.defaultWebpagePreferences.allowsContentJavaScript = true
         super.autoresizesSubviews = true
         super.autoresizingMask = [.height, .width]
 

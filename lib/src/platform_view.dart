@@ -148,6 +148,9 @@ class FlWebViewController {
 
   Future<String?> currentUrl() => _channel.invokeMethod<String>('currentUrl');
 
+  Future<String?> getNavigatorUserAgent() =>
+      evaluateJavascript('navigator.userAgent');
+
   Future<String?> getUserAgent() =>
       _channel.invokeMethod<String>('getUserAgent');
 

@@ -100,24 +100,4 @@ class FlWebView: WKWebView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
-//    public required init(coder decoder: NSCoder) {
-//        super.init(coder: decoder)!
-//    }
-
-//    func setFrame(frame: CGRect) {
-//        scrollView.contentInset = .zero
-//        if #available(iOS 11.0, *) {
-//            if scrollView.adjustedContentInset == .zero {
-//                return
-//            }
-//            let insetToAdjust = scrollView.adjustedContentInset
-//            scrollView.translatesAutoresizingMaskIntoConstraints = false
-//            scrollView.contentInset = UIEdgeInsets(
-//                top: -insetToAdjust.top,
-//                left: -insetToAdjust.left,
-//                bottom: -insetToAdjust.bottom,
-//                right: -insetToAdjust.right)
-//        }
-//    }
 }

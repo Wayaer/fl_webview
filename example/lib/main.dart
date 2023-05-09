@@ -13,7 +13,7 @@ const String url = 'https://www.baidu.com/';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Curiosity().desktop.focusDesktop().then((value) {
-    Curiosity().desktop.setDesktopSizeToIPad9P7();
+    Curiosity().desktop.setDesktopSizeToIPad9P7(p: 1.4);
   });
   runApp(const ExtendedWidgetsApp(home: App(), title: 'FlWebview'));
 }
@@ -109,8 +109,12 @@ class BaseFlWebView extends FlWebView {
               },
             ),
             onWebViewCreated: (FlWebViewController controller) async {
-              final userAgent = await controller.getUserAgent();
-              log('userAgent:  $userAgent');
+              String userAgentString = 'userAgentString';
+              final value = await controller.getNavigatorUserAgent();
+              log('navigator.userAgent :  $value');
+              userAgentString = '$value = $userAgentString';
+              final userAgent = await controller.setUserAgent(userAgentString);
+              log('set userAgent:  $userAgent');
               onWebViewCreated?.call(controller);
             });
 }
@@ -123,6 +127,10 @@ class ElevatedText extends StatelessWidget {
   final VoidCallback onPressed;
 
   @override
-  Widget build(BuildContext context) =>
-      ElevatedButton(onPressed: onPressed, child: Text(text));
+  Widget build(BuildContext context) {
+    final button = ElevatedButton(onPressed: onPressed, child: Text(text));
+    if (!isMacOS) return button;
+    return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6), child: button);
+  }
 }

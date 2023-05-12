@@ -10,7 +10,8 @@ class ExtendedFlWebViewWithScrollViewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double webHeight = deviceHeight - getStatusBarHeight - kToolbarHeight;
+    double webHeight =
+        context.deviceHeight - context.statusBarHeight - kToolbarHeight;
     return ExtendedScaffold(
         appBar:
             AppBar(title: const Text('ExtendedFlWebViewWithScrollViewPage')),

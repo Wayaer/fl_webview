@@ -1,9 +1,7 @@
 import 'package:fl_webview/fl_webview.dart';
-import 'package:fl_webview/src/extension.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 abstract class LoadRequest {}
 

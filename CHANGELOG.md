@@ -1,3 +1,8 @@
+## 1.0.0
+
+* Rewrite code
+* Added macos preview support
+
 ## 0.7.1
 
 * Support for h5 location capture on Android

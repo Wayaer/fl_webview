@@ -24,10 +24,9 @@ class FlWKNavigationDelegate: NSObject, WKNavigationDelegate {
                     "url": navigationAction.request.url?.absoluteString ?? "",
                     "isForMainFrame": NSNumber(value: navigationAction.targetFrame?.isMainFrame ?? false),
                 ],
-                result: { result in
-                    decisionHandler(result as! Bool ? .allow : .cancel)
+                result: { value in
+                    decisionHandler(value as! Bool ? .allow : .cancel)
                 })
-
         } else {
             decisionHandler(.cancel)
         }
@@ -120,32 +119,32 @@ class FlWKContentSizeDelegate: NSObject {
     init(_ webView: FlWebView) {
         self.webView = webView
         super.init()
-//        webView.scrollView.addObserver(
-//            self,
-//            forKeyPath: contentSizeKeyPath,
-//            options: .new,
-//            context: nil)
+        webView.addObserver(
+            self,
+            forKeyPath: contentSizeKeyPath,
+            options: .new,
+            context: nil)
     }
 
     func stopObserving() {
-//        webView.scrollView.removeObserver(self, forKeyPath: contentSizeKeyPath)
+        webView.removeObserver(self, forKeyPath: contentSizeKeyPath)
     }
 
     override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
-//        if keyPath != contentSizeKeyPath || change?[NSKeyValueChangeKey.newKey] == nil {
-//            return
-//        }
-//        let contentSize = webView.scrollView.contentSize
-//        if contentSize.height > height {
-//            height = contentSize.height
-//            let frame = webView.scrollView.frame
-//            webView.channel.invokeMethod("onSizeChanged", arguments: [
-//                "width": frame.width,
-//                "height": frame.height,
-//                "contentWidth": contentSize.width,
-//                "contentHeight": contentSize.height,
-//            ])
-//        }
+        if keyPath != contentSizeKeyPath || change?[NSKeyValueChangeKey.newKey] == nil {
+            return
+        }
+        let contentSize = webView.visibleRect.size
+        if contentSize.height > height {
+            height = contentSize.height
+            let frame = webView.frame
+            webView.channel.invokeMethod("onSizeChanged", arguments: [
+                "width": frame.width,
+                "height": frame.height,
+                "contentWidth": contentSize.width,
+                "contentHeight": contentSize.height,
+            ])
+        }
     }
 }
 

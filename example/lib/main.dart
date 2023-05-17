@@ -7,13 +7,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 import 'package:flutter_curiosity/flutter_curiosity.dart';
 
-// const String url = 'https://juejin.cn/post/7154271406132297764';
-const String url = 'https://www.baidu.com/';
+const String url =
+    'https://blog.csdn.net/ozhuimeng123/article/details/98120505';
+// const String url = 'https://www.baidu.com/';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Curiosity().desktop.focusDesktop().then((value) {
-    Curiosity().desktop.setDesktopSizeToIPad9P7(p: 1.4);
+    Curiosity().desktop.setDesktopSizeTo6P1();
   });
   runApp(const ExtendedWidgetsApp(home: App(), title: 'FlWebview'));
 }
@@ -100,7 +101,7 @@ class BaseFlWebView extends FlWebView {
               //   delegate?.onScrollChanged?.call(webViewSize, offset, positioned);
               // },
               onNavigationRequest: (NavigationRequest request) {
-                log('onNavigationRequest : ${request.url} --- ${request.isForMainFrame}');
+                log('onNavigationRequest : url=${request.url} --- isForMainFrame=${request.isForMainFrame}');
                 return delegate?.onNavigationRequest?.call(request) ?? true;
               },
               onUrlChanged: (String url) {
@@ -116,6 +117,10 @@ class BaseFlWebView extends FlWebView {
               final userAgent = await controller.setUserAgent(userAgentString);
               log('set userAgent:  $userAgent');
               onWebViewCreated?.call(controller);
+
+              10.seconds.delayed(() {
+                controller.getWebViewSize();
+              });
             });
 }
 

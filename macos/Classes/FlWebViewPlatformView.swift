@@ -78,18 +78,15 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
 //                "y": offsetY,
 //            ])
             break
-        case "getWebViewSize": DispatchQueue.main.async {
-                let contentSize = self.webView?.enclosingScrollView?.contentSize
-                let frame = self.webView?.enclosingScrollView?.frame
-                print(contentSize)
-                print(frame)
-                result([
-                    "contentWidth": contentSize?.width,
-                    "contentHeight": contentSize?.height,
-                    "width": frame?.width,
-                    "height": frame?.height,
-                ])
-            }
+        case "getWebViewSize":
+            let contentSize = webView?.visibleRect.size
+            let frame = webView?.frame.size
+            result([
+                "contentWidth": contentSize?.width,
+                "contentHeight": contentSize?.height,
+                "width": frame?.width,
+                "height": frame?.height,
+            ])
         case "getUserAgent":
             result(webView?.customUserAgent)
         case "setUserAgent":
@@ -129,11 +126,11 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
         ).intValue, height: NSNumber(value: args["height"] as! Double
         ).intValue)
         webView = FlWebView(channel, frame, configuration)
-//        navigationDelegate = FlWKNavigationDelegate(channel)
-//        webView!.uiDelegate = self
-//        webView!.navigationDelegate = navigationDelegate
-//        urlChangedDelegate = FlWKUrlChangedDelegate(webView!)
-//        applyWebSettings(args)
+        navigationDelegate = FlWKNavigationDelegate(channel)
+        webView!.uiDelegate = self
+        webView!.navigationDelegate = navigationDelegate
+        urlChangedDelegate = FlWKUrlChangedDelegate(webView!)
+        applyWebSettings(args)
         webView?.configuration.defaultWebpagePreferences.allowsContentJavaScript = true
         super.autoresizesSubviews = true
         super.autoresizingMask = [.height, .width]
@@ -151,18 +148,17 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
         settings.forEach { (key: String, value: Any?) in
             switch key {
             case "enabledNavigationDelegate":
-//                navigationDelegate?.enabledNavigationDelegate = value as! Bool
-                break
+                navigationDelegate?.enabledNavigationDelegate = value as! Bool
             case "enabledProgressChanged":
                 if value as! Bool {
-//                    progressDelegate = FlWKProgressnDelegate(webView!, channel!)
+                    progressDelegate = FlWKProgressnDelegate(webView!)
                 } else {
                     progressDelegate?.stopObserving()
                     progressDelegate = nil
                 }
             case "enableSizeChanged":
                 if value as! Bool {
-//                    contentSizeDelegate = FlWKContentSizeDelegate(webView!, channel!)
+                    contentSizeDelegate = FlWKContentSizeDelegate(webView!)
                 } else {
                     contentSizeDelegate?.stopObserving()
                     contentSizeDelegate = nil
@@ -287,8 +283,7 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
     }
 
     public func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
-        if !(navigationAction.targetFrame?.isMainFrame ?? true) {
-            print("navigationAction=====")
+        if !(navigationAction.targetFrame?.isMainFrame ?? false) {
             webView.load(navigationAction.request)
         }
         return nil

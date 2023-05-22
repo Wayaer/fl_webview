@@ -153,10 +153,6 @@ class FlWebViewPlatformView(
                 result.success(true)
             }
 
-            "dispose" -> {
-
-            }
-
             else -> result.notImplemented()
         }
     }

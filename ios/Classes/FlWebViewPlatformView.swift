@@ -2,7 +2,7 @@ import Flutter
 import WebKit
 
 public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate {
-    var webView: FlWebView
+    var webView: FlWebView?
 
     var navigationDelegate: FlWKNavigationDelegate?
     var progressDelegate: FlWKProgressDelegate?
@@ -21,16 +21,16 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         }
         webView = FlWebView(channel, frame, configuration)
         super.init()
-        webView.channel.setMethodCallHandler(handle)
-        navigationDelegate = FlWKNavigationDelegate(webView.channel)
-        webView.uiDelegate = self
-        webView.navigationDelegate = navigationDelegate
-        urlChangedDelegate = FlWKUrlChangedDelegate(webView)
+        webView!.channel.setMethodCallHandler(handle)
+        navigationDelegate = FlWKNavigationDelegate(webView!.channel)
+        webView!.uiDelegate = self
+        webView!.navigationDelegate = navigationDelegate
+        urlChangedDelegate = FlWKUrlChangedDelegate(webView!)
         applyWebSettings(args)
         if #available(iOS 11.0, *) {
-            webView.scrollView.contentInsetAdjustmentBehavior = .never
+            webView!.scrollView.contentInsetAdjustmentBehavior = .never
             if #available(iOS 13.0, *) {
-                webView.scrollView.automaticallyAdjustsScrollIndicatorInsets = false
+                webView!.scrollView.automaticallyAdjustsScrollIndicatorInsets = false
             }
         }
     }
@@ -45,20 +45,20 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         case "loadData":
             result(loadData(call.arguments as! [String: Any?]))
         case "canGoBack":
-            result(webView.canGoBack)
+            result(webView!.canGoBack)
         case "canGoForward":
-            result(webView.canGoForward)
+            result(webView!.canGoForward)
         case "goBack":
-            webView.goBack()
+            webView!.goBack()
             result(nil)
         case "goForward":
-            webView.goForward()
+            webView!.goForward()
             result(nil)
         case "reload":
-            webView.reload()
+            webView!.reload()
             result(nil)
         case "currentUrl":
-            result(webView.url?.absoluteString)
+            result(webView!.url?.absoluteString)
         case "evaluateJavascript":
             evaluateJavaScript(call, result)
         case "addJavascriptChannel":
@@ -68,21 +68,21 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         case "clearCache":
             clearCache(result)
         case "getTitle":
-            result(webView.title)
+            result(webView!.title)
         case "scrollTo":
             onScrollTo(call, result)
         case "scrollBy":
             onScrollBy(call, result)
         case "getScrollXY":
-            let offsetX = webView.scrollView.contentOffset.x
-            let offsetY = webView.scrollView.contentOffset.y
+            let offsetX = webView!.scrollView.contentOffset.x
+            let offsetY = webView!.scrollView.contentOffset.y
             result([
                 "x": offsetX,
                 "y": offsetY,
             ])
         case "getWebViewSize":
-            let contentSize = webView.scrollView.contentSize
-            let frame = webView.scrollView.frame
+            let contentSize = webView!.scrollView.contentSize
+            let frame = webView!.scrollView.frame
             result([
                 "contentWidth": contentSize.width,
                 "contentHeight": contentSize.height,
@@ -90,29 +90,16 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
                 "height": frame.height,
             ])
         case "getUserAgent":
-            result(webView.customUserAgent)
+            result(webView!.customUserAgent)
         case "setUserAgent":
-            webView.customUserAgent = call.arguments as? String
-            result(webView.customUserAgent)
+            webView!.customUserAgent = call.arguments as? String
+            result(webView!.customUserAgent)
         case "enabledScroll":
-            webView.scrollView.isScrollEnabled = call.arguments as! Bool
+            webView!.scrollView.isScrollEnabled = call.arguments as! Bool
             result(true)
-        case "dispose":
-            dispose()
         default:
             result(FlutterMethodNotImplemented)
         }
-    }
-
-    func dispose() {
-        webView.channel.setMethodCallHandler(nil)
-        webView.removeFromSuperview()
-        progressDelegate?.stopObserving()
-        progressDelegate = nil
-        contentSizeDelegate?.stopObserving()
-        contentSizeDelegate = nil
-        urlChangedDelegate = nil
-        navigationDelegate = nil
     }
 
     func applyWebSettings(_ settings: [String: Any?]) {
@@ -122,33 +109,33 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
                 navigationDelegate!.enabledNavigationDelegate = value as! Bool
             case "enabledProgressChanged":
                 if value as! Bool {
-                    progressDelegate = FlWKProgressDelegate(webView)
+                    progressDelegate = FlWKProgressDelegate(webView!)
                 } else {
                     progressDelegate?.stopObserving()
                     progressDelegate = nil
                 }
             case "enableSizeChanged":
                 if value as! Bool {
-                    contentSizeDelegate = FlWKContentSizeDelegate(webView)
+                    contentSizeDelegate = FlWKContentSizeDelegate(webView!)
                 } else {
                     contentSizeDelegate?.stopObserving()
                     contentSizeDelegate = nil
                 }
             case "enabledScrollChanged":
                 if value as! Bool {
-                    scrollChangedDelegate = FlWKScrollChangedDelegate(webView)
+                    scrollChangedDelegate = FlWKScrollChangedDelegate(webView!)
                 } else {
-                    webView.scrollView.delegate = nil
+                    webView!.scrollView.delegate = nil
                     scrollChangedDelegate = nil
                 }
             case "javascriptMode":
-                webView.configuration.preferences.javaScriptEnabled = (value as! NSNumber).intValue == 1
+                webView!.configuration.preferences.javaScriptEnabled = (value as! NSNumber).intValue == 1
             case "gestureNavigationEnabled":
-                webView.allowsBackForwardNavigationGestures = value as! Bool
+                webView!.allowsBackForwardNavigationGestures = value as! Bool
             case "allowsInlineMediaPlayback":
-                webView.configuration.allowsInlineMediaPlayback = value as! Bool
+                webView!.configuration.allowsInlineMediaPlayback = value as! Bool
             case "allowsAutoMediaPlayback":
-                webView.configuration.mediaTypesRequiringUserActionForPlayback = value as! Bool ? .all : .audio
+                webView!.configuration.mediaTypesRequiringUserActionForPlayback = value as! Bool ? .all : .audio
             default: break
             }
         }
@@ -156,7 +143,7 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
 
     func evaluateJavaScript(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         let jsString = call.arguments as! String
-        webView.evaluateJavaScript(jsString) { value, error in
+        webView!.evaluateJavaScript(jsString) { value, error in
             if let error = error {
                 result(
                     FlutterError(
@@ -177,9 +164,9 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     }
 
     func removeJavaScriptChannel(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
-        webView.configuration.userContentController.removeAllUserScripts()
+        webView!.configuration.userContentController.removeAllUserScripts()
         for channel in javaScriptChannels {
-            webView.configuration.userContentController.removeScriptMessageHandler(forName: channel["name"] as! String)
+            webView!.configuration.userContentController.removeScriptMessageHandler(forName: channel["name"] as! String)
         }
         javaScriptChannels.removeAll { value in
             value["name"] as! String == call.arguments as! String
@@ -193,10 +180,10 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
             let name = channel["name"] as! String
             let source = channel["source"] as? String
             let flChannel = FlWKJavaScriptChannel(
-                webView.channel,
+                webView!.channel,
                 name)
-            webView.configuration.userContentController.add(flChannel, name: name)
-            webView.configuration.userContentController.addUserScript(WKUserScript(
+            webView!.configuration.userContentController.add(flChannel, name: name)
+            webView!.configuration.userContentController.addUserScript(WKUserScript(
                 source: source ?? name,
                 injectionTime: .atDocumentStart,
                 forMainFrameOnly: false))
@@ -218,23 +205,23 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         let arguments = call.arguments as! [String: Any]
         let x = arguments["x"] as! Double
         let y = arguments["y"] as! Double
-        webView.scrollView.contentOffset = CGPoint(x: CGFloat(x), y: CGFloat(y))
+        webView!.scrollView.contentOffset = CGPoint(x: CGFloat(x), y: CGFloat(y))
         result(nil)
     }
 
     func onScrollBy(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
-        let contentOffset = webView.scrollView.contentOffset
+        let contentOffset = webView!.scrollView.contentOffset
         let arguments = call.arguments as! [String: Any]
         let x = CGFloat(arguments["x"] as! Double) + contentOffset.x
         let y = CGFloat(arguments["y"] as! Double) + contentOffset.y
-        webView.scrollView.contentOffset = CGPoint(x: CGFloat(x), y: CGFloat(y))
+        webView!.scrollView.contentOffset = CGPoint(x: CGFloat(x), y: CGFloat(y))
         result(nil)
     }
 
     func loadData(_ args: [String: Any?]) -> Bool {
         let baseUrl = args["baseURL"] as? String
         let data = args["data"] as! String
-        webView.loadHTMLString(data, baseURL: baseUrl != nil ? URL(string: baseUrl!) : nil)
+        webView!.loadHTMLString(data, baseURL: baseUrl != nil ? URL(string: baseUrl!) : nil)
         return true
     }
 
@@ -248,7 +235,7 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
         if headers != nil {
             request.allHTTPHeaderFields = headers
         }
-        webView.load(request)
+        webView!.load(request)
         return true
     }
 
@@ -260,6 +247,19 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     }
 
     public func view() -> UIView {
-        webView
+        webView!
+    }
+
+    deinit {
+        print("结束了")
+        webView!.channel.setMethodCallHandler(nil)
+        webView!.removeFromSuperview()
+        webView = nil
+        progressDelegate?.stopObserving()
+        progressDelegate = nil
+        contentSizeDelegate?.stopObserving()
+        contentSizeDelegate = nil
+        urlChangedDelegate = nil
+        navigationDelegate = nil
     }
 }

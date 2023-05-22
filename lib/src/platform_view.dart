@@ -236,9 +236,7 @@ class FlWebViewController {
   }
 
   void dispose() {
-    _channel.invokeMethod<void>('dispose').then((value) {
-      _channel.setMethodCallHandler(null);
-    });
+    _channel.setMethodCallHandler(null);
   }
 }
 

@@ -95,23 +95,9 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
         case "enabledScroll":
 //            webView.scrollView.isScrollEnabled = call.arguments as! Bool
             result(true)
-        case "dispose":
-            dispose()
         default:
             result(FlutterMethodNotImplemented)
         }
-    }
-
-    func dispose() {
-        channel.setMethodCallHandler(nil)
-        webView?.removeFromSuperview()
-        webView = nil
-        navigationDelegate = nil
-        progressDelegate?.stopObserving()
-        progressDelegate = nil
-        contentSizeDelegate?.stopObserving()
-        contentSizeDelegate = nil
-        urlChangedDelegate = nil
     }
 
     func create(_ call: FlutterMethodCall) {
@@ -288,5 +274,17 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
             webView.load(navigationAction.request)
         }
         return nil
+    }
+
+    deinit {
+        channel.setMethodCallHandler(nil)
+        webView?.removeFromSuperview()
+        webView = nil
+        navigationDelegate = nil
+        progressDelegate?.stopObserving()
+        progressDelegate = nil
+        contentSizeDelegate?.stopObserving()
+        contentSizeDelegate = nil
+        urlChangedDelegate = nil
     }
 }

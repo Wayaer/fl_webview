@@ -57,7 +57,11 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
         case "currentUrl":
             result(webView?.url?.absoluteString)
         case "evaluateJavascript":
-            evaluateJavaScript(call, result)
+            let jsString = call.arguments as! String
+            webView!.evaluateJavaScript(jsString) { value, error in
+                print("=== FlWebview evaluateJavaScript failed , JavaScript string was: '\(jsString)'\n\(String(describing: error)) ===")
+                result(value)
+            }
         case "addJavascriptChannel":
             addJavaScriptChannel(call, result)
         case "removeJavascriptChannel":
@@ -167,21 +171,6 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
             case "allowsAutoMediaPlayback":
                 webView?.configuration.mediaTypesRequiringUserActionForPlayback = value as! Bool ? .all : .audio
             default: break
-            }
-        }
-    }
-
-    func evaluateJavaScript(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
-        let js = call.arguments as! String
-        webView?.evaluateJavaScript(js) { value, error in
-            if let error = error {
-                result(
-                    FlutterError(
-                        code: "evaluateJavaScript_failed",
-                        message: "Failed evaluating JavaScript",
-                        details: "JavaScript string was: '\(js)'\n\(error)"))
-            } else {
-                result(value)
             }
         }
     }

@@ -10,6 +10,11 @@ class JavascriptChannel {
       {required this.name, required this.onMessageReceived, this.source})
       : assert(_validChannelNames.hasMatch(name));
 
+  JavascriptChannel.old(
+      {required this.name, required this.onMessageReceived, String? source})
+      : assert(_validChannelNames.hasMatch(name)),
+        source = source ?? 'window.$name = webkit.messageHandlers.$name;';
+
   final String name;
 
   /// 仅支持 ios  和 macos

@@ -56,7 +56,6 @@ class FlWebViewPlatformView(
                 mediaPlaybackRequiresUserGesture = false
             }
         }
-        /// 初始化 MethodCallHandler
         channel.setMethodCallHandler(this)
         displayListenerProxy.onPostWebViewInitialization(displayManager)
     }
@@ -155,8 +154,7 @@ class FlWebViewPlatformView(
             }
 
             "dispose" -> {
-                webView.destroy();
-                channel.setMethodCallHandler(null)
+
             }
 
             else -> result.notImplemented()
@@ -223,7 +221,6 @@ class FlWebViewPlatformView(
             JavaScriptChannel(channel, name, handler), name
         )
     }
-
 
     override fun dispose() {
         channel.setMethodCallHandler(null)
@@ -341,4 +338,5 @@ class FlWebViewPlatformView(
             }
         }
     }
+
 }

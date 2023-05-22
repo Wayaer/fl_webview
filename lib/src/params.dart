@@ -7,12 +7,11 @@ final RegExp _validChannelNames = RegExp('^[a-zA-Z_][a-zA-Z0-9_]*\$');
 
 /// A named channel for receiving messaged from JavaScript code running inside a web view.
 class JavascriptChannel {
-  JavascriptChannel(
-      {required this.name, required this.onMessageReceived, this.source})
+  JavascriptChannel({required this.name, this.onMessageReceived, this.source})
       : assert(_validChannelNames.hasMatch(name));
 
   JavascriptChannel.old(
-      {required this.name, required this.onMessageReceived, String? source})
+      {required this.name, this.onMessageReceived, String? source})
       : assert(_validChannelNames.hasMatch(name)),
         source = source ?? 'window.$name = webkit.messageHandlers.$name;';
 
@@ -21,7 +20,7 @@ class JavascriptChannel {
   /// 仅支持 ios  和 macos
   final String? source;
 
-  final void Function(String message) onMessageReceived;
+  final ValueChanged<String>? onMessageReceived;
 
   @override
   bool operator ==(Object other) =>
@@ -205,7 +204,8 @@ class WebSettings {
   /// 解决ios16以上部分webview无法加载
   final bool deleteWindowSharedWorker;
 
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> toMap() =>
+      {
         'enabledNavigationDelegate': enabledNavigationDelegate,
         'enabledProgressChanged': enabledProgressChanged,
         'enableSizeChanged': enableSizeChanged,
@@ -243,7 +243,7 @@ enum ScrollPositioned {
 class WebViewSize {
   WebViewSize.formMap(Map<dynamic, dynamic> map)
       : frameSize = Size(
-            (map['width'] as double?) ?? 0, (map['height'] as double?) ?? 0),
+      (map['width'] as double?) ?? 0, (map['height'] as double?) ?? 0),
         contentSize = Size((map['contentWidth'] as double?) ?? 0,
             (map['contentHeight'] as double?) ?? 0);
 

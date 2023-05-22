@@ -90,7 +90,7 @@ class FlWebViewController {
       case 'onJavascriptChannelMessage':
         final String channel = call.arguments['channel'] as String;
         final String message = call.arguments['message'] as String;
-        _javascriptChannels[channel]?.onMessageReceived(message);
+        _javascriptChannels[channel]?.onMessageReceived?.call(message);
         break;
       case 'onNavigationRequest':
         final value = await _delegate?.onNavigationRequest?.call(
@@ -236,8 +236,9 @@ class FlWebViewController {
   }
 
   void dispose() {
-    _channel.setMethodCallHandler(null);
-    _channel.invokeMethod<void>('dispose');
+    _channel.invokeMethod<void>('dispose').then((value) {
+      _channel.setMethodCallHandler(null);
+    });
   }
 }
 

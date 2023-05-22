@@ -43,9 +43,9 @@ class FlWebViewClient(
     }
 
     fun navigationRequestResult(
-        enabledNavigationDelegate: Boolean, view: WebView?, request: WebResourceRequest?
+        enabledNavigationDelegate: Boolean, webView: WebView?, request: WebResourceRequest?
     ): Boolean {
-        if (view != null && request != null && enabledNavigationDelegate) {
+        if (webView != null && request != null && enabledNavigationDelegate) {
             val url = request.url.toString()
             var headers = request.requestHeaders
             if (headers == null) headers = emptyMap()
@@ -55,12 +55,13 @@ class FlWebViewClient(
             )
             if (isForMainFrame) {
                 handler.post {
-                    channel.invokeMethod("onNavigationRequest",
+                    channel.invokeMethod(
+                        "onNavigationRequest",
                         args,
                         object : MethodChannel.Result {
                             override fun success(shouldLoad: Any?) {
                                 if (shouldLoad as Boolean) {
-                                    view.loadUrl(url, headers)
+                                    webView.loadUrl(url, headers)
                                 }
                             }
 

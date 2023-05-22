@@ -48,7 +48,7 @@ class FlWebView extends StatefulWidget {
     this.gestureRecognizers,
     this.enableProgressBar = false,
     this.progressBarColor = Colors.blueAccent,
-    this.progressBarHeight = 2,
+    this.progressBarHeight = 1,
   }) : super(key: key);
 
   /// 加载的url或者html

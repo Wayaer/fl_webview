@@ -20,18 +20,19 @@ class FlWebChromeClient(
     var enabledNavigationDelegate = false
 
     override fun onCreateWindow(
-        view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
+        webView: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
     ): Boolean {
-        val newWebView = WebView(view.context)
+        val newWebView = WebView(webView.context)
         newWebView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(
-                view: WebView, request: WebResourceRequest
+                view: WebView?, request: WebResourceRequest
             ): Boolean {
                 return flWebViewClient.navigationRequestResult(
-                    enabledNavigationDelegate, view, request
+                    enabledNavigationDelegate, webView, request
                 )
             }
         }
+
         val transport = resultMsg.obj as WebView.WebViewTransport
         transport.webView = newWebView
         resultMsg.sendToTarget()

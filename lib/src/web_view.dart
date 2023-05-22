@@ -172,8 +172,13 @@ class _WebViewState extends State<FlWebView> {
   }
 
   @override
-  void dispose() {
+  void deactivate() {
     flWebViewController?.dispose();
+    super.deactivate();
+  }
+
+  @override
+  void dispose() {
     currentProgress?.dispose();
     currentProgress = null;
     super.dispose();

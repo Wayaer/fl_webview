@@ -68,14 +68,14 @@ class _FlAdaptHeightWevViewState extends State<FlAdaptHeightWevView> {
   }
 
   void onScrollChanged(
-      WebViewSize webViewSize, Offset offset, ScrollPositioned positioned) {
+      _, WebViewSize webViewSize, Offset offset, ScrollPositioned positioned) {
     if (webViewSize.contentSize.height > currentHeight) {
       currentHeight = webViewSize.contentSize.height;
       if (mounted) setState(() {});
     }
   }
 
-  void onSizeChanged(WebViewSize webViewSize) {
+  void onSizeChanged(_, WebViewSize webViewSize) {
     var contentSizeHeight = webViewSize.contentSize.height;
     if (contentSizeHeight == 0 || currentHeight == contentSizeHeight) {
       return;
@@ -218,7 +218,7 @@ class _ExtendedFlWebViewWithScrollViewState
     return widget.scrollViewBuilder(controller, isScrollView, webView);
   }
 
-  void onSizeChanged(WebViewSize webViewSize) {
+  void onSizeChanged(_, WebViewSize webViewSize) {
     var contentSizeHeight = webViewSize.contentSize.height;
     if (contentSizeHeight == 0 || currentHeight == contentSizeHeight) return;
     if (_differenceWithHeight(
@@ -259,7 +259,7 @@ class _ExtendedFlWebViewWithScrollViewState
     webViewController = controller;
   }
 
-  Future<void> onScrollChanged(WebViewSize webViewSize, Offset offset,
+  Future<void> onScrollChanged(_, WebViewSize webViewSize, Offset offset,
       ScrollPositioned positioned) async {
     if (positioned == ScrollPositioned.end && !isScrollView) {
       isScrollView = true;

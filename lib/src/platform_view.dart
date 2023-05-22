@@ -94,46 +94,51 @@ class FlWebViewController {
         break;
       case 'onNavigationRequest':
         final value = await _delegate?.onNavigationRequest?.call(
+            this,
             NavigationRequest(
                 url: call.arguments['url']! as String,
                 isForMainFrame: call.arguments['isForMainFrame']! as bool));
         return value ?? true;
       case 'onPageStarted':
-        _delegate?.onPageStarted?.call((call.arguments as String?) ?? "");
+        _delegate?.onPageStarted?.call(this, (call.arguments as String?) ?? "");
         break;
       case 'onPageFinished':
-        _delegate?.onPageFinished?.call((call.arguments as String?) ?? "");
+        _delegate?.onPageFinished
+            ?.call(this, (call.arguments as String?) ?? "");
         break;
       case 'onProgress':
-        _delegate?.onProgress?.call((call.arguments as int?) ?? 0);
+        _delegate?.onProgress?.call(this, (call.arguments as int?) ?? 0);
         break;
       case 'onSizeChanged':
         _delegate?.onSizeChanged
-            ?.call(WebViewSize.formMap(call.arguments as Map));
+            ?.call(this, WebViewSize.formMap(call.arguments as Map));
         break;
       case 'onScrollChanged':
         final int position = call.arguments['position'] as int;
         _delegate?.onScrollChanged?.call(
+            this,
             WebViewSize.formMap(call.arguments as Map),
             Offset(
                 call.arguments['x'] as double, call.arguments['y'] as double),
             ScrollPositioned.values[position]);
         break;
       case 'onUrlChanged':
-        _delegate?.onUrlChanged?.call((call.arguments as String?) ?? "");
+        _delegate?.onUrlChanged?.call(this, (call.arguments as String?) ?? "");
         break;
       case 'onWebResourceError':
-        _delegate?.onWebResourceError?.call(WebResourceError(
-            errorCode: call.arguments['errorCode']! as int,
-            description: call.arguments['description']! as String,
-            failingUrl: call.arguments['failingUrl'] as String,
-            domain: call.arguments['domain'] as String,
-            errorType: call.arguments['errorType'] == null
-                ? null
-                : WebResourceErrorType.values.firstWhere((WebResourceErrorType
-                        type) =>
-                    type.toString() ==
-                    '$WebResourceErrorType.${call.arguments['errorType']}')));
+        _delegate?.onWebResourceError?.call(
+            this,
+            WebResourceError(
+                errorCode: call.arguments['errorCode']! as int,
+                description: call.arguments['description']! as String,
+                failingUrl: call.arguments['failingUrl'] as String,
+                domain: call.arguments['domain'] as String,
+                errorType: call.arguments['errorType'] == null
+                    ? null
+                    : WebResourceErrorType.values.firstWhere((WebResourceErrorType
+                            type) =>
+                        type.toString() ==
+                        '$WebResourceErrorType.${call.arguments['errorType']}')));
         break;
     }
   }

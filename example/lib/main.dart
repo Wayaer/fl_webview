@@ -79,34 +79,38 @@ class BaseFlWebView extends FlWebView {
             enableProgressBar: true,
             progressBarColor: Colors.red,
             delegate: FlWebViewDelegate(
-              onPageStarted: (String url) {
+              onPageStarted: (FlWebViewController controller, String url) {
                 log('onPageStarted : $url');
-                delegate?.onPageStarted?.call(url);
+                delegate?.onPageStarted?.call(controller, url);
               },
-              onPageFinished: (String url) {
+              onPageFinished: (FlWebViewController controller, String url) {
                 log('onPageFinished : $url');
-                delegate?.onPageFinished?.call(url);
+                delegate?.onPageFinished?.call(controller, url);
               },
-              onProgress: (int progress) {
+              onProgress: (FlWebViewController controller, int progress) {
                 log('onProgress ：$progress');
-                delegate?.onProgress?.call(progress);
+                delegate?.onProgress?.call(controller, progress);
               },
-              onSizeChanged: (WebViewSize webViewSize) {
+              onSizeChanged:
+                  (FlWebViewController controller, WebViewSize webViewSize) {
                 log('onSizeChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize}');
-                delegate?.onSizeChanged?.call(webViewSize);
+                delegate?.onSizeChanged?.call(controller, webViewSize);
               },
               //  onScrollChanged: (WebViewSize webViewSize, Offset offset,
               //         ScrollPositioned positioned) {
               //   log('onScrollChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize} --- $offset --- $positioned');
               //   delegate?.onScrollChanged?.call(webViewSize, offset, positioned);
               // },
-              onNavigationRequest: (NavigationRequest request) {
+              onNavigationRequest:
+                  (FlWebViewController controller, NavigationRequest request) {
                 log('onNavigationRequest : url=${request.url} --- isForMainFrame=${request.isForMainFrame}');
-                return delegate?.onNavigationRequest?.call(request) ?? true;
+                return delegate?.onNavigationRequest
+                        ?.call(controller, request) ??
+                    true;
               },
-              onUrlChanged: (String url) {
+              onUrlChanged: (FlWebViewController controller, String url) {
                 log('onUrlChanged : $url');
-                delegate?.onUrlChanged?.call(url);
+                delegate?.onUrlChanged?.call(controller, url);
               },
             ),
             onWebViewCreated: (FlWebViewController controller) async {

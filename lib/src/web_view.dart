@@ -109,8 +109,8 @@ class _WebViewState extends State<FlWebView> {
     if (widget.enableProgressBar) {
       final delegate = (widget.delegate ?? FlWebViewDelegate());
       flWebViewController?.delegate =
-          delegate.copyWith(onProgress: (int progress) {
-        delegate.onProgress?.call(progress);
+          delegate.copyWith(onProgress: (_, int progress) {
+        delegate.onProgress?.call(_, progress);
         if (mounted) currentProgress?.value = progress;
       });
     }

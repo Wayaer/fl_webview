@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/material.dart';
 
 final RegExp _validChannelNames = RegExp('^[a-zA-Z_][a-zA-Z0-9_]*\$');
@@ -250,21 +251,26 @@ class WebViewSize {
   final Size contentSize;
 }
 
-typedef FlWebViewDelegateWithUrlCallback = void Function(String url);
+typedef FlWebViewDelegateWithUrlCallback = void Function(
+    FlWebViewController controller, String url);
 
-typedef FlWebViewDelegateWithProgressCallback = void Function(int progress);
+typedef FlWebViewDelegateWithProgressCallback = void Function(
+    FlWebViewController controller, int progress);
 
 typedef FlWebViewDelegateWithSizeCallback = void Function(
-    WebViewSize webViewSize);
+    FlWebViewController controller, WebViewSize webViewSize);
 
 typedef FlWebViewDelegateWithScrollChangedCallback = void Function(
-    WebViewSize webViewSize, Offset offset, ScrollPositioned positioned);
+    FlWebViewController controller,
+    WebViewSize webViewSize,
+    Offset offset,
+    ScrollPositioned positioned);
 
 typedef FlWebViewDelegateWithNavigationRequest = FutureOr<bool> Function(
-    NavigationRequest request);
+    FlWebViewController controller, NavigationRequest request);
 
 typedef FlWebViewDelegateWithWebResourceError = void Function(
-    WebResourceError error);
+    FlWebViewController controller, WebResourceError error);
 
 class FlWebViewDelegate {
   FlWebViewDelegate({

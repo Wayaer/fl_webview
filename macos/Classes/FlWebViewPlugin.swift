@@ -73,13 +73,13 @@ public class FlWebViewPlugin: NSObject, FlutterPlugin {
 class FlWebViewFactory: NSObject, FlutterPlatformViewFactory {
     var messenger: FlutterBinaryMessenger
 
-    init(_ _messenger: FlutterBinaryMessenger) {
-        messenger = _messenger
+    init(_ messenger: FlutterBinaryMessenger) {
+        self.messenger = messenger
         super.init()
     }
 
     func createArgsCodec() -> (FlutterMessageCodec & NSObjectProtocol)? {
-        return FlutterStandardMessageCodec.sharedInstance()
+        FlutterStandardMessageCodec.sharedInstance()
     }
 
     func create(withViewIdentifier viewId: Int64, arguments args: Any?) -> NSView {

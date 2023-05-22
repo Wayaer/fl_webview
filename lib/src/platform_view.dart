@@ -191,11 +191,14 @@ class FlWebViewController {
     }
     _javascriptChannels[javascriptChannel.name] = javascriptChannel;
     await _channel.invokeMethod<void>(
-        'addJavascriptChannel', javascriptChannel.name);
+        'addJavascriptChannel', javascriptChannel.toMap());
   }
 
-  Future<void> removeJavascriptChannel(String javascriptChannelName) => _channel
-      .invokeMethod<void>('removeJavascriptChannel', javascriptChannelName);
+  Future<void> removeJavascriptChannel(String javascriptChannelName) async {
+    _javascriptChannels.remove(javascriptChannelName);
+    await _channel.invokeMethod<void>(
+        'removeJavascriptChannel', javascriptChannelName);
+  }
 
   Future<String?> getTitle() => _channel.invokeMethod<String>('getTitle');
 

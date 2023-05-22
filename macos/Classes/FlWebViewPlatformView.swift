@@ -12,7 +12,7 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
 //    var scrollChangedDelegate: FlWKScrollChangedDelegate?
     var urlChangedDelegate: FlWKUrlChangedDelegate?
 
-    var javaScriptChannelNames: [String] = []
+    var javaScriptChannels: [[String: Any]] = []
 
     init(_ channel: FlutterMethodChannel) {
         self.channel = channel
@@ -201,35 +201,36 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
     }
 
     func addJavaScriptChannel(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
-        let channelName = call.arguments as! String
-        javaScriptChannelNames.append(channelName)
-        registerJavaScriptChannels(javaScriptChannelNames)
+        let channel = call.arguments as! [String: Any]
+        javaScriptChannels.append(channel)
+        registerJavaScriptChannels([channel])
         result(nil)
     }
 
     func removeJavaScriptChannel(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         webView?.configuration.userContentController.removeAllUserScripts()
-        for channelName in javaScriptChannelNames {
-            webView?.configuration.userContentController.removeScriptMessageHandler(forName: channelName)
+        for channel in javaScriptChannels {
+            webView?.configuration.userContentController.removeScriptMessageHandler(forName: channel["name"] as! String)
         }
-        javaScriptChannelNames.removeAll { value in
-            value == call.arguments as! String
+        javaScriptChannels.removeAll { value in
+            value["name"] as! String == call.arguments as! String
         }
-        registerJavaScriptChannels(javaScriptChannelNames)
+        registerJavaScriptChannels(javaScriptChannels)
         result(nil)
     }
 
-    func registerJavaScriptChannels(_ channelNames: [String]) {
-        for channelName in channelNames {
-            let channel = FlWKJavaScriptChannel(
-                channel,
-                channelName)
-            webView?.configuration.userContentController.add(channel, name: channelName)
-            let wrapperScript = WKUserScript(
-                source: channelName,
+    func registerJavaScriptChannels(_ channels: [[String: Any]]) {
+        for channel in channels {
+            let name = channel["name"] as! String
+            let source = channel["source"] as? String
+            let flChannel = FlWKJavaScriptChannel(
+                self.channel,
+                name)
+            webView?.configuration.userContentController.add(flChannel, name: name)
+            webView?.configuration.userContentController.addUserScript(WKUserScript(
+                source: source ?? name,
                 injectionTime: .atDocumentStart,
-                forMainFrameOnly: false)
-            webView?.configuration.userContentController.addUserScript(wrapperScript)
+                forMainFrameOnly: false))
         }
     }
 

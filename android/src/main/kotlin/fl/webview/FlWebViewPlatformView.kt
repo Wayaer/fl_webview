@@ -119,7 +119,8 @@ class FlWebViewPlatformView(
             }
 
             "addJavascriptChannel" -> {
-                registerJavaScriptChannelName(call.arguments as String)
+                val channel = call.arguments as Map<*, *>
+                registerJavaScriptChannelName(channel["name"] as String)
                 result.success(null)
             }
 
@@ -217,9 +218,9 @@ class FlWebViewPlatformView(
 
 
     @SuppressLint("AddJavascriptInterface")
-    private fun registerJavaScriptChannelName(channelName: String) {
+    private fun registerJavaScriptChannelName(name: String) {
         webView.addJavascriptInterface(
-            JavaScriptChannel(channel, channelName, handler), channelName
+            JavaScriptChannel(channel, name, handler), name
         )
     }
 
@@ -231,14 +232,12 @@ class FlWebViewPlatformView(
 
 
     internal class JavaScriptChannel(
-        private val methodChannel: MethodChannel,
-        private val name: String,
-        private val handler: Handler
+        private val channel: MethodChannel, private val name: String, private val handler: Handler
     ) {
         @JavascriptInterface
         fun postMessage(message: String) {
             val postMessageRunnable = Runnable {
-                methodChannel.invokeMethod(
+                channel.invokeMethod(
                     "onJavascriptChannelMessage", mapOf(
                         "channel" to name, "message" to message
                     )

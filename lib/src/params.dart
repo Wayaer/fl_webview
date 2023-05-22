@@ -6,12 +6,14 @@ final RegExp _validChannelNames = RegExp('^[a-zA-Z_][a-zA-Z0-9_]*\$');
 
 /// A named channel for receiving messaged from JavaScript code running inside a web view.
 class JavascriptChannel {
-  JavascriptChannel({
-    required this.name,
-    required this.onMessageReceived,
-  }) : assert(_validChannelNames.hasMatch(name));
+  JavascriptChannel(
+      {required this.name, required this.onMessageReceived, this.source})
+      : assert(_validChannelNames.hasMatch(name));
 
   final String name;
+
+  /// 仅支持 ios  和 macos
+  final String? source;
 
   final void Function(String message) onMessageReceived;
 
@@ -21,6 +23,8 @@ class JavascriptChannel {
 
   @override
   int get hashCode => name.hashCode;
+
+  Map<String, dynamic> toMap() => {'name': name, 'source': source};
 }
 
 class NavigationRequest {

@@ -1,3 +1,8 @@
+## 1.0.1
+
+* Added `FlProgressBar`,
+* Added `document`
+
 ## 1.0.0
 
 * Rewrite code

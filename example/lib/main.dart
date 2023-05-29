@@ -76,43 +76,37 @@ class BaseFlWebView extends FlWebView {
     FlWebViewDelegate? delegate,
     WebViewCreatedCallback? onWebViewCreated,
   }) : super(
-            enableProgressBar: true,
-            progressBarColor: Colors.red,
-            delegate: FlWebViewDelegate(
-              onPageStarted: (FlWebViewController controller, String url) {
-                log('onPageStarted : $url');
-                delegate?.onPageStarted?.call(controller, url);
-              },
-              onPageFinished: (FlWebViewController controller, String url) {
-                log('onPageFinished : $url');
-                delegate?.onPageFinished?.call(controller, url);
-              },
-              onProgress: (FlWebViewController controller, int progress) {
-                log('onProgress ：$progress');
-                delegate?.onProgress?.call(controller, progress);
-              },
-              onSizeChanged:
-                  (FlWebViewController controller, WebViewSize webViewSize) {
-                log('onSizeChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize}');
-                delegate?.onSizeChanged?.call(controller, webViewSize);
-              },
-              //  onScrollChanged: (WebViewSize webViewSize, Offset offset,
-              //         ScrollPositioned positioned) {
-              //   log('onScrollChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize} --- $offset --- $positioned');
-              //   delegate?.onScrollChanged?.call(webViewSize, offset, positioned);
-              // },
-              onNavigationRequest:
-                  (FlWebViewController controller, NavigationRequest request) {
-                log('onNavigationRequest : url=${request.url} --- isForMainFrame=${request.isForMainFrame}');
-                return delegate?.onNavigationRequest
-                        ?.call(controller, request) ??
-                    true;
-              },
-              onUrlChanged: (FlWebViewController controller, String url) {
-                log('onUrlChanged : $url');
-                delegate?.onUrlChanged?.call(controller, url);
-              },
-            ),
+            progressBar: FlProgressBar(color: Colors.red),
+            delegate: FlWebViewDelegate(onPageStarted:
+                (FlWebViewController controller, String url) {
+              log('onPageStarted : $url');
+              delegate?.onPageStarted?.call(controller, url);
+            }, onPageFinished: (FlWebViewController controller, String url) {
+              log('onPageFinished : $url');
+              delegate?.onPageFinished?.call(controller, url);
+            }, onProgress: (FlWebViewController controller, int progress) {
+              log('onProgress ：$progress');
+              delegate?.onProgress?.call(controller, progress);
+            }, onSizeChanged:
+                (FlWebViewController controller, WebViewSize webViewSize) {
+              log('onSizeChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize}');
+              delegate?.onSizeChanged?.call(controller, webViewSize);
+            }, onScrollChanged: (FlWebViewController controller,
+                WebViewSize webViewSize,
+                Offset offset,
+                ScrollPositioned positioned) {
+              log('onScrollChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize} --- $offset --- $positioned');
+              delegate?.onScrollChanged
+                  ?.call(controller, webViewSize, offset, positioned);
+            }, onNavigationRequest:
+                (FlWebViewController controller, NavigationRequest request) {
+              log('onNavigationRequest : url=${request.url} --- isForMainFrame=${request.isForMainFrame}');
+              return delegate?.onNavigationRequest?.call(controller, request) ??
+                  true;
+            }, onUrlChanged: (FlWebViewController controller, String url) {
+              log('onUrlChanged : $url');
+              delegate?.onUrlChanged?.call(controller, url);
+            }),
             onWebViewCreated: (FlWebViewController controller) async {
               String userAgentString = 'userAgentString';
               final value = await controller.getNavigatorUserAgent();
@@ -121,7 +115,6 @@ class BaseFlWebView extends FlWebView {
               final userAgent = await controller.setUserAgent(userAgentString);
               log('set userAgent:  $userAgent');
               onWebViewCreated?.call(controller);
-
               10.seconds.delayed(() {
                 controller.getWebViewSize();
               });

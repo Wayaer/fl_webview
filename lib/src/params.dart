@@ -204,8 +204,7 @@ class WebSettings {
   /// 解决ios16以上部分webview无法加载
   final bool deleteWindowSharedWorker;
 
-  Map<String, dynamic> toMap() =>
-      {
+  Map<String, dynamic> toMap() => {
         'enabledNavigationDelegate': enabledNavigationDelegate,
         'enabledProgressChanged': enabledProgressChanged,
         'enableSizeChanged': enableSizeChanged,
@@ -243,7 +242,7 @@ enum ScrollPositioned {
 class WebViewSize {
   WebViewSize.formMap(Map<dynamic, dynamic> map)
       : frameSize = Size(
-      (map['width'] as double?) ?? 0, (map['height'] as double?) ?? 0),
+            (map['width'] as double?) ?? 0, (map['height'] as double?) ?? 0),
         contentSize = Size((map['contentWidth'] as double?) ?? 0,
             (map['contentHeight'] as double?) ?? 0);
 
@@ -319,4 +318,14 @@ class FlWebViewDelegate {
           onScrollChanged: onScrollChanged ?? this.onScrollChanged,
           onWebResourceError: onWebResourceError ?? this.onWebResourceError,
           onUrlChanged: onUrlChanged ?? this.onUrlChanged);
+}
+
+class FlProgressBar {
+  FlProgressBar({this.color = Colors.blueAccent, this.height = 1});
+
+  /// color
+  final Color color;
+
+  /// height
+  final double height;
 }

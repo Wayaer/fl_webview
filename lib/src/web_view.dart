@@ -46,33 +46,25 @@ class FlWebView extends StatefulWidget {
     this.webSettings,
     this.delegate,
     this.gestureRecognizers,
-    this.enableProgressBar = false,
-    this.progressBarColor = Colors.blueAccent,
-    this.progressBarHeight = 1,
+    this.progressBar,
   }) : super(key: key);
 
-  /// 加载的url或者html
+  /// Loaded url or html string
   final LoadRequest load;
 
-  /// FlWebViewController 创建回调
+  /// FlWebViewController onWebViewCreated
   final WebViewCreatedCallback? onWebViewCreated;
 
-  /// webview 设置项
+  /// web view settings
   final WebSettings? webSettings;
 
-  /// webview 加载委托
+  /// web view delegate
   final FlWebViewDelegate? delegate;
 
   final Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers;
 
-  /// 是否开启进度条
-  final bool enableProgressBar;
-
-  /// 进度条加载颜色
-  final Color progressBarColor;
-
-  /// 进度条高度
-  final double progressBarHeight;
+  /// web view loading progress bar
+  final FlProgressBar? progressBar;
 
   @override
   State<StatefulWidget> createState() => _WebViewState();
@@ -83,6 +75,8 @@ class _WebViewState extends State<FlWebView> {
   late WebSettings webSettings;
   ValueNotifier<int>? currentProgress;
 
+  bool get enableProgressBar => widget.progressBar != null;
+
   @override
   void initState() {
     super.initState();
@@ -92,7 +86,7 @@ class _WebViewState extends State<FlWebView> {
 
   void initSettings() {
     webSettings.enabledProgressChanged = widget.delegate?.onProgress != null;
-    if (widget.enableProgressBar) {
+    if (enableProgressBar) {
       currentProgress?.dispose();
       currentProgress = ValueNotifier<int>(0);
       webSettings.enabledProgressChanged = true;
@@ -106,7 +100,7 @@ class _WebViewState extends State<FlWebView> {
 
   void initDelegate() {
     flWebViewController?.delegate = widget.delegate;
-    if (widget.enableProgressBar) {
+    if (enableProgressBar) {
       final delegate = (widget.delegate ?? FlWebViewDelegate());
       flWebViewController?.delegate =
           delegate.copyWith(onProgress: (_, int progress) {
@@ -128,7 +122,7 @@ class _WebViewState extends State<FlWebView> {
           widget.onWebViewCreated?.call(_);
         },
         gestureRecognizers: widget.gestureRecognizers);
-    if (widget.enableProgressBar) {
+    if (enableProgressBar) {
       return Column(children: [
         buildProgressBar,
         Expanded(child: webView),
@@ -137,23 +131,21 @@ class _WebViewState extends State<FlWebView> {
     return webView;
   }
 
-  Widget get buildProgressBar {
-    return ValueListenableBuilder(
-        valueListenable: currentProgress!,
-        builder: (_, int value, __) {
-          if (value < 10 || value == 100) {
-            return const SizedBox();
-          }
-          return Container(
-              width: double.infinity,
-              height: widget.progressBarHeight,
-              alignment: Alignment.centerLeft,
-              child: Container(
-                  height: double.infinity,
-                  color: widget.progressBarColor,
-                  width: double.infinity * value / 100));
-        });
-  }
+  Widget get buildProgressBar => ValueListenableBuilder(
+      valueListenable: currentProgress!,
+      builder: (_, int value, __) {
+        if (value < 10 || value == 100) {
+          return const SizedBox();
+        }
+        return Container(
+            width: double.infinity,
+            height: widget.progressBar!.height,
+            alignment: Alignment.centerLeft,
+            child: Container(
+                height: double.infinity,
+                color: widget.progressBar!.color,
+                width: double.infinity * value / 100));
+      });
 
   Future<void> load() async {
     if (widget.load is LoadUrlRequest) {

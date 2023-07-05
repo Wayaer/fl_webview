@@ -1,3 +1,8 @@
+## 1.1.0
+
+* Support android file selection
+* Support android permission request callback
+
 ## 1.0.1
 
 * Added `FlProgressBar`,

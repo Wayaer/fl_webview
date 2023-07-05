@@ -1,6 +1,8 @@
 package fl.webview
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.webkit.CookieManager
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.BinaryMessenger
@@ -53,4 +55,51 @@ class FlWebViewPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         }
 
     }
+
+    companion object {
+        fun invokeMethod(
+            channel: MethodChannel,
+            handler: Handler,
+            method: String,
+            args: Any?,
+            onSuccess: ((Any?) -> Unit)? = null
+        ) {
+            var callback: MethodChannel.Result? = null
+            if (onSuccess != null) {
+                callback = object : MethodChannel.Result {
+                    override fun success(result: Any?) {
+                        onSuccess(result)
+                    }
+
+                    override fun error(
+                        errorCode: String, errorMessage: String?, errorDetails: Any?
+                    ) {
+                        throw IllegalStateException("$method calls error { errorCode:$errorCode errorMessage:$errorMessage errorDetails:$errorDetails}")
+                    }
+
+                    override fun notImplemented() {
+                        throw IllegalStateException(
+                            "$method must be implemented by the webview method channel"
+                        )
+                    }
+                }
+            }
+            if (handler.looper == Looper.myLooper()) {
+                if (callback == null) {
+                    channel.invokeMethod(method, args)
+                } else {
+                    channel.invokeMethod(method, args, callback)
+                }
+            } else {
+                handler.post {
+                    if (callback == null) {
+                        channel.invokeMethod(method, args)
+                    } else {
+                        channel.invokeMethod(method, args, callback)
+                    }
+                }
+            }
+        }
+    }
+
 }

@@ -254,7 +254,6 @@ class FlWebViewPlatformView(
         var enabledScrollChanged = false
         var enableSizeChanged = false
 
-
         override fun onScrollChanged(
             left: Int, top: Int, oldl: Int, oldt: Int
         ) {
@@ -274,18 +273,9 @@ class FlWebViewPlatformView(
                     "contentHeight" to contentHeight.toDouble(),
                     "position" to position
                 )
-                invokeMethod("onScrollChanged", map)
-            }
-        }
-
-
-        private fun invokeMethod(method: String, args: Any?) {
-            if (handler.looper == Looper.myLooper()) {
-                channel.invokeMethod(method, args)
-            } else {
-                handler.post {
-                    channel.invokeMethod(method, args)
-                }
+                FlWebViewPlugin.invokeMethod(
+                    channel, handler, "onScrollChanged", map
+                )
             }
         }
 
@@ -323,8 +313,8 @@ class FlWebViewPlatformView(
             if (enableSizeChanged) {
                 if (lastContentHeight == contentHeight || contentHeight < lastContentHeight) return
                 lastContentHeight = contentHeight
-                invokeMethod(
-                    "onSizeChanged", mapOf(
+                FlWebViewPlugin.invokeMethod(
+                    channel, handler, "onSizeChanged", mapOf(
                         "width" to width.toDouble(),
                         "height" to height.toDouble(),
                         "contentHeight" to contentHeight.toDouble(),

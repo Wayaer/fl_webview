@@ -158,6 +158,18 @@ class WebResourceError {
   /// This value is not provided on iOS. Alternatively, you can keep track of
   /// the last values provided to [WebViewPlatformController.loadUrl].
   final String? failingUrl;
+
+  factory WebResourceError.fromMap(Map<dynamic, dynamic> map) =>
+      WebResourceError(
+          errorCode: map['errorCode']! as int,
+          description: map['description']! as String,
+          failingUrl: map['failingUrl'] as String,
+          domain: map['domain'] as String,
+          errorType: map['errorType'] == null
+              ? null
+              : WebResourceErrorType.values.firstWhere(
+                  (WebResourceErrorType type) =>
+                      type.name == map['errorType']));
 }
 
 class WebSettings {
@@ -250,8 +262,50 @@ class WebViewSize {
   final Size contentSize;
 }
 
+enum FileChooserMode { open, openMultiple, openFolder, save }
+
+class FileChooserParams {
+  FileChooserParams(
+      {this.title,
+      this.mode,
+      this.acceptTypes,
+      this.filenameHint,
+      this.isCaptureEnabled});
+
+  factory FileChooserParams.fromMap(Map<dynamic, dynamic> map) {
+    final mode = map['mode'] as int?;
+    FileChooserMode? fileChooserMode;
+    if (mode != null && mode < 4) {
+      fileChooserMode = FileChooserMode.values[mode];
+    }
+    return FileChooserParams(
+        title: map['title'] as String?,
+        mode: fileChooserMode,
+        acceptTypes: (map['acceptTypes'] as List<dynamic>?)
+            ?.map((e) => e as String)
+            .toList(),
+        filenameHint: map['filenameHint'] as String?,
+        isCaptureEnabled: map['isCaptureEnabled'] as bool?);
+  }
+
+  /// Returns the title to use for this file selector.
+  final String? title;
+
+  /// Returns file chooser mode.
+  final FileChooserMode? mode;
+
+  /// Returns an array of acceptable MIME types
+  final List<String>? acceptTypes;
+
+  /// The file name of a default selection if specified, or null.
+  final String? filenameHint;
+
+  /// Returns preference for a live media captured value
+  final bool? isCaptureEnabled;
+}
+
 typedef FlWebViewDelegateWithUrlCallback = void Function(
-    FlWebViewController controller, String url);
+    FlWebViewController controller, String? url);
 
 typedef FlWebViewDelegateWithProgressCallback = void Function(
     FlWebViewController controller, int progress);
@@ -268,8 +322,17 @@ typedef FlWebViewDelegateWithScrollChangedCallback = void Function(
 typedef FlWebViewDelegateWithNavigationRequest = FutureOr<bool> Function(
     FlWebViewController controller, NavigationRequest request);
 
+typedef FlWebViewDelegateWithPermissionRequest = FutureOr<bool> Function(
+    FlWebViewController controller, List<String>? resources);
+
+typedef FlWebViewDelegateWithPermissionRequestCanceled = void Function(
+    FlWebViewController controller, List<String>? resources);
+
 typedef FlWebViewDelegateWithWebResourceError = void Function(
     FlWebViewController controller, WebResourceError error);
+
+typedef FlWebViewDelegateWithShowFileChooser = FutureOr<List<String>?> Function(
+    FlWebViewController controller, FileChooserParams params);
 
 class FlWebViewDelegate {
   FlWebViewDelegate({
@@ -281,6 +344,9 @@ class FlWebViewDelegate {
     this.onScrollChanged,
     this.onWebResourceError,
     this.onUrlChanged,
+    this.onShowFileChooser,
+    this.onPermissionRequest,
+    this.onPermissionRequestCanceled,
   });
 
   final FlWebViewDelegateWithUrlCallback? onPageStarted;
@@ -299,6 +365,16 @@ class FlWebViewDelegate {
 
   final FlWebViewDelegateWithWebResourceError? onWebResourceError;
 
+  /// android onShowFileChooser
+  final FlWebViewDelegateWithShowFileChooser? onShowFileChooser;
+
+  /// android onPermissionRequest
+  final FlWebViewDelegateWithPermissionRequest? onPermissionRequest;
+
+  /// android onPermissionRequestCanceled
+  final FlWebViewDelegateWithPermissionRequestCanceled?
+      onPermissionRequestCanceled;
+
   FlWebViewDelegate copyWith({
     FlWebViewDelegateWithUrlCallback? onPageStarted,
     FlWebViewDelegateWithUrlCallback? onPageFinished,
@@ -308,16 +384,24 @@ class FlWebViewDelegate {
     FlWebViewDelegateWithNavigationRequest? onNavigationRequest,
     FlWebViewDelegateWithUrlCallback? onUrlChanged,
     FlWebViewDelegateWithWebResourceError? onWebResourceError,
+    FlWebViewDelegateWithShowFileChooser? onShowFileChooser,
+    FlWebViewDelegateWithPermissionRequest? onPermissionRequest,
+    FlWebViewDelegateWithPermissionRequestCanceled? onPermissionRequestCanceled,
   }) =>
       FlWebViewDelegate(
-          onPageStarted: onPageStarted ?? this.onPageStarted,
-          onPageFinished: onPageFinished ?? this.onPageFinished,
-          onProgress: onProgress ?? this.onProgress,
-          onSizeChanged: onSizeChanged ?? this.onSizeChanged,
-          onNavigationRequest: onNavigationRequest ?? this.onNavigationRequest,
-          onScrollChanged: onScrollChanged ?? this.onScrollChanged,
-          onWebResourceError: onWebResourceError ?? this.onWebResourceError,
-          onUrlChanged: onUrlChanged ?? this.onUrlChanged);
+        onPageStarted: onPageStarted ?? this.onPageStarted,
+        onPageFinished: onPageFinished ?? this.onPageFinished,
+        onProgress: onProgress ?? this.onProgress,
+        onSizeChanged: onSizeChanged ?? this.onSizeChanged,
+        onNavigationRequest: onNavigationRequest ?? this.onNavigationRequest,
+        onScrollChanged: onScrollChanged ?? this.onScrollChanged,
+        onWebResourceError: onWebResourceError ?? this.onWebResourceError,
+        onUrlChanged: onUrlChanged ?? this.onUrlChanged,
+        onShowFileChooser: onShowFileChooser ?? this.onShowFileChooser,
+        onPermissionRequest: onPermissionRequest ?? this.onPermissionRequest,
+        onPermissionRequestCanceled:
+            onPermissionRequestCanceled ?? this.onPermissionRequestCanceled,
+      );
 }
 
 class FlProgressBar {

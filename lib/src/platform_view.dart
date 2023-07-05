@@ -86,6 +86,7 @@ class FlWebViewController {
   set delegate(FlWebViewDelegate? delegate) => _delegate = delegate;
 
   Future<dynamic> _onMethodCall(MethodCall call) async {
+    debugPrint('>>> ${call.method}=====${call.arguments}');
     switch (call.method) {
       case 'onJavascriptChannelMessage':
         final String channel = call.arguments['channel'] as String;
@@ -100,11 +101,10 @@ class FlWebViewController {
                 isForMainFrame: call.arguments['isForMainFrame']! as bool));
         return value ?? true;
       case 'onPageStarted':
-        _delegate?.onPageStarted?.call(this, (call.arguments as String?) ?? "");
+        _delegate?.onPageStarted?.call(this, call.arguments as String?);
         break;
       case 'onPageFinished':
-        _delegate?.onPageFinished
-            ?.call(this, (call.arguments as String?) ?? "");
+        _delegate?.onPageFinished?.call(this, call.arguments as String?);
         break;
       case 'onProgress':
         _delegate?.onProgress?.call(this, (call.arguments as int?) ?? 0);
@@ -123,24 +123,25 @@ class FlWebViewController {
             ScrollPositioned.values[position]);
         break;
       case 'onUrlChanged':
-        _delegate?.onUrlChanged?.call(this, (call.arguments as String?) ?? "");
+        _delegate?.onUrlChanged?.call(this, call.arguments as String?);
+        break;
+      case 'onShowFileChooser':
+        return await _delegate?.onShowFileChooser
+            ?.call(this, FileChooserParams.fromMap(call.arguments as Map));
+      case 'onPermissionRequest':
+        final value = await _delegate?.onPermissionRequest?.call(
+            this, (call.arguments as List?)?.map((e) => e as String).toList());
+        return value ?? false;
+      case 'onPermissionRequestCanceled':
+        _delegate?.onPermissionRequestCanceled?.call(
+            this, (call.arguments as List?)?.map((e) => e as String).toList());
         break;
       case 'onWebResourceError':
-        _delegate?.onWebResourceError?.call(
-            this,
-            WebResourceError(
-                errorCode: call.arguments['errorCode']! as int,
-                description: call.arguments['description']! as String,
-                failingUrl: call.arguments['failingUrl'] as String,
-                domain: call.arguments['domain'] as String,
-                errorType: call.arguments['errorType'] == null
-                    ? null
-                    : WebResourceErrorType.values.firstWhere((WebResourceErrorType
-                            type) =>
-                        type.toString() ==
-                        '$WebResourceErrorType.${call.arguments['errorType']}')));
+        _delegate?.onWebResourceError
+            ?.call(this, WebResourceError.fromMap(call.arguments as Map));
         break;
     }
+    return null;
   }
 
   Future<bool> loadUrl(LoadUrlRequest urlRequest) async =>

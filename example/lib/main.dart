@@ -1,6 +1,7 @@
 import 'package:example/extended_web_view.dart';
 import 'package:example/html_webview.dart';
 import 'package:example/url_webview.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -55,11 +56,18 @@ class _AppState extends State<App> {
           ElevatedText(
               text: 'Html Text Adapt height with WebView',
               onPressed: () => getHtml(true)),
+          ElevatedText(
+              text: 'Select file',
+              onPressed: () async {
+                final String data =
+                    await rootBundle.loadString('assets/select_file.html');
+                push(HtmlTextFlWebView(data));
+              }),
         ]);
   }
 
   Future<void> getHtml([bool adaptHeight = false]) async {
-    final String data = await rootBundle.loadString('assets/html.html');
+    final String data = await rootBundle.loadString('assets/text.html');
     if (adaptHeight) {
       push(AdaptHtmlTextFlWebView(data));
     } else {
@@ -76,49 +84,68 @@ class BaseFlWebView extends FlWebView {
     FlWebViewDelegate? delegate,
     WebViewCreatedCallback? onWebViewCreated,
   }) : super(
-            progressBar: FlProgressBar(color: Colors.red),
-            delegate: FlWebViewDelegate(onPageStarted:
-                (FlWebViewController controller, String url) {
-              log('onPageStarted : $url');
-              delegate?.onPageStarted?.call(controller, url);
-            }, onPageFinished: (FlWebViewController controller, String url) {
-              log('onPageFinished : $url');
-              delegate?.onPageFinished?.call(controller, url);
-            }, onProgress: (FlWebViewController controller, int progress) {
-              log('onProgress ：$progress');
-              delegate?.onProgress?.call(controller, progress);
-            }, onSizeChanged:
-                (FlWebViewController controller, WebViewSize webViewSize) {
-              log('onSizeChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize}');
-              delegate?.onSizeChanged?.call(controller, webViewSize);
-            }, onScrollChanged: (FlWebViewController controller,
-                WebViewSize webViewSize,
-                Offset offset,
-                ScrollPositioned positioned) {
-              log('onScrollChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize} --- $offset --- $positioned');
-              delegate?.onScrollChanged
-                  ?.call(controller, webViewSize, offset, positioned);
-            }, onNavigationRequest:
-                (FlWebViewController controller, NavigationRequest request) {
-              log('onNavigationRequest : url=${request.url} --- isForMainFrame=${request.isForMainFrame}');
-              return delegate?.onNavigationRequest?.call(controller, request) ??
-                  true;
-            }, onUrlChanged: (FlWebViewController controller, String url) {
-              log('onUrlChanged : $url');
-              delegate?.onUrlChanged?.call(controller, url);
-            }),
-            onWebViewCreated: (FlWebViewController controller) async {
-              String userAgentString = 'userAgentString';
-              final value = await controller.getNavigatorUserAgent();
-              log('navigator.userAgent :  $value');
-              userAgentString = '$value = $userAgentString';
-              final userAgent = await controller.setUserAgent(userAgentString);
-              log('set userAgent:  $userAgent');
-              onWebViewCreated?.call(controller);
-              10.seconds.delayed(() {
-                controller.getWebViewSize();
-              });
+          progressBar: FlProgressBar(color: Colors.red),
+          delegate: FlWebViewDelegate(
+              onPageStarted: (FlWebViewController controller, url) {
+            log('onPageStarted : $url');
+            delegate?.onPageStarted?.call(controller, url);
+          }, onPageFinished: (FlWebViewController controller, url) {
+            log('onPageFinished : $url');
+            delegate?.onPageFinished?.call(controller, url);
+          }, onProgress: (FlWebViewController controller, int progress) {
+            log('onProgress ：$progress');
+            delegate?.onProgress?.call(controller, progress);
+          }, onSizeChanged:
+                  (FlWebViewController controller, WebViewSize webViewSize) {
+            log('onSizeChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize}');
+            delegate?.onSizeChanged?.call(controller, webViewSize);
+          }, onScrollChanged: (FlWebViewController controller,
+                  WebViewSize webViewSize,
+                  Offset offset,
+                  ScrollPositioned positioned) {
+            log('onScrollChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize} --- $offset --- $positioned');
+            delegate?.onScrollChanged
+                ?.call(controller, webViewSize, offset, positioned);
+          }, onNavigationRequest:
+                  (FlWebViewController controller, NavigationRequest request) {
+            log('onNavigationRequest : url=${request.url} --- isForMainFrame=${request.isForMainFrame}');
+            return delegate?.onNavigationRequest?.call(controller, request) ??
+                true;
+          }, onUrlChanged: (FlWebViewController controller, url) {
+            log('onUrlChanged : $url');
+            delegate?.onUrlChanged?.call(controller, url);
+          }, onShowFileChooser: (_, params) async {
+            FileType fileType = FileType.any;
+            if (params.acceptTypes.toString().contains('image')) {
+              fileType = FileType.image;
+            }
+            if (params.acceptTypes.toString().contains('video')) {
+              fileType = FileType.video;
+            }
+            if (params.acceptTypes.toString().contains('file')) {
+              fileType = FileType.any;
+            }
+            FilePickerResult? result = await FilePicker.platform.pickFiles(
+                type: fileType,
+                allowMultiple: params.mode == FileChooserMode.openMultiple);
+            final list = result?.files
+                .where((item) => item.path != null)
+                .builder((item) => item.path!);
+            return list;
+          }),
+          onWebViewCreated: (FlWebViewController controller) async {
+            String userAgentString = 'userAgentString';
+            final value = await controller.getNavigatorUserAgent();
+            log('navigator.userAgent :  $value');
+            userAgentString = '$value = $userAgentString';
+            final userAgent = await controller.setUserAgent(userAgentString);
+            log('set userAgent:  $userAgent');
+            onWebViewCreated?.call(controller);
+            10.seconds.delayed(() {
+              controller.getWebViewSize();
             });
+          },
+        );
 }
 
 class ElevatedText extends StatelessWidget {

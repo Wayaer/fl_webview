@@ -55,29 +55,18 @@ class FlWebViewClient(
             )
             if (isForMainFrame) {
                 handler.post {
-                    channel.invokeMethod(
-                        "onNavigationRequest",
-                        args,
-                        object : MethodChannel.Result {
-                            override fun success(shouldLoad: Any?) {
-                                if (shouldLoad as Boolean) {
-                                    webView.loadUrl(url, headers)
-                                }
-                            }
-
-                            override fun error(errorCode: String, s1: String?, o: Any?) {
-                                throw IllegalStateException("navigationRequest calls must succeed")
-                            }
-
-                            override fun notImplemented() {
-                                throw IllegalStateException(
-                                    "navigationRequest must be implemented by the webview method channel"
-                                )
-                            }
-                        })
+                    FlWebViewPlugin.invokeMethod(
+                        channel, handler, "onNavigationRequest", args
+                    ) { result ->
+                        if (result is Boolean) {
+                            webView.loadUrl(url, headers)
+                        }
+                    }
                 }
             } else {
-                invokeMethod("onNavigationRequest", args)
+                FlWebViewPlugin.invokeMethod(
+                    channel, handler, "onNavigationRequest", args
+                )
             }
             return isForMainFrame
         }
@@ -87,13 +76,17 @@ class FlWebViewClient(
 
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
         super.onPageStarted(view, url, favicon)
-        invokeMethod("onPageStarted", url)
+        FlWebViewPlugin.invokeMethod(
+            channel, handler, "onPageStarted", url
+        )
     }
 
 
     override fun onPageFinished(view: WebView?, url: String?) {
         super.onPageFinished(view, url)
-        invokeMethod("onPageFinished", url)
+        FlWebViewPlugin.invokeMethod(
+            channel, handler, "onPageFinished", url
+        )
     }
 
 
@@ -114,8 +107,8 @@ class FlWebViewClient(
     private fun onWebResourceError(
         errorCode: Int, description: String, failingUrl: String
     ) {
-        invokeMethod(
-            "onWebResourceError", mapOf(
+        FlWebViewPlugin.invokeMethod(
+            channel, handler, "onWebResourceError", mapOf(
                 "errorCode" to errorCode,
                 "description" to description,
                 "errorType" to errorCodeToString(errorCode),
@@ -126,18 +119,9 @@ class FlWebViewClient(
 
     override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
         super.doUpdateVisitedHistory(view, url, isReload)
-        invokeMethod("onUrlChanged", url)
-    }
-
-
-    private fun invokeMethod(method: String, args: Any?) {
-        if (handler.looper == Looper.myLooper()) {
-            channel.invokeMethod(method, args)
-        } else {
-            handler.post {
-                channel.invokeMethod(method, args)
-            }
-        }
+        FlWebViewPlugin.invokeMethod(
+            channel, handler, "onUrlChanged", url
+        )
     }
 
 

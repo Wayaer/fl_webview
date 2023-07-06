@@ -17,7 +17,6 @@ class FlWebViewController {
   set delegate(FlWebViewDelegate? delegate) => _delegate = delegate;
 
   Future<dynamic> _onMethodCall(MethodCall call) async {
-    debugPrint('>>> ${call.method}=====${call.arguments}');
     switch (call.method) {
       case 'onJavascriptChannelMessage':
         final String channel = call.arguments['channel'] as String;

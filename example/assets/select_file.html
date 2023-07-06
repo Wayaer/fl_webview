@@ -3,63 +3,63 @@
 <head>
     <title>选择框</title>
     <style>
-    body {
-      display: flex;
-      justify-content: center; /* 水平居中 */
-      align-items: center; /* 垂直居中 */
-      height: 100vh; /* 将 body 元素的高度设置为视窗高度，以确保内容垂直居中 */
-    }
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* 水平居中 */
+            align-items: center; /* 垂直居中 */
+            height: 100vh; /* 将 body 元素的高度设置为视窗高度，以确保内容垂直居中 */
+        }
 
-    .container {
-      text-align: center;
-    }
+        .container {
+            text-align: center;
+        }
 
-    input[type="file"] {
-      width: 200px; /* 输入框宽度 */
-      margin-bottom: 10px;
-    }
+        input[type="file"] {
+            width: 200px; /* 输入框宽度 */
+            margin-bottom: 10px;
+        }
 
-    p {
-      width: 200px; /* 文字内容宽度 */
-      word-wrap: break-word; /* 超出宽度时自动换行 */
-    }
-  </style>
+        p {
+            width: 200px; /* 文字内容宽度 */
+            word-wrap: break-word; /* 超出宽度时自动换行 */
+        }
+    </style>
     <script>
-    function handleFileSelect(element) {
-      var files = element.files;
-      var filePaths = '';
+        function handleFileSelect(element) {
+            const files = element.files
+            let filePaths = ''
 
-      for (var i = 0; i < files.length; i++) {
-        var file = files[i];
-        var filePath = URL.createObjectURL(file);
-        filePaths += filePath + '\n';
-      }
-
-      var displayElementId = element.getAttribute('data-display');
-      var fileDisplay = document.getElementById(displayElementId);
-      fileDisplay.innerText = filePaths;
-    }
-  </script>
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i]
+                const filePath = URL.createObjectURL(file)
+                filePaths += filePath + '\n'
+            }
+            const displayElementId = element.getAttribute('data-display')
+            const fileDisplay = document.getElementById(displayElementId)
+            fileDisplay.innerText = filePaths
+        }
+    </script>
 </head>
 <body>
-<div class="container">
+<div class='container'>
     <h2>选择文件</h2>
 
-    <input type="file" multiple onchange="handleFileSelect(this)" data-display="fileDisplay">
+    <input type='file' accept='*/*' multiple onchange='handleFileSelect(this)' data-display='fileDisplay'>
 
-    <p id="fileDisplay"></p>
+    <p id='fileDisplay'></p>
 
     <h2>选择图片</h2>
 
-    <input type="file" accept="image/*" multiple onchange="handleFileSelect(this)" data-display="imageDisplay">
+    <input type='file' accept='image/*' multiple onchange='handleFileSelect(this)' data-display='imageDisplay'>
 
-    <p id="imageDisplay"></p>
+    <p id='imageDisplay'></p>
 
     <h2>选择视频</h2>
 
-    <input type="file" accept="video/*" multiple onchange="handleFileSelect(this)" data-display="videoDisplay">
+    <input type='file' accept='video/*' multiple onchange='handleFileSelect(this)' data-display='videoDisplay'>
 
-    <p id="videoDisplay"></p>
+    <p id='videoDisplay'></p>
 </div>
 </body>
 </html>

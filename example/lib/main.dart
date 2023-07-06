@@ -65,13 +65,6 @@ class _AppState extends State<App> {
                 push(HtmlTextFlWebView(data));
               }),
           ElevatedText(
-              text: 'Permission request location',
-              onPressed: () async {
-                final String data = await rootBundle
-                    .loadString('assets/permission_request_location.html');
-                push(HtmlTextFlWebView(data));
-              }),
-          ElevatedText(
               text: 'Permission request',
               onPressed: () async {
                 final String data = await rootBundle

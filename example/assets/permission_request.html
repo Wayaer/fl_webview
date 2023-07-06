@@ -1,54 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>语音权限申请</title>
+    <title>权限申请</title>
     <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+        }
 
-    .container {
-      text-align: center;
-    }
-
-    #statusDisplay {
-      margin-top: 10px;
-    }
+        .container {
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
 
 
     </style>
     <script>
-    function requestSpeechPermission() {
-      if (navigator.permissions) {
-        navigator.permissions.query({ name: 'microphone' })
-          .then(permissionStatus => {
-            var statusDisplay = document.getElementById('statusDisplay');
-            statusDisplay.innerText = permissionStatus.state;
-            permissionStatus.onchange = function() {
-              statusDisplay.innerText = permissionStatus.state;
-            };
-          })
-          .catch(error => {
-            console.log('获取语音权限时出错：', error);
-          });
-      } else {
-        console.log('浏览器不支持 permissions API');
-      }
-    }
-
+        function requestPermission(name) {
+            if (navigator.permissions) {
+                navigator.permissions.query({ name: name })
+                    .then(permissionStatus => {
+                        const statusDisplay = document.getElementById(name + 'StatusDisplay')
+                        statusDisplay.innerText = permissionStatus.state
+                        permissionStatus.onchange = function() {
+                            statusDisplay.innerText = permissionStatus.state
+                        }
+                    })
+                    .catch(error => {
+                        console.log('获取语音权限时出错：', error)
+                    })
+            } else {
+                console.log('浏览器不支持 permissions API')
+            }
+        }
 
     </script>
 </head>
 <body>
-<div class="container">
+<div class='container'>
     <h2>语音权限申请</h2>
-
-    <button onclick="requestSpeechPermission()">申请权限</button>
-
-    <p id="statusDisplay"></p>
+    <button onclick="requestPermission('microphone')">语音权限申请</button>
+    <p id='microphoneStatusDisplay'></p>
+    <h2>定位权限申请</h2>
+    <button onclick="requestPermission('geolocation')">定位权限申请</button>
+    <p id='geolocationStatusDisplay'></p>
 </div>
 </body>
 </html>

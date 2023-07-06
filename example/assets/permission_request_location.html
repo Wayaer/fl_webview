@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>定位权限申请</title>
+    <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+    }
+
+    #statusDisplay {
+      margin-top: 10px;
+    }
+
+    </style>
+    <script>
+    function requestLocationPermission() {
+      if (navigator.permissions) {
+        navigator.permissions.query({ name: 'geolocation' })
+          .then(permissionStatus => {
+            var statusDisplay = document.getElementById('statusDisplay');
+            statusDisplay.innerText = permissionStatus.state;
+            permissionStatus.onchange = function() {
+              statusDisplay.innerText = permissionStatus.state;
+            };
+          })
+          .catch(error => {
+            console.log('获取定位权限时出错：', error);
+          });
+      } else {
+        console.log('浏览器不支持 permissions API');
+      }
+    }
+
+    </script>
+</head>
+<body>
+<div class="container">
+    <h2>定位权限申请</h2>
+
+    <button onclick="requestLocationPermission()">申请权限</button>
+
+    <p id="statusDisplay"></p>
+</div>
+</body>
+</html>

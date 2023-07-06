@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>语音权限申请</title>
+    <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+    }
+
+    #statusDisplay {
+      margin-top: 10px;
+    }
+
+
+    </style>
+    <script>
+    function requestSpeechPermission() {
+      if (navigator.permissions) {
+        navigator.permissions.query({ name: 'microphone' })
+          .then(permissionStatus => {
+            var statusDisplay = document.getElementById('statusDisplay');
+            statusDisplay.innerText = permissionStatus.state;
+            permissionStatus.onchange = function() {
+              statusDisplay.innerText = permissionStatus.state;
+            };
+          })
+          .catch(error => {
+            console.log('获取语音权限时出错：', error);
+          });
+      } else {
+        console.log('浏览器不支持 permissions API');
+      }
+    }
+
+
+    </script>
+</head>
+<body>
+<div class="container">
+    <h2>语音权限申请</h2>
+
+    <button onclick="requestSpeechPermission()">申请权限</button>
+
+    <p id="statusDisplay"></p>
+</div>
+</body>
+</html>

@@ -325,6 +325,9 @@ typedef FlWebViewDelegateWithNavigationRequest = FutureOr<bool> Function(
 typedef FlWebViewDelegateWithPermissionRequest = FutureOr<bool> Function(
     FlWebViewController controller, List<String>? resources);
 
+typedef FlWebViewDelegateWithGeolocationPermissionsShowPrompt = FutureOr<bool>
+    Function(FlWebViewController controller, String? origin);
+
 typedef FlWebViewDelegateWithPermissionRequestCanceled = void Function(
     FlWebViewController controller, List<String>? resources);
 
@@ -346,6 +349,7 @@ class FlWebViewDelegate {
     this.onUrlChanged,
     this.onShowFileChooser,
     this.onPermissionRequest,
+    this.onGeolocationPermissionsShowPrompt,
     this.onPermissionRequestCanceled,
   });
 
@@ -371,6 +375,10 @@ class FlWebViewDelegate {
   /// android onPermissionRequest
   final FlWebViewDelegateWithPermissionRequest? onPermissionRequest;
 
+  /// android onGeolocationPermissionsShowPrompt
+  final FlWebViewDelegateWithGeolocationPermissionsShowPrompt?
+      onGeolocationPermissionsShowPrompt;
+
   /// android onPermissionRequestCanceled
   final FlWebViewDelegateWithPermissionRequestCanceled?
       onPermissionRequestCanceled;
@@ -386,6 +394,8 @@ class FlWebViewDelegate {
     FlWebViewDelegateWithWebResourceError? onWebResourceError,
     FlWebViewDelegateWithShowFileChooser? onShowFileChooser,
     FlWebViewDelegateWithPermissionRequest? onPermissionRequest,
+    FlWebViewDelegateWithGeolocationPermissionsShowPrompt?
+        onGeolocationPermissionsShowPrompt,
     FlWebViewDelegateWithPermissionRequestCanceled? onPermissionRequestCanceled,
   }) =>
       FlWebViewDelegate(
@@ -399,6 +409,9 @@ class FlWebViewDelegate {
         onUrlChanged: onUrlChanged ?? this.onUrlChanged,
         onShowFileChooser: onShowFileChooser ?? this.onShowFileChooser,
         onPermissionRequest: onPermissionRequest ?? this.onPermissionRequest,
+        onGeolocationPermissionsShowPrompt:
+            onGeolocationPermissionsShowPrompt ??
+                this.onGeolocationPermissionsShowPrompt,
         onPermissionRequestCanceled:
             onPermissionRequestCanceled ?? this.onPermissionRequestCanceled,
       );

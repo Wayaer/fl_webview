@@ -2,9 +2,7 @@ package fl.webview
 
 import android.net.Uri
 import android.os.Handler
-import android.os.Looper
 import android.os.Message
-import android.util.Log
 import android.webkit.GeolocationPermissions
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
@@ -14,7 +12,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
-import java.lang.Exception
 
 class FlWebChromeClient(
     private val channel: MethodChannel,
@@ -59,7 +56,15 @@ class FlWebChromeClient(
     override fun onGeolocationPermissionsShowPrompt(
         origin: String?, callback: GeolocationPermissions.Callback?
     ) {
-        callback?.invoke(origin, true, false);
+        FlWebViewPlugin.invokeMethod(
+            channel, handler, "onGeolocationPermissionsShowPrompt", origin
+        ) { result ->
+            if (result is Boolean) {
+                callback?.invoke(origin, result, false);
+            } else {
+                super.onGeolocationPermissionsShowPrompt(origin, callback)
+            }
+        }
     }
 
 
@@ -87,7 +92,6 @@ class FlWebChromeClient(
     }
 
     override fun onPermissionRequest(request: PermissionRequest?) {
-        super.onPermissionRequest(request)
         FlWebViewPlugin.invokeMethod(
             channel, handler, "onPermissionRequest", request?.resources?.toList()
         ) { result ->
@@ -96,9 +100,10 @@ class FlWebChromeClient(
             } else {
                 request?.deny()
             }
-
         }
+        super.onPermissionRequest(request)
     }
+
 
     override fun onPermissionRequestCanceled(request: PermissionRequest?) {
         super.onPermissionRequestCanceled(request)

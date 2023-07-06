@@ -7,10 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 import 'package:flutter_curiosity/flutter_curiosity.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-const String url =
-    'https://blog.csdn.net/ozhuimeng123/article/details/98120505';
-// const String url = 'https://www.baidu.com/';
+// const String url =
+//     'https://blog.csdn.net/ozhuimeng123/article/details/98120505';
+const String url = 'https://site000011.c.yty.daqsoft.com';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,6 +62,20 @@ class _AppState extends State<App> {
               onPressed: () async {
                 final String data =
                     await rootBundle.loadString('assets/select_file.html');
+                push(HtmlTextFlWebView(data));
+              }),
+          ElevatedText(
+              text: 'Permission request location',
+              onPressed: () async {
+                final String data = await rootBundle
+                    .loadString('assets/permission_request_location.html');
+                push(HtmlTextFlWebView(data));
+              }),
+          ElevatedText(
+              text: 'Permission request',
+              onPressed: () async {
+                final String data = await rootBundle
+                    .loadString('assets/permission_request.html');
                 push(HtmlTextFlWebView(data));
               }),
         ]);
@@ -132,6 +147,14 @@ class BaseFlWebView extends FlWebView {
                 .where((item) => item.path != null)
                 .builder((item) => item.path!);
             return list;
+          }, onGeolocationPermissionsShowPrompt: (_, origin) async {
+            log('onGeolocationPermissionsShowPrompt : $origin');
+            return await getPermission(Permission.locationWhenInUse);
+          }, onPermissionRequest: (_, List<String>? resources) {
+            log('onPermissionRequest : $resources');
+            return true;
+          }, onPermissionRequestCanceled: (_, List<String>? resources) {
+            log('onPermissionRequestCanceled : $resources');
           }),
           onWebViewCreated: (FlWebViewController controller) async {
             String userAgentString = 'userAgentString';
@@ -162,4 +185,10 @@ class ElevatedText extends StatelessWidget {
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 6), child: button);
   }
+}
+
+Future<bool> getPermission(Permission permission) async {
+  if (!isMobile) return false;
+  final status = await permission.request();
+  return status.isGranted;
 }

@@ -134,7 +134,7 @@ class _WebViewState extends State<FlWebView> {
   Widget get buildProgressBar => ValueListenableBuilder(
       valueListenable: currentProgress!,
       builder: (_, int value, __) {
-        if (value < 10 || value == 100) {
+        if (value == 0 || value >= 100) {
           return const SizedBox();
         }
         return Container(
@@ -164,13 +164,8 @@ class _WebViewState extends State<FlWebView> {
   }
 
   @override
-  void deactivate() {
-    flWebViewController?.dispose();
-    super.deactivate();
-  }
-
-  @override
   void dispose() {
+    flWebViewController?.dispose();
     currentProgress?.dispose();
     currentProgress = null;
     super.dispose();

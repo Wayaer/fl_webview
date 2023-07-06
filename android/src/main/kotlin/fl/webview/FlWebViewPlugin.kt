@@ -53,7 +53,6 @@ class FlWebViewPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             }
             return FlWebViewPlatformView(context, channel, params)
         }
-
     }
 
     companion object {

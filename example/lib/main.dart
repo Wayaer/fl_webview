@@ -62,14 +62,14 @@ class _AppState extends State<App> {
               onPressed: () async {
                 final String data =
                     await rootBundle.loadString('assets/select_file.html');
-                push(HtmlTextFlWebView(data));
+                push(HtmlTextFlWebView(data, title: 'Select file'));
               }),
           ElevatedText(
               text: 'Permission request',
               onPressed: () async {
                 final String data = await rootBundle
                     .loadString('assets/permission_request.html');
-                push(HtmlTextFlWebView(data));
+                push(HtmlTextFlWebView(data, title: 'Permission request'));
               }),
         ]);
   }
@@ -99,6 +99,9 @@ class BaseFlWebView extends FlWebView {
             delegate?.onPageStarted?.call(controller, url);
           }, onPageFinished: (FlWebViewController controller, url) {
             log('onPageFinished : $url');
+            2.seconds.delayed(() {
+              controller.getWebViewSize();
+            });
             delegate?.onPageFinished?.call(controller, url);
           }, onProgress: (FlWebViewController controller, int progress) {
             log('onProgress ：$progress');
@@ -124,6 +127,8 @@ class BaseFlWebView extends FlWebView {
             delegate?.onUrlChanged?.call(controller, url);
           }, onShowFileChooser: (_, params) async {
             FileType fileType = FileType.any;
+            log(params.acceptTypes);
+            log(params.mode);
             if (params.acceptTypes.toString().contains('image')) {
               fileType = FileType.image;
             }
@@ -139,7 +144,7 @@ class BaseFlWebView extends FlWebView {
             final list = result?.files
                 .where((item) => item.path != null)
                 .builder((item) => item.path!);
-            return list;
+            return list ?? [];
           }, onGeolocationPermissionsShowPrompt: (_, origin) async {
             log('onGeolocationPermissionsShowPrompt : $origin');
             return await getPermission(Permission.locationWhenInUse);
@@ -157,9 +162,6 @@ class BaseFlWebView extends FlWebView {
             final userAgent = await controller.setUserAgent(userAgentString);
             log('set userAgent:  $userAgent');
             onWebViewCreated?.call(controller);
-            10.seconds.delayed(() {
-              controller.getWebViewSize();
-            });
           },
         );
 }

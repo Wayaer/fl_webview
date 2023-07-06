@@ -334,7 +334,7 @@ typedef FlWebViewDelegateWithPermissionRequestCanceled = void Function(
 typedef FlWebViewDelegateWithWebResourceError = void Function(
     FlWebViewController controller, WebResourceError error);
 
-typedef FlWebViewDelegateWithShowFileChooser = FutureOr<List<String>?> Function(
+typedef FlWebViewDelegateWithShowFileChooser = FutureOr<List<String>> Function(
     FlWebViewController controller, FileChooserParams params);
 
 class FlWebViewDelegate {

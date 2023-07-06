@@ -83,10 +83,8 @@ class FlWebChromeClient(
         FlWebViewPlugin.invokeMethod(
             channel, handler, "onShowFileChooser", params
         ) { result ->
-            if (result is ArrayList<*>) {
-                val list = result.map { v -> Uri.fromFile(File(v as String)) }
-                filePathCallback?.onReceiveValue(list.toTypedArray())
-            }
+            val list = (result as ArrayList<*>).map { v -> Uri.fromFile(File(v as String)) }
+            filePathCallback?.onReceiveValue(list.toTypedArray())
         }
         return true
     }

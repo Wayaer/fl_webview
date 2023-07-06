@@ -39,13 +39,16 @@ class AdaptHtmlTextFlWebView extends StatelessWidget {
 }
 
 class HtmlTextFlWebView extends StatelessWidget {
-  const HtmlTextFlWebView(this.loadData, {Key? key}) : super(key: key);
+  const HtmlTextFlWebView(this.loadData,
+      {Key? key, this.title = 'Html FlWebView'})
+      : super(key: key);
   final String loadData;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
     return ExtendedScaffold(
-        appBar: AppBar(title: const Text('Html Text FlWebView')),
+        appBar: AppBar(title: Text(title)),
         mainAxisAlignment: MainAxisAlignment.center,
         body: BaseFlWebView(load: LoadDataRequest(loadData)));
   }

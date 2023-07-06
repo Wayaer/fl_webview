@@ -1,66 +1,78 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>选择框</title>
     <style>
         body {
             display: flex;
+            justify-content: center;
+            align-items: center;
             flex-direction: column;
-            justify-content: center; /* 水平居中 */
-            align-items: center; /* 垂直居中 */
-            font-size:60px
-            height: 100vh; /* 将 body 元素的高度设置为视窗高度，以确保内容垂直居中 */
+            height: 100vh;
+            font-size: 40px
         }
 
-        .container {
-            text-align: center;
+        .pathText {
+            width: 300px;
+        }
+
+        .center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
         }
 
         input[type="file"] {
-            width: 200px; /* 输入框宽度 */
             margin-bottom: 10px;
-        }
-
-        p {
-            width: 200px; /* 文字内容宽度 */
-            word-wrap: break-word; /* 超出宽度时自动换行 */
+            margin-top: 10px;
+            font-size: 40px
         }
     </style>
-    <script>
-        function handleFileSelect(element) {
-            const files = element.files
-            let filePaths = ''
-
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i]
-                const filePath = URL.createObjectURL(file)
-                filePaths += filePath + '\n'
-            }
-            const displayElementId = element.getAttribute('data-display')
-            const fileDisplay = document.getElementById(displayElementId)
-            fileDisplay.innerText = filePaths
-        }
-    </script>
 </head>
 <body>
-<div class='container'>
-    <h2>选择文件</h2>
-
-    <input type='file' multiple onchange='handleFileSelect(this)' data-display='fileDisplay'>
-
-    <p id='fileDisplay'></p>
-
-    <h2>选择图片</h2>
-
-    <input type='file' accept='image/*' multiple onchange='handleFileSelect(this)' data-display='imageDisplay'>
-
-    <p id='imageDisplay'></p>
-
-    <h2>选择视频</h2>
-
-    <input type='file' accept='video/*' multiple onchange='handleFileSelect(this)' data-display='videoDisplay'>
-
-    <p id='videoDisplay'></p>
+<h2>选择文件</h2>
+<div class="center">
+    <input type="file" id="fileInput" multiple onchange="showFilePath(this)">
+    <div id="fileOutput" class="pathText"></div>
 </div>
+<h2>选择图片</h2>
+<div class="center">
+    <input type="file" accept="image/*" multiple id="imageInput" onchange="showImage(this)">
+    <div id="imageOutput"></div>
+</div>
+<h2>选择视频</h2>
+<div class="center">
+    <input type="file" accept="video/*" multiple id="videoInput" onchange="showVideo(this)">
+    <div id="videoOutput"></div>
+</div>
+<script>
+    function showFilePath(input) {
+        var output = document.getElementById('fileOutput');
+        output.innerHTML = "文件路径: " + input.value;
+    }
+
+    function showImage(input) {
+        var output = document.getElementById('imageOutput');
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                output.innerHTML = "<img src='" + e.target.result + "' width='200'>";
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function showVideo(input) {
+        var output = document.getElementById('videoOutput');
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                output.innerHTML = "<video width='200' controls><source src='" + e.target.result + "'></video>";
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+</script>
 </body>
 </html>

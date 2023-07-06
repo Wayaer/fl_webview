@@ -240,7 +240,6 @@ public class FlWebViewPlatformView: NSObject, FlutterPlatformView, WKUIDelegate 
     }
 
     deinit {
-        print("结束了")
         webView!.channel.setMethodCallHandler(nil)
         webView!.removeFromSuperview()
         webView = nil

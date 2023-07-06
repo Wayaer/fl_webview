@@ -59,7 +59,7 @@ public class FlWebViewPlatformView: NSView, WKUIDelegate {
         case "evaluateJavascript":
             let jsString = call.arguments as! String
             webView!.evaluateJavaScript(jsString) { value, error in
-                print("=== FlWebview evaluateJavaScript failed , JavaScript string was: '\(jsString)'\n\(String(describing: error)) ===")
+                print("FlWebview evaluateJavaScript failed , JavaScript string was: '\(jsString)'\n\(String(describing: error))")
                 result(value)
             }
         case "addJavascriptChannel":

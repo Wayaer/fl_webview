@@ -121,8 +121,11 @@ class FlWebViewController {
     _channel.invokeMethod<void>('applyWebSettings', settings.toMap());
   }
 
-  Future<String?> evaluateJavascript(String javascriptString) =>
-      _channel.invokeMethod<String?>('evaluateJavascript', javascriptString);
+  Future<String?> evaluateJavascript(String javascriptString) async {
+    assert(javascriptString.isNotEmpty);
+    return await _channel.invokeMethod<String?>(
+        'evaluateJavascript', javascriptString);
+  }
 
   final Map<String, JavascriptChannel> _javascriptChannels = {};
 

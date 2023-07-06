@@ -1,5 +1,12 @@
 # fl_webview
 
+### ios webview 设置中文 在 plist 文件中添加
+
+```plist
+<key>CFBundleAllowMixedLocalizations</key>
+<true/>
+```
+
 ### 使用 use
 
 ```dart
@@ -68,8 +75,7 @@ Widget build(BuildContext context) {
               onWebViewCreated: onWebViewCreated,
               delegate: FlWebViewDelegate(
                   onSizeChanged: onSizeChanged,
-                  onScrollChanged: onScrollChanged)))
-  ,
+                  onScrollChanged: onScrollChanged)));
 }
 ```
 

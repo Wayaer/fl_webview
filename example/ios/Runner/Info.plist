@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleAllowMixedLocalizations</key>
+	<true/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -46,16 +48,15 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
-		<string>NSContactsUsageDescription</string>
-    	<key>NSContactsUsageDescription</key>
-    	<key>NSAppleMusicUsageDescription</key>
-        	<string>NSLocationAlwaysAndWhenInUseUsageDescription</string>
-        		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-            	<string>NSLocationAlwaysUsageDescription</string>
-            	<key>NSLocationAlwaysUsageDescription</key>
-            	<string>NSLocationWhenInUseUsageDescription</string>
-            	<key>NSLocationWhenInUseUsageDescription</key>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Location Always and When In Use Usage Description</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Location Always Usage Description</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Location When In Use Usage Description</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Photo Library Additions Usage Description</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo Library Usage Description</string>
 </dict>
 </plist>

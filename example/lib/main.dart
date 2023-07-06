@@ -127,8 +127,6 @@ class BaseFlWebView extends FlWebView {
             delegate?.onUrlChanged?.call(controller, url);
           }, onShowFileChooser: (_, params) async {
             FileType fileType = FileType.any;
-            log(params.acceptTypes);
-            log(params.mode);
             if (params.acceptTypes.toString().contains('image')) {
               fileType = FileType.image;
             }

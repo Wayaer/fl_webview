@@ -8,6 +8,7 @@
             flex-direction: column;
             justify-content: center; /* 水平居中 */
             align-items: center; /* 垂直居中 */
+            font-size:60px
             height: 100vh; /* 将 body 元素的高度设置为视窗高度，以确保内容垂直居中 */
         }
 
@@ -45,7 +46,7 @@
 <div class='container'>
     <h2>选择文件</h2>
 
-    <input type='file' accept='*/*' multiple onchange='handleFileSelect(this)' data-display='fileDisplay'>
+    <input type='file' multiple onchange='handleFileSelect(this)' data-display='fileDisplay'>
 
     <p id='fileDisplay'></p>
 

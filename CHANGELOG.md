@@ -1,7 +1,7 @@
 ## 1.1.0
 
-* Support android file selection
-* Support android permission request callback
+* Add the `onShowFileChooser` callback for android for webview selection files
+* Add the `onGeolocationPermissionsShowPrompt` callback for webview for positioning for android
 
 ## 1.0.1
 

@@ -42,6 +42,34 @@ Widget build(BuildContext context) {
             log('onNavigationRequest : url=${request.url} --- isForMainFrame=${request.isForMainFrame}');
             return true;
           },
+          onGeolocationPermissionsShowPrompt: (_, origin) async {
+            log('onGeolocationPermissionsShowPrompt : $origin');
+
+            /// Get location permission 
+            return await getPermission(Permission.locationWhenInUse);
+          },
+          onShowFileChooser: (_, params) async {
+            log('onShowFileChooser : ${params.toMap()}');
+
+            /// Select file
+            FileType fileType = FileType.any;
+            if (params.acceptTypes.toString().contains('image')) {
+              fileType = FileType.image;
+            }
+            if (params.acceptTypes.toString().contains('video')) {
+              fileType = FileType.video;
+            }
+            if (params.acceptTypes.toString().contains('file')) {
+              fileType = FileType.any;
+            }
+            FilePickerResult? result = await FilePicker.platform.pickFiles(
+                type: fileType,
+                allowMultiple: params.mode == FileChooserMode.openMultiple);
+            final list = result?.files
+                .where((item) => item.path != null)
+                .builder((item) => item.path!);
+            return list ?? [];
+          },
           onUrlChanged: (FlWebViewController controller, String url) {
             log('onUrlChanged : $url');
           }),

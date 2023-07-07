@@ -302,6 +302,14 @@ class FileChooserParams {
 
   /// Returns preference for a live media captured value
   final bool? isCaptureEnabled;
+
+  Map<String, dynamic> toMap() => {
+        'title': title,
+        'mode': mode,
+        'acceptTypes': acceptTypes,
+        'filenameHint': filenameHint,
+        'isCaptureEnabled': isCaptureEnabled,
+      };
 }
 
 typedef FlWebViewDelegateWithUrlCallback = void Function(
@@ -353,33 +361,41 @@ class FlWebViewDelegate {
     this.onPermissionRequestCanceled,
   });
 
+  /// Supports android and ios
   final FlWebViewDelegateWithUrlCallback? onPageStarted;
 
+  /// Supports android and ios
   final FlWebViewDelegateWithUrlCallback? onPageFinished;
 
+  /// Supports android and ios
   final FlWebViewDelegateWithProgressCallback? onProgress;
 
+  /// Supports android and ios
   final FlWebViewDelegateWithSizeCallback? onSizeChanged;
 
+  /// Supports android and ios
   final FlWebViewDelegateWithScrollChangedCallback? onScrollChanged;
 
+  /// Supports android and ios
   final FlWebViewDelegateWithNavigationRequest? onNavigationRequest;
 
+  /// Supports android and ios
   final FlWebViewDelegateWithUrlCallback? onUrlChanged;
 
+  /// Supports android and ios
   final FlWebViewDelegateWithWebResourceError? onWebResourceError;
 
-  /// android onShowFileChooser
+  /// Supports android onShowFileChooser
   final FlWebViewDelegateWithShowFileChooser? onShowFileChooser;
 
-  /// android onPermissionRequest
+  /// Supports android onPermissionRequest
   final FlWebViewDelegateWithPermissionRequest? onPermissionRequest;
 
-  /// android onGeolocationPermissionsShowPrompt
+  /// Supports android onGeolocationPermissionsShowPrompt
   final FlWebViewDelegateWithGeolocationPermissionsShowPrompt?
       onGeolocationPermissionsShowPrompt;
 
-  /// android onPermissionRequestCanceled
+  /// Supports android onPermissionRequestCanceled
   final FlWebViewDelegateWithPermissionRequestCanceled?
       onPermissionRequestCanceled;
 
@@ -399,22 +415,21 @@ class FlWebViewDelegate {
     FlWebViewDelegateWithPermissionRequestCanceled? onPermissionRequestCanceled,
   }) =>
       FlWebViewDelegate(
-        onPageStarted: onPageStarted ?? this.onPageStarted,
-        onPageFinished: onPageFinished ?? this.onPageFinished,
-        onProgress: onProgress ?? this.onProgress,
-        onSizeChanged: onSizeChanged ?? this.onSizeChanged,
-        onNavigationRequest: onNavigationRequest ?? this.onNavigationRequest,
-        onScrollChanged: onScrollChanged ?? this.onScrollChanged,
-        onWebResourceError: onWebResourceError ?? this.onWebResourceError,
-        onUrlChanged: onUrlChanged ?? this.onUrlChanged,
-        onShowFileChooser: onShowFileChooser ?? this.onShowFileChooser,
-        onPermissionRequest: onPermissionRequest ?? this.onPermissionRequest,
-        onGeolocationPermissionsShowPrompt:
-            onGeolocationPermissionsShowPrompt ??
-                this.onGeolocationPermissionsShowPrompt,
-        onPermissionRequestCanceled:
-            onPermissionRequestCanceled ?? this.onPermissionRequestCanceled,
-      );
+          onPageStarted: onPageStarted ?? this.onPageStarted,
+          onPageFinished: onPageFinished ?? this.onPageFinished,
+          onProgress: onProgress ?? this.onProgress,
+          onSizeChanged: onSizeChanged ?? this.onSizeChanged,
+          onNavigationRequest: onNavigationRequest ?? this.onNavigationRequest,
+          onScrollChanged: onScrollChanged ?? this.onScrollChanged,
+          onWebResourceError: onWebResourceError ?? this.onWebResourceError,
+          onUrlChanged: onUrlChanged ?? this.onUrlChanged,
+          onShowFileChooser: onShowFileChooser ?? this.onShowFileChooser,
+          onPermissionRequest: onPermissionRequest ?? this.onPermissionRequest,
+          onGeolocationPermissionsShowPrompt:
+              onGeolocationPermissionsShowPrompt ??
+                  this.onGeolocationPermissionsShowPrompt,
+          onPermissionRequestCanceled:
+              onPermissionRequestCanceled ?? this.onPermissionRequestCanceled);
 }
 
 class FlProgressBar {

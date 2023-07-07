@@ -1,6 +1,6 @@
 # fl_webview
 
-### ios webview 设置中文 在 plist 文件中添加
+### ios webview 本地化 在 plist 文件中添加
 
 ```plist
 <key>CFBundleAllowMixedLocalizations</key>

@@ -45,9 +45,6 @@ class _AppState extends State<App> {
               ElevatedText(
                   text: 'Fixed height with WebView',
                   onPressed: () => push(const FixedHeightFlWebView())),
-              ElevatedText(
-                  text: 'Adapt height with WebView',
-                  onPressed: () => push(const AdaptHeightFlWebView())),
               const SizedBox(height: 10),
               ElevatedText(
                   text: 'WebView With ScrollView',

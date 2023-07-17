@@ -13,7 +13,7 @@ class ExtendedFlWebViewWithScrollViewPage extends StatelessWidget {
     double webHeight = context.mediaQuery.size.height -
         context.mediaQuery.padding.top -
         kToolbarHeight;
-    return ExtendedScaffold(
+    return Scaffold(
         appBar:
             AppBar(title: const Text('ExtendedFlWebViewWithScrollViewPage')),
         body: ExtendedFlWebViewWithScrollView(

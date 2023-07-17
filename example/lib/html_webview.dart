@@ -9,10 +9,9 @@ class AdaptHtmlTextFlWebView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ExtendedScaffold(
+    return Scaffold(
         appBar: AppBar(title: const Text('Adapt Height Html Text FlWebView')),
-        isScroll: true,
-        children: <Widget>[
+        body: Universal(isScroll: true, children: <Widget>[
           Container(
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
@@ -34,7 +33,7 @@ class AdaptHtmlTextFlWebView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 20),
               height: 100,
               child: const Text('Footer')),
-        ]);
+        ]));
   }
 }
 
@@ -47,9 +46,8 @@ class HtmlTextFlWebView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ExtendedScaffold(
+    return Scaffold(
         appBar: AppBar(title: Text(title)),
-        mainAxisAlignment: MainAxisAlignment.center,
         body: BaseFlWebView(load: LoadDataRequest(loadData)));
   }
 }

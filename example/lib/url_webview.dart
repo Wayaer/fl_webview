@@ -8,10 +8,9 @@ class AdaptHeightFlWebView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ExtendedScaffold(
+    return Scaffold(
         appBar: AppBar(title: const Text('Adapt Height FlWebView')),
-        isScroll: true,
-        children: <Widget>[
+        body: Universal(isScroll: true, children: <Widget>[
           Container(
               alignment: Alignment.center,
               margin: const EdgeInsets.all(10),
@@ -33,7 +32,7 @@ class AdaptHeightFlWebView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 20),
               height: 100,
               child: const Text('Footer')),
-        ]);
+        ]));
   }
 }
 
@@ -43,7 +42,7 @@ class FixedHeightFlWebView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     FlWebViewController? controller;
-    return ExtendedScaffold(
+    return ExtendedWillPopScope(
         onWillPop: () async {
           if (await controller?.canGoBack() ?? false) {
             controller?.goBack();
@@ -51,12 +50,12 @@ class FixedHeightFlWebView extends StatelessWidget {
           }
           return true;
         },
-        appBar: AppBar(title: const Text('FlWebView')),
-        mainAxisAlignment: MainAxisAlignment.center,
-        body: BaseFlWebView(
-            onWebViewCreated: (_) {
-              controller = _;
-            },
-            load: LoadUrlRequest(url)));
+        child: Scaffold(
+            appBar: AppBar(title: const Text('FlWebView')),
+            body: BaseFlWebView(
+                onWebViewCreated: (_) {
+                  controller = _;
+                },
+                load: LoadUrlRequest(url))));
   }
 }

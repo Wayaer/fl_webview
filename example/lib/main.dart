@@ -9,16 +9,20 @@ import 'package:flutter_waya/flutter_waya.dart';
 import 'package:flutter_curiosity/flutter_curiosity.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-// const String url =
-//     'https://blog.csdn.net/ozhuimeng123/article/details/98120505';
-const String url = 'https://site000011.c.yty.daqsoft.com';
+const String url = 'https://juejin.cn/post/7212622837063811109';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Curiosity().desktop.focusDesktop().then((value) {
     Curiosity().desktop.setDesktopSizeTo6P1();
   });
-  runApp(const ExtendedWidgetsApp(home: App(), title: 'FlWebview'));
+  runApp(MaterialApp(
+      navigatorKey: GlobalOptions().navigatorKey,
+      theme: ThemeData.light(useMaterial3: true),
+      darkTheme: ThemeData.dark(useMaterial3: true),
+      debugShowCheckedModeBanner: false,
+      home: const App(),
+      title: 'FlWebview'));
 }
 
 class App extends StatefulWidget {
@@ -30,48 +34,45 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   @override
-  void initState() {
-    super.initState();
-    addPostFrameCallback((_) {});
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return ExtendedScaffold(
+    return Scaffold(
         appBar: AppBar(title: const Text('FlWebView Example')),
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ElevatedText(
-              text: 'Fixed height with WebView',
-              onPressed: () => push(const FixedHeightFlWebView())),
-          ElevatedText(
-              text: 'Adapt height with WebView',
-              onPressed: () => push(const AdaptHeightFlWebView())),
-          const SizedBox(height: 10),
-          ElevatedText(
-              text: 'WebView With ScrollView',
-              onPressed: () =>
-                  push(const ExtendedFlWebViewWithScrollViewPage())),
-          const SizedBox(height: 10),
-          ElevatedText(text: 'Html Text with WebView', onPressed: getHtml),
-          ElevatedText(
-              text: 'Html Text Adapt height with WebView',
-              onPressed: () => getHtml(true)),
-          ElevatedText(
-              text: 'Select file',
-              onPressed: () async {
-                final String data =
-                    await rootBundle.loadString('assets/select_file.html');
-                push(HtmlTextFlWebView(data, title: 'Select file'));
-              }),
-          ElevatedText(
-              text: 'Permission request',
-              onPressed: () async {
-                final String data = await rootBundle
-                    .loadString('assets/permission_request.html');
-                push(HtmlTextFlWebView(data, title: 'Permission request'));
-              }),
-        ]);
+        body: Universal(
+            expand: true,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ElevatedText(
+                  text: 'Fixed height with WebView',
+                  onPressed: () => push(const FixedHeightFlWebView())),
+              ElevatedText(
+                  text: 'Adapt height with WebView',
+                  onPressed: () => push(const AdaptHeightFlWebView())),
+              const SizedBox(height: 10),
+              ElevatedText(
+                  text: 'WebView With ScrollView',
+                  onPressed: () =>
+                      push(const ExtendedFlWebViewWithScrollViewPage())),
+              const SizedBox(height: 10),
+              ElevatedText(text: 'Html Text with WebView', onPressed: getHtml),
+              ElevatedText(
+                  text: 'Html Text Adapt height with WebView',
+                  onPressed: () => getHtml(true)),
+              ElevatedText(
+                  text: 'Select file',
+                  onPressed: () async {
+                    final String data =
+                        await rootBundle.loadString('assets/select_file.html');
+                    push(HtmlTextFlWebView(data, title: 'Select file'));
+                  }),
+              ElevatedText(
+                  text: 'Permission request',
+                  onPressed: () async {
+                    final String data = await rootBundle
+                        .loadString('assets/permission_request.html');
+                    push(HtmlTextFlWebView(data, title: 'Permission request'));
+                  }),
+            ]));
   }
 
   Future<void> getHtml([bool adaptHeight = false]) async {

@@ -206,7 +206,7 @@ class _ExtendedFlWebViewWithScrollViewState
   @override
   void didUpdateWidget(covariant ExtendedFlWebViewWithScrollView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) initController();
+    if (oldWidget.controller != controller) initController();
   }
 
   @override
@@ -273,5 +273,6 @@ class _ExtendedFlWebViewWithScrollViewState
   void dispose() {
     super.dispose();
     controller.removeListener(listener);
+    controller.dispose();
   }
 }

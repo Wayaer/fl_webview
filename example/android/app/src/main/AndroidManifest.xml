@@ -1,5 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="fl.webview.example">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- 网络权限，加载网络网页需要联网 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- 粗略定位权限，允许一个程序通过网络获取粗略的位置 -->

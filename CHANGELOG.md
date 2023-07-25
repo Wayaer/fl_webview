@@ -1,3 +1,8 @@
+## 1.1.1
+
+* Fixed an issue where `onNavigationRequest` return value did not take effect on android
+* In the dispose of `ExtendedFlWebViewWithScrollView` call ScrollController `dispose`
+
 ## 1.1.0
 
 * Add the `onShowFileChooser` callback for android for webview selection files

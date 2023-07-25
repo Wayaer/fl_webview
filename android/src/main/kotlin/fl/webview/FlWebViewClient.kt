@@ -57,7 +57,7 @@ class FlWebViewClient(
                     FlWebViewPlugin.invokeMethod(
                         channel, handler, "onNavigationRequest", args
                     ) { result ->
-                        if (result is Boolean) {
+                        if (result is Boolean && result) {
                             webView.loadUrl(url, headers)
                         }
                     }

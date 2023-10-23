@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 
 class AdaptHtmlTextFlWebView extends StatelessWidget {
-  const AdaptHtmlTextFlWebView(this.loadData, {Key? key}) : super(key: key);
+  const AdaptHtmlTextFlWebView(this.loadData, {super.key});
+
   final String loadData;
 
   @override
@@ -39,8 +40,8 @@ class AdaptHtmlTextFlWebView extends StatelessWidget {
 
 class HtmlTextFlWebView extends StatelessWidget {
   const HtmlTextFlWebView(this.loadData,
-      {Key? key, this.title = 'Html FlWebView'})
-      : super(key: key);
+      {super.key, this.title = 'Html FlWebView'});
+
   final String loadData;
   final String title;
 

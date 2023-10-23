@@ -13,11 +13,11 @@ const String url = 'https://juejin.cn/post/7212622837063811109';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  Curiosity().desktop.focusDesktop().then((value) {
-    Curiosity().desktop.setDesktopSizeTo6P1();
+  Curiosity().desktop.focus().then((value) {
+    Curiosity().desktop.setSizeTo6P1();
   });
   runApp(MaterialApp(
-      navigatorKey: GlobalOptions().navigatorKey,
+      navigatorKey: GlobalWayUI().navigatorKey,
       theme: ThemeData.light(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),
       debugShowCheckedModeBanner: false,
@@ -26,7 +26,7 @@ void main() {
 }
 
 class App extends StatefulWidget {
-  const App({Key? key}) : super(key: key);
+  const App({super.key});
 
   @override
   State<App> createState() => _AppState();
@@ -93,38 +93,41 @@ class BaseFlWebView extends FlWebView {
           progressBar: FlProgressBar(color: Colors.red),
           delegate: FlWebViewDelegate(
               onPageStarted: (FlWebViewController controller, url) {
-            log('onPageStarted : $url');
+            'onPageStarted : $url'.log();
             delegate?.onPageStarted?.call(controller, url);
           }, onPageFinished: (FlWebViewController controller, url) {
-            log('onPageFinished : $url');
+            'onPageFinished : $url'.log();
             2.seconds.delayed(() {
               controller.getWebViewSize();
             });
             delegate?.onPageFinished?.call(controller, url);
           }, onProgress: (FlWebViewController controller, int progress) {
-            log('onProgress ：$progress');
+            'onProgress ：$progress'.log();
             delegate?.onProgress?.call(controller, progress);
           }, onSizeChanged:
                   (FlWebViewController controller, WebViewSize webViewSize) {
-            log('onSizeChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize}');
+            'onSizeChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize}'
+                .log();
             delegate?.onSizeChanged?.call(controller, webViewSize);
           }, onScrollChanged: (FlWebViewController controller,
                   WebViewSize webViewSize,
                   Offset offset,
                   ScrollPositioned positioned) {
-            log('onScrollChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize} --- $offset --- $positioned');
+            'onScrollChanged : ${webViewSize.frameSize} --- ${webViewSize.contentSize} --- $offset --- $positioned'
+                .log();
             delegate?.onScrollChanged
                 ?.call(controller, webViewSize, offset, positioned);
           }, onNavigationRequest:
                   (FlWebViewController controller, NavigationRequest request) {
-            log('onNavigationRequest : url=${request.url} --- isForMainFrame=${request.isForMainFrame}');
+            'onNavigationRequest : url=${request.url} --- isForMainFrame=${request.isForMainFrame}'
+                .log();
             return delegate?.onNavigationRequest?.call(controller, request) ??
                 true;
           }, onUrlChanged: (FlWebViewController controller, url) {
-            log('onUrlChanged : $url');
+            'onUrlChanged : $url'.log();
             delegate?.onUrlChanged?.call(controller, url);
           }, onShowFileChooser: (_, params) async {
-            log('onShowFileChooser : ${params.toMap()}');
+            'onShowFileChooser : ${params.toMap()}'.log();
             FileType fileType = FileType.any;
             if (params.acceptTypes.toString().contains('image')) {
               fileType = FileType.image;
@@ -143,29 +146,28 @@ class BaseFlWebView extends FlWebView {
                 .builder((item) => item.path!);
             return list ?? [];
           }, onGeolocationPermissionsShowPrompt: (_, origin) async {
-            log('onGeolocationPermissionsShowPrompt : $origin');
+            'onGeolocationPermissionsShowPrompt : $origin'.log();
             return await getPermission(Permission.locationWhenInUse);
           }, onPermissionRequest: (_, List<String>? resources) {
-            log('onPermissionRequest : $resources');
+            'onPermissionRequest : $resources'.log();
             return true;
           }, onPermissionRequestCanceled: (_, List<String>? resources) {
-            log('onPermissionRequestCanceled : $resources');
+            'onPermissionRequestCanceled : $resources'.log();
           }),
           onWebViewCreated: (FlWebViewController controller) async {
             String userAgentString = 'userAgentString';
             final value = await controller.getNavigatorUserAgent();
-            log('navigator.userAgent :  $value');
+            'navigator.userAgent :  $value'.log();
             userAgentString = '$value = $userAgentString';
             final userAgent = await controller.setUserAgent(userAgentString);
-            log('set userAgent:  $userAgent');
+            'set userAgent:  $userAgent'.log();
             onWebViewCreated?.call(controller);
           },
         );
 }
 
 class ElevatedText extends StatelessWidget {
-  const ElevatedText({Key? key, required this.text, required this.onPressed})
-      : super(key: key);
+  const ElevatedText({super.key, required this.text, required this.onPressed});
 
   final String text;
   final VoidCallback onPressed;

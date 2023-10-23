@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 
 class AdaptHeightFlWebView extends StatelessWidget {
-  const AdaptHeightFlWebView({Key? key}) : super(key: key);
+  const AdaptHeightFlWebView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +37,7 @@ class AdaptHeightFlWebView extends StatelessWidget {
 }
 
 class FixedHeightFlWebView extends StatelessWidget {
-  const FixedHeightFlWebView({Key? key}) : super(key: key);
+  const FixedHeightFlWebView({super.key});
 
   @override
   Widget build(BuildContext context) {

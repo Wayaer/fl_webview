@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_waya/flutter_waya.dart';
 
 class ExtendedFlWebViewWithScrollViewPage extends StatelessWidget {
-  const ExtendedFlWebViewWithScrollViewPage({Key? key}) : super(key: key);
+  const ExtendedFlWebViewWithScrollViewPage({super.key});
 
   @override
   Widget build(BuildContext context) {

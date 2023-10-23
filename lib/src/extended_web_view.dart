@@ -16,12 +16,13 @@ typedef ExtendedFlWebViewBuilder = Widget Function(
 /// only applicable when there is little content
 class FlAdaptHeightWevView extends StatefulWidget {
   const FlAdaptHeightWevView({
-    Key? key,
+    super.key,
     required this.builder,
     this.initialHeight = 40,
     this.gapUpdateHeight = 40,
     this.maxHeight,
-  }) : super(key: key);
+  });
+
   final ExtendedFlWebViewBuilder builder;
 
   /// 初始高度
@@ -113,7 +114,7 @@ typedef NestedScrollViewBuilder = Widget Function(
 /// There is no lag in scrolling
 class ExtendedFlWebViewWithScrollView extends StatefulWidget {
   const ExtendedFlWebViewWithScrollView({
-    Key? key,
+    super.key,
     required this.scrollViewBuilder,
     required this.webViewBuilder,
     this.controller,
@@ -122,8 +123,7 @@ class ExtendedFlWebViewWithScrollView extends StatefulWidget {
     this.faultTolerantHeight = 15,
     this.gapUpdateHeight = 40,
     this.initialHeight = 40,
-  })  : assert(contentHeight > minHeight),
-        super(key: key);
+  }) : assert(contentHeight > minHeight);
 
   /// scrollview
   final ScrollController? controller;

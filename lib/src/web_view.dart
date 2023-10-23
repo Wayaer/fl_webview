@@ -40,14 +40,14 @@ class LoadDataRequest extends LoadRequest {
 
 class FlWebView extends StatefulWidget {
   const FlWebView({
-    Key? key,
+    super.key,
     required this.load,
     this.onWebViewCreated,
     this.webSettings,
     this.delegate,
     this.gestureRecognizers,
     this.progressBar,
-  }) : super(key: key);
+  });
 
   /// Loaded url or html string
   final LoadRequest load;

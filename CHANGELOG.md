@@ -1,3 +1,7 @@
+## 1.1.2
+
+* Add `namespace` in Android
+
 ## 1.1.1
 
 * Fixed an issue where `onNavigationRequest` return value did not take effect on android

@@ -42,13 +42,15 @@ class FixedHeightFlWebView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     FlWebViewController? controller;
-    return ExtendedWillPopScope(
-        onWillPop: () async {
+    return ExtendedPopScope(
+        canPop: false,
+        onPopInvoked: (bool didPop) async {
+          if (didPop) return;
           if (await controller?.canGoBack() ?? false) {
             controller?.goBack();
-            return false;
+            return;
           }
-          return true;
+          pop();
         },
         child: Scaffold(
             appBar: AppBar(title: const Text('FlWebView')),

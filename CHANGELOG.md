@@ -1,6 +1,7 @@
-## 1.2.0
+## 1.2.1
 
 * Change `FlProgressBar` to `FlWebLoadingBar`
+* Change `progressBar` to `loadingBar`
 
 ## 1.1.2
 

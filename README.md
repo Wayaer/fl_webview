@@ -15,7 +15,7 @@
 Widget build(BuildContext context) {
   return FlWebView(
       load: LoadUrlRequest('url'),
-      progressBar: FlProgressBar(color: Colors.red),
+      loadingBar: FlWebLoadingBar(color: Colors.red),
       webSettings: WebSettings(),
       delegate: FlWebViewDelegate(onPageStarted:
           (FlWebViewController controller, String url) {

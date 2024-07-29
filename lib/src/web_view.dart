@@ -46,7 +46,7 @@ class FlWebView extends StatefulWidget {
     this.webSettings,
     this.delegate,
     this.gestureRecognizers,
-    this.progressBar,
+    this.loadingBar,
   });
 
   /// Loaded url or html string
@@ -64,7 +64,7 @@ class FlWebView extends StatefulWidget {
   final Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers;
 
   /// web view loading progress bar
-  final FlProgressBar? progressBar;
+  final FlWebLoadingBar? loadingBar;
 
   @override
   State<StatefulWidget> createState() => _WebViewState();
@@ -75,7 +75,7 @@ class _WebViewState extends State<FlWebView> {
   late WebSettings webSettings;
   ValueNotifier<int>? currentProgress;
 
-  bool get enableProgressBar => widget.progressBar != null;
+  bool get enableLoadingBar => widget.loadingBar != null;
 
   @override
   void initState() {
@@ -86,7 +86,7 @@ class _WebViewState extends State<FlWebView> {
 
   void initSettings() {
     webSettings.enabledProgressChanged = widget.delegate?.onProgress != null;
-    if (enableProgressBar) {
+    if (enableLoadingBar) {
       currentProgress?.dispose();
       currentProgress = ValueNotifier<int>(0);
       webSettings.enabledProgressChanged = true;
@@ -100,11 +100,11 @@ class _WebViewState extends State<FlWebView> {
 
   void initDelegate() {
     flWebViewController?.delegate = widget.delegate;
-    if (enableProgressBar) {
+    if (enableLoadingBar) {
       final delegate = (widget.delegate ?? FlWebViewDelegate());
-      flWebViewController?.delegate =
-          delegate.copyWith(onProgress: (_, int progress) {
-        delegate.onProgress?.call(_, progress);
+      flWebViewController?.delegate = delegate.copyWith(
+          onProgress: (FlWebViewController controller, int progress) {
+        delegate.onProgress?.call(controller, progress);
         if (mounted) currentProgress?.value = progress;
       });
     }
@@ -114,15 +114,16 @@ class _WebViewState extends State<FlWebView> {
   Widget build(BuildContext context) {
     final webView = WebViewPlatform(
         webSettings: webSettings,
-        onWebViewPlatformCreated: (_) async {
-          flWebViewController = _;
-          await _.createForMac(webSettings, context.size ?? const Size(0, 0));
+        onWebViewPlatformCreated: (FlWebViewController controller) async {
+          flWebViewController = controller;
+          await controller.createForMac(
+              webSettings, context.size ?? const Size(0, 0));
           initDelegate();
           await load();
-          widget.onWebViewCreated?.call(_);
+          widget.onWebViewCreated?.call(controller);
         },
         gestureRecognizers: widget.gestureRecognizers);
-    if (enableProgressBar) {
+    if (enableLoadingBar) {
       return Column(children: [
         buildProgressBar,
         Expanded(child: webView),
@@ -139,11 +140,11 @@ class _WebViewState extends State<FlWebView> {
         }
         return Container(
             width: double.infinity,
-            height: widget.progressBar!.height,
+            height: widget.loadingBar!.height,
             alignment: Alignment.centerLeft,
             child: Container(
                 height: double.infinity,
-                color: widget.progressBar!.color,
+                color: widget.loadingBar!.color,
                 width: double.infinity * value / 100));
       });
 

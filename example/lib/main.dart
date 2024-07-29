@@ -2,22 +2,21 @@ import 'package:example/extended_web_view.dart';
 import 'package:example/html_webview.dart';
 import 'package:example/url_webview.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:fl_extended/fl_extended.dart';
 import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_waya/flutter_waya.dart';
-import 'package:flutter_curiosity/flutter_curiosity.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 const String url = 'https://juejin.cn/post/7212622837063811109';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  Curiosity().desktop.focus().then((value) {
-    Curiosity().desktop.setSizeTo6P1();
-  });
+  // Curiosity().desktop.focus().then((value) {
+  //   Curiosity().desktop.setSizeTo6P1();
+  // });
   runApp(MaterialApp(
-      navigatorKey: GlobalWayUI().navigatorKey,
+      navigatorKey: FlExtended().navigatorKey,
       theme: ThemeData.light(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),
       debugShowCheckedModeBanner: false,
@@ -90,16 +89,13 @@ class BaseFlWebView extends FlWebView {
     FlWebViewDelegate? delegate,
     WebViewCreatedCallback? onWebViewCreated,
   }) : super(
-          progressBar: FlProgressBar(color: Colors.red),
+          loadingBar: FlWebLoadingBar(color: Colors.red),
           delegate: FlWebViewDelegate(
               onPageStarted: (FlWebViewController controller, url) {
             'onPageStarted : $url'.log();
             delegate?.onPageStarted?.call(controller, url);
           }, onPageFinished: (FlWebViewController controller, url) {
             'onPageFinished : $url'.log();
-            2.seconds.delayed(() {
-              controller.getWebViewSize();
-            });
             delegate?.onPageFinished?.call(controller, url);
           }, onProgress: (FlWebViewController controller, int progress) {
             'onProgress ：$progress'.log();

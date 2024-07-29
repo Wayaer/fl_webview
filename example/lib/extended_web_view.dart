@@ -1,9 +1,10 @@
 import 'dart:core';
 
 import 'package:example/main.dart';
+import 'package:fl_extended/fl_extended.dart';
+import 'package:fl_scroll_view/fl_scroll_view.dart';
 import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_waya/flutter_waya.dart';
 
 class ExtendedFlWebViewWithScrollViewPage extends StatelessWidget {
   const ExtendedFlWebViewWithScrollViewPage({super.key});

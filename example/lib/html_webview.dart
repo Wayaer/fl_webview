@@ -1,7 +1,7 @@
 import 'package:example/main.dart';
+import 'package:fl_extended/fl_extended.dart';
 import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_waya/flutter_waya.dart';
 
 class AdaptHtmlTextFlWebView extends StatelessWidget {
   const AdaptHtmlTextFlWebView(this.loadData, {super.key});

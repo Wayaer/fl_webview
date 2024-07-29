@@ -1,7 +1,7 @@
 import 'package:example/main.dart';
+import 'package:fl_extended/fl_extended.dart';
 import 'package:fl_webview/fl_webview.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_waya/flutter_waya.dart';
 
 class AdaptHeightFlWebView extends StatelessWidget {
   const AdaptHeightFlWebView({super.key});
@@ -41,13 +41,13 @@ class FixedHeightFlWebView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    FlWebViewController? controller;
+    FlWebViewController? flWebViewController;
     return ExtendedPopScope(
         canPop: false,
-        onPopInvoked: (bool didPop) async {
+        onPopInvoked: (bool didPop, bool didCloseOverlay) async {
           if (didPop) return;
-          if (await controller?.canGoBack() ?? false) {
-            controller?.goBack();
+          if (await flWebViewController?.canGoBack() ?? false) {
+            flWebViewController?.goBack();
             return;
           }
           pop();
@@ -55,8 +55,8 @@ class FixedHeightFlWebView extends StatelessWidget {
         child: Scaffold(
             appBar: AppBar(title: const Text('FlWebView')),
             body: BaseFlWebView(
-                onWebViewCreated: (_) {
-                  controller = _;
+                onWebViewCreated: (FlWebViewController controller) {
+                  flWebViewController = controller;
                 },
                 load: LoadUrlRequest(url))));
   }

@@ -432,8 +432,8 @@ class FlWebViewDelegate {
               onPermissionRequestCanceled ?? this.onPermissionRequestCanceled);
 }
 
-class FlProgressBar {
-  FlProgressBar({this.color = Colors.blueAccent, this.height = 1});
+class FlWebLoadingBar {
+  FlWebLoadingBar({this.color = Colors.blueAccent, this.height = 1});
 
   /// color
   final Color color;

@@ -1,3 +1,7 @@
+## 1.2.0
+
+* Change `FlProgressBar` to `FlWebLoadingBar`
+
 ## 1.1.2
 
 * Add `namespace` in Android

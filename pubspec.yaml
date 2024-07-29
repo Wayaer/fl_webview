@@ -1,6 +1,6 @@
 name: fl_webview
 description: Based on webView_flutter plugin implemented by flutter supports Android and IOS
-version: 1.1.2
+version: 1.2.0
 repository: https://github.com/Wayaer/fl_webview
 
 environment:
@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
 
 dev_dependencies:
-  flutter_lints: ^3.0.1
+  flutter_lints: ^4.0.0
 
 flutter:
   plugin:

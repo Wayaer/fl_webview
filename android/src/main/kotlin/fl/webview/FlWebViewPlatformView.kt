@@ -308,7 +308,7 @@ class FlWebViewPlatformView(
         }
 
         private var lastContentHeight: Int = 0
-        override fun onDraw(canvas: Canvas?) {
+        override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
             if (enableSizeChanged) {
                 if (lastContentHeight == contentHeight || contentHeight < lastContentHeight) return

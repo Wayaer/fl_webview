@@ -29,6 +29,11 @@ android {
         namespace 'fl.webview'
     }
 
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
@@ -40,5 +45,4 @@ android {
     dependencies {
         implementation 'androidx.webkit:webkit:1.4.0'
     }
-
 }

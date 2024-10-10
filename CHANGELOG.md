@@ -1,3 +1,7 @@
+## 1.3.0
+
+* Update gradle version
+
 ## 1.2.1
 
 * Change `FlProgressBar` to `FlWebLoadingBar`

@@ -2,15 +2,13 @@ group 'fl.webview'
 version '1.0'
 
 buildscript {
-    ext.kotlin_version = '1.7.0'
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.android.tools.build:gradle:8.5.2'
     }
 }
 
@@ -21,11 +19,11 @@ rootProject.allprojects {
     }
 }
 
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
 
 android {
-    compileSdkVersion 33
+    compileSdk = 34
 
     if (project.android.hasProperty("namespace")) {
         namespace 'fl.webview'
@@ -34,12 +32,13 @@ android {
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
-    defaultConfig {
-        minSdkVersion 21
-    }
-}
 
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.webkit:webkit:1.4.0'
+    defaultConfig {
+        minSdk = 21
+    }
+
+    dependencies {
+        implementation 'androidx.webkit:webkit:1.4.0'
+    }
+
 }
